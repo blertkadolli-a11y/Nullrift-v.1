@@ -1,7 +1,6 @@
 /* ==========================================================================
    NULLRIFT — index.css
-   Page-specific: opening moment, the fold (retextured from Fold Study No. 04),
-   homepage sections, page-exit rift.
+   Page-specific: opening moment, brand hero, homepage sections, page-exit rift.
    Shared brand tokens + chrome live in base.css.
    ========================================================================== */
 
@@ -179,315 +178,87 @@ html.js .intro.is-static .intro__sub-text { opacity: 1; }
 html.js .intro.is-static .intro__cue { opacity: 1; }
 
 /* ==========================================================================
-   SECTION A — THE FOLD
-   Ported from _source/fold-source.html. Geometry, structure and timing are
-   untouched; only the palette and the printed artwork are new.
+   SECTION A — BRAND HERO
+   Mark + wordmark only. No plate, crease map, wireframe, or fold geometry.
    ========================================================================== */
 
-.story {
+.hero {
   position: relative;
+  display: grid;
+  place-items: center;
   min-height: 100svh;
-  background: var(--void);
-}
-
-.pin {
-  position: relative;
-  width: 100%;
-  height: 100svh;
-  min-height: 32rem;
+  padding: calc(var(--gutter) * 3) var(--gutter);
   overflow: hidden;
   isolation: isolate;
   background: var(--void);
-  perspective: clamp(850px, 88vw, 1500px);
-  perspective-origin: 50% 48%;
 }
 
-.depth {
+.hero__wash {
   position: absolute;
   inset: 0;
-  z-index: 1;
-  overflow: hidden;
-  background: var(--void);
-  transform-style: preserve-3d;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(58% 48% at 50% 46%, rgba(0, 255, 219, 0.09), transparent 68%),
+    radial-gradient(42% 36% at 72% 28%, rgba(0, 255, 135, 0.05), transparent 70%);
 }
 
-.depth::before,
-.depth::after {
+.hero__wash::before,
+.hero__wash::after {
   content: "";
   position: absolute;
   pointer-events: none;
 }
 
-.depth::before {
+.hero__wash::before {
   inset: 0;
-  background: rgba(0, 255, 219, 0.06);
+  background: rgba(0, 255, 219, 0.045);
   clip-path: polygon(0 0, 24% 0, 59% 42%, 100% 18%, 100% 0);
 }
 
-.depth::after {
+.hero__wash::after {
   inset: 0;
-  background: rgba(0, 255, 135, 0.038);
+  background: rgba(0, 255, 135, 0.03);
   clip-path: polygon(0 84%, 41% 58%, 100% 72%, 100% 100%, 0 100%);
 }
 
-.sheet {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  opacity: 0;
-  transform-style: preserve-3d;
-  transform-origin: 50% 50%;
-  will-change: transform, opacity;
-}
-
-.facet {
-  position: absolute;
-  inset: -0.1%;
-  transform-style: preserve-3d;
-  backface-visibility: visible;
-  will-change: transform, opacity;
-
-  --geo-1: rgba(0, 255, 219, 0.1);
-  --geo-2: rgba(0, 255, 219, 0.055);
-  --geo-3: rgba(0, 255, 219, 0.035);
-  --geo-stroke: rgba(0, 255, 219, 0.24);
-  --facet-accent: var(--cyan);
-}
-
-/* acid reads as an accent on alternating facets only */
-.facet--alt {
-  --geo-3: rgba(0, 255, 135, 0.075);
-  --geo-stroke: rgba(0, 255, 135, 0.2);
-  --facet-accent: var(--acid);
-}
-
-.card {
-  position: absolute;
-  inset: 0;
-  transform-style: preserve-3d;
-  transform-origin: 50% 50%;
-  will-change: transform;
-}
-
-.face {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-}
-
-.front {
-  background: var(--void);
-  transform: translate3d(0, 0, 0.5px);
-}
-
-.back {
-  background: var(--void);
-  transform: rotateY(180deg) translate3d(0, 0, 0.5px);
-}
-
-.face svg {
-  pointer-events: none;
-}
-
-/* --- the printed sheet ---------------------------------------------------- */
-
-.plate {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  background: var(--void);
-}
-
-.plate__geo {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.plate__geo .geo--1 { fill: var(--geo-1); }
-.plate__geo .geo--2 { fill: var(--geo-2); }
-.plate__geo .geo--3 { fill: var(--geo-3); }
-
-.plate__geo .geo-line {
-  fill: none;
-  stroke: var(--geo-stroke);
-  stroke-width: 1;
-}
-
-.plate__geo .geo-line--soft {
-  stroke: rgba(255, 255, 255, 0.07);
-}
-
-.plate__body {
-  position: absolute;
-  inset: 0;
+.hero__brand {
+  position: relative;
+  z-index: 1;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: clamp(0.6rem, 2.2vh, 1.5rem);
-  padding: 0 5vw;
+  gap: clamp(0.65rem, 2vw, 1.6rem);
+  opacity: 0;
+  transform: translate3d(0, 12px, 0) scale(0.985);
+  will-change: transform, opacity;
 }
 
-.plate__eyebrow {
-  font-family: var(--font-mono);
-  font-weight: 500;
-  font-size: clamp(0.44rem, 0.9vw, 0.66rem);
-  letter-spacing: 0.44em;
-  text-transform: uppercase;
-  color: var(--text-mid);
-}
-
-.plate__mark {
-  display: flex;
-  align-items: center;
-  gap: clamp(0.55rem, 1.8vw, 1.7rem);
-  font-size: clamp(2.2rem, min(11vw, 15svh), 8.8rem);
-  line-height: 1;
-}
-
-.plate__glyph {
-  width: 0.8em;
-  height: 0.8em;
+.hero__glyph {
+  width: clamp(2.4rem, min(9vw, 12svh), 6.4rem);
+  height: clamp(2.4rem, min(9vw, 12svh), 6.4rem);
   flex: none;
   fill: none;
-  stroke: var(--facet-accent);
+  stroke: var(--cyan);
   stroke-width: 5;
+  filter: drop-shadow(0 0 18px rgba(0, 255, 219, 0.35));
 }
 
-.plate__divider {
-  display: block;
-  width: 1px;
-  height: 0.66em;
-  background: var(--facet-accent);
-  opacity: 0.75;
-}
-
-.plate__word {
+.hero__word {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 1em;
+  font-size: clamp(2.4rem, min(11vw, 14svh), 7.6rem);
+  line-height: 1;
   letter-spacing: -0.035em;
   color: var(--text);
-  text-shadow: 0 0 22px rgba(0, 255, 219, 0.26);
+  text-shadow: 0 0 28px rgba(0, 255, 219, 0.18);
 }
 
-.plate__rule {
-  display: block;
-  width: min(64%, 46rem);
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(0, 255, 219, 0.5),
-    transparent
-  );
-}
-
-.plate__meta {
-  display: flex;
-  justify-content: space-between;
-  width: min(64%, 46rem);
-  font-family: var(--font-mono);
-  font-size: clamp(0.42rem, 0.85vw, 0.62rem);
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--text-mid);
-}
-
-/* --- reverse face --------------------------------------------------------- */
-
-.plate--reverse {
-  display: grid;
-  place-items: center;
-  /* the back face is mirrored by rotateY(180deg); unmirror the artwork */
-  transform: scaleX(-1);
-}
-
-.plate__halo {
-  grid-area: 1 / 1;
-  width: min(58vw, 52svh);
-  aspect-ratio: 1;
-  background: radial-gradient(
-    circle,
-    rgba(0, 255, 219, 0.26),
-    rgba(0, 255, 219, 0.05) 46%,
-    rgba(0, 255, 219, 0) 68%
-  );
-}
-
-.plate__glyph--big {
-  grid-area: 1 / 1;
-  width: min(26vw, 24svh);
-  height: min(26vw, 24svh);
-  stroke: var(--cyan);
-  stroke-width: 4;
-}
-
-/* --- overlays ------------------------------------------------------------- */
-
-.crease-map,
-.reverse-map {
-  position: absolute;
-  inset: 0;
-  z-index: 7;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  will-change: transform, opacity;
-}
-
-.crease-map {
-  opacity: 0.72;
-  mix-blend-mode: screen;
-}
-
-.reverse-map {
-  opacity: 0;
-  transform: translate3d(0, 0, 2px);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-}
-
-.edge-flash {
-  position: absolute;
-  z-index: 8;
-  top: 50%;
-  left: 50%;
-  width: min(30vw, 30rem);
-  aspect-ratio: 1.5;
-  border: clamp(3px, 0.5vw, 8px) solid var(--cyan);
-  box-shadow: 0 0 70px rgba(0, 255, 219, 0.55),
-    inset 0 0 50px rgba(0, 255, 219, 0.22);
-  opacity: 0;
-  pointer-events: none;
-  will-change: transform, opacity;
-}
-
-@media (max-width: 700px) {
-  .pin {
-    min-height: 30rem;
-    perspective: 780px;
-    perspective-origin: 50% 50%;
-  }
-
-  .edge-flash {
-    width: 46vw;
-    aspect-ratio: 1;
-  }
-
-  .plate__rule,
-  .plate__meta {
-    width: 86%;
-  }
-
-  .plate__meta {
-    letter-spacing: 0.18em;
-  }
+/* Static path only — animated reveal is owned by GSAP. */
+html.js .hero.is-static .hero__brand,
+html:not(.js) .hero__brand {
+  opacity: 1;
+  transform: none;
 }
 
 /* ==========================================================================
@@ -496,8 +267,8 @@ html.js .intro.is-static .intro__cue { opacity: 1; }
 
 .eyebrow {
   font-family: var(--font-mono);
-  font-weight: 500;
-  font-size: 0.64rem;
+  font-weight: 600;
+  font-size: 0.68rem;
   letter-spacing: 0.32em;
   text-transform: uppercase;
   color: var(--cyan);
@@ -557,9 +328,9 @@ html.js .intro.is-static .intro__cue { opacity: 1; }
   padding: 0;
   list-style: none;
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: 0.62rem;
   letter-spacing: 0.24em;
-  color: var(--ash);
+  color: var(--text-mid);
 }
 
 .statement__meta li {
@@ -788,46 +559,11 @@ html.js .intro.is-static .intro__cue { opacity: 1; }
    FALLBACKS
    ========================================================================== */
 
-/* used when GSAP is unavailable */
-.static-reverse .sheet {
-  opacity: 1;
-}
-
-.static-reverse .card {
-  transform: rotateY(180deg);
-}
-
-.static-reverse .crease-map {
-  opacity: 0;
-}
-
-.static-reverse .reverse-map {
-  opacity: 0.82;
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .story {
-    min-height: 100svh;
-  }
-
-  .sheet {
+  .hero__brand {
     opacity: 1;
-  }
-
-  .card {
-    transform: rotateY(180deg);
-  }
-
-  .crease-map {
-    opacity: 0;
-  }
-
-  .reverse-map {
-    opacity: 0.82;
-  }
-
-  .edge-flash {
-    display: none;
+    transform: none;
+    transition: none;
   }
 
   .intro__head.is-glitch {

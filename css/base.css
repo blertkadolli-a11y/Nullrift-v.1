@@ -45,9 +45,9 @@
   --line-soft: rgba(150, 190, 205, 0.08);
 
   /* --- text ramp --------------------------------------------------------- */
-  --text: #e9f1f4;
-  --text-mid: #b4bfc9;
-  --ash: #8e99a5;
+  --text: #eef6f8;
+  --text-mid: #c2ced8;
+  --ash: #9aa7b4;
 
   /* --- interactive feedback (overridden in light) ------------------------ */
   --hover-link: var(--text);
@@ -63,9 +63,9 @@
   --active-theme-fg: var(--text);
 
   /* --- ambient wash ------------------------------------------------------ */
-  --wash-a: rgba(0, 255, 219, 0.055);
-  --wash-b: rgba(122, 96, 255, 0.05);
-  --wash-c: rgba(255, 158, 100, 0.035);
+  --wash-a: rgba(0, 255, 219, 0.08);
+  --wash-b: rgba(0, 255, 135, 0.045);
+  --wash-c: rgba(255, 158, 100, 0.04);
 
   --grain-opacity: 0.05;
   --scroll-thumb: #1b2029;
@@ -120,9 +120,9 @@
   --text-mid: #3f4a57;
   --ash: #5a6572;
 
-  --wash-a: rgba(0, 160, 140, 0.1);
-  --wash-b: rgba(122, 96, 255, 0.05);
-  --wash-c: rgba(255, 138, 60, 0.05);
+  --wash-a: rgba(0, 160, 140, 0.12);
+  --wash-b: rgba(0, 180, 120, 0.06);
+  --wash-c: rgba(255, 138, 60, 0.06);
 
   --shadow-1: 0 1px 2px rgba(16, 26, 38, 0.06);
   --shadow-2: 0 18px 40px -14px rgba(16, 26, 38, 0.18);
@@ -163,9 +163,9 @@
     --text-mid: #3f4a57;
     --ash: #5a6572;
 
-    --wash-a: rgba(0, 160, 140, 0.1);
-    --wash-b: rgba(122, 96, 255, 0.05);
-    --wash-c: rgba(255, 138, 60, 0.05);
+    --wash-a: rgba(0, 160, 140, 0.12);
+    --wash-b: rgba(0, 180, 120, 0.06);
+    --wash-c: rgba(255, 138, 60, 0.06);
 
     --shadow-1: 0 1px 2px rgba(16, 26, 38, 0.06);
     --shadow-2: 0 18px 40px -14px rgba(16, 26, 38, 0.18);
@@ -435,7 +435,7 @@ button {
   font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
-  color: var(--text-mid);
+  color: color-mix(in srgb, var(--text-mid) 82%, var(--text));
   text-decoration: none;
   text-underline-offset: 0.22em;
   text-decoration-thickness: 1.5px;
@@ -589,11 +589,11 @@ button {
   z-index: var(--z-chrome);
   pointer-events: none;
   font-family: var(--font-mono);
-  font-size: 0.6rem;
-  font-weight: 400;
+  font-size: 0.62rem;
+  font-weight: 500;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--ash);
+  color: var(--text-mid);
   white-space: nowrap;
 }
 
@@ -607,7 +607,7 @@ button {
   bottom: var(--gutter);
   /* Status reads warm, the mark reads cold — the two corners hold the page
      between them instead of both being the same cyan. */
-  color: var(--ember);
+  color: #ffb07a;
 }
 
 .nr-corner--br.is-glitch {
