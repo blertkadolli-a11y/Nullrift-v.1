@@ -1,0 +1,567 @@
+/* ==========================================================================
+   NULLRIFT — base.css
+   Shared brand foundation + site chrome. Loaded by every page.
+   Nothing page-specific belongs in this file.
+   Chrome markup contract (see README.md):
+     .nr-grain / .nr-nav (__mark, __glyph, __label, __links)
+     .nr-link / .nr-corner (--bl, --br) / .nr-skip / .sr-only
+   ========================================================================== */
+
+:root {
+  /* --- brand (identical in both themes) --------------------------------- */
+  --cyan: #00ffdb;
+  --acid: #00ff87;
+  --ember: #ff9e64;
+  /* The interactive accent has to carry text on a light background too, so it
+     is a deepened cyan rather than the neon, which is illegible on white. */
+  --accent: #00ffdb;
+  --accent-ink: #04121a;
+  --violet: #8b7bff;
+  /* An always-dark panel, used where a block should invert against whatever
+     theme is running — the premium tier reads as a different object that way. */
+  --ink: #0a0d14;
+  --ink-text: #eef3f6;
+  --ink-mid: #97a3b0;
+  --ink-line: rgba(180, 205, 225, 0.16);
+
+  /* --- radii ------------------------------------------------------------- */
+  --r-card: 18px;
+  --r-media: 12px;
+  --r-btn: 10px;
+  --r-pill: 999px;
+
+  /* --- shadows ----------------------------------------------------------- */
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-2: 0 18px 40px -12px rgba(0, 0, 0, 0.8);
+
+  /* --- surfaces ---------------------------------------------------------- */
+  --void: #05070c;
+  --sunken: #030407;
+  --surface: #0a0d14;
+  --surface-2: #10141d;
+
+  /* --- lines ------------------------------------------------------------- */
+  --line: rgba(150, 190, 205, 0.15);
+  --line-soft: rgba(150, 190, 205, 0.08);
+
+  /* --- text ramp --------------------------------------------------------- */
+  --text: #e9f1f4;
+  --text-mid: #a2adb8;
+  --ash: #79838f;
+
+  /* --- ambient wash ------------------------------------------------------ */
+  --wash-a: rgba(0, 255, 219, 0.055);
+  --wash-b: rgba(122, 96, 255, 0.05);
+  --wash-c: rgba(255, 158, 100, 0.035);
+
+  --grain-opacity: 0.05;
+  --scroll-thumb: #1b2029;
+
+  /* legacy aliases kept so nothing downstream has to change at once */
+  --hair: rgba(0, 255, 219, 0.22);
+  --hair-soft: rgba(255, 255, 255, 0.09);
+
+  /* type */
+  --font-display: "Space Grotesk", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+
+  /* motion */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+
+  /* layout */
+  --gutter: clamp(1.05rem, 3.1vw, 2.75rem);
+
+  /* stacking order for shared layers */
+  --z-chrome: 100;
+  --z-grain: 9000;
+  /* Always above page overlays (expand ~12k, prompt ~13k) */
+  --z-cursor: 50000;
+
+  /* replaced at runtime by chrome.js with a canvas-generated tile */
+  --nr-grain-tex: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* --------------------------------------------------------------------------
+   Light theme.
+
+   Declared twice on purpose: once for an explicit choice, once for visitors on
+   "auto" whose OS asks for light. The auto rule is scoped to :root:not([data-theme])
+   so a deliberate pick always outranks the system, never the other way round.
+   -------------------------------------------------------------------------- */
+
+:root[data-theme="light"] {
+  --accent: #00a58c;
+  --accent-ink: #ffffff;
+
+  --void: #f6f7f9;
+  --sunken: #0b0e13;          /* preview wells stay dark — the art lives there */
+  --surface: #ffffff;
+  --surface-2: #f0f2f5;
+
+  --line: rgba(16, 26, 38, 0.13);
+  --line-soft: rgba(16, 26, 38, 0.07);
+
+  --text: #0d1219;
+  --text-mid: #55606d;
+  --ash: #78828f;
+
+  --wash-a: rgba(0, 180, 158, 0.08);
+  --wash-b: rgba(122, 96, 255, 0.06);
+  --wash-c: rgba(255, 138, 60, 0.05);
+
+  --shadow-1: 0 1px 2px rgba(16, 26, 38, 0.06);
+  --shadow-2: 0 18px 40px -14px rgba(16, 26, 38, 0.18);
+
+  --grain-opacity: 0.022;
+  --scroll-thumb: #c8ced6;
+
+  --hair: rgba(0, 165, 140, 0.3);
+  --hair-soft: rgba(16, 26, 38, 0.08);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --accent: #00a58c;
+    --accent-ink: #ffffff;
+
+    --void: #f6f7f9;
+    --sunken: #0b0e13;
+    --surface: #ffffff;
+    --surface-2: #f0f2f5;
+
+    --line: rgba(16, 26, 38, 0.13);
+    --line-soft: rgba(16, 26, 38, 0.07);
+
+    --text: #0d1219;
+    --text-mid: #55606d;
+    --ash: #78828f;
+
+    --wash-a: rgba(0, 180, 158, 0.08);
+    --wash-b: rgba(122, 96, 255, 0.06);
+    --wash-c: rgba(255, 138, 60, 0.05);
+
+    --shadow-1: 0 1px 2px rgba(16, 26, 38, 0.06);
+    --shadow-2: 0 18px 40px -14px rgba(16, 26, 38, 0.18);
+
+    --grain-opacity: 0.022;
+    --scroll-thumb: #c8ced6;
+
+    --hair: rgba(0, 165, 140, 0.3);
+    --hair-soft: rgba(16, 26, 38, 0.08);
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background: var(--void);
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) var(--void);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-width: 320px;
+  overflow-x: hidden;
+  overscroll-behavior-y: none;
+  /* Transparent so the ambient wash below can show through html's colour. */
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: clamp(0.95rem, 0.9rem + 0.2vw, 1.05rem);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ambient wash — three very low-alpha pools that give the page somewhere to
+   recede to. Fixed, so it stays put while content scrolls over it, and it sits
+   under every positioned descendant without needing a negative z-index. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(1150px 720px at 10% -12%, var(--wash-a), transparent 62%),
+    radial-gradient(980px 820px at 102% 6%, var(--wash-b), transparent 64%),
+    radial-gradient(1250px 900px at 46% 118%, var(--wash-c), transparent 66%);
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--sunken);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  border-radius: var(--r-pill);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+img,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: var(--r-btn);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------------
+   Skip link
+   -------------------------------------------------------------------------- */
+
+.nr-skip {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: calc(var(--z-cursor) + 1);
+  padding: 0.7rem 1.1rem;
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-radius: 0 0 var(--r-btn) 0;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  transform: translateY(-120%);
+  transition: transform 0.28s var(--ease-out-expo);
+}
+
+.nr-skip:focus-visible {
+  transform: translateY(0);
+  outline-offset: -4px;
+}
+
+/* --------------------------------------------------------------------------
+   Film grain — one fixed composited layer, transform-only animation.
+   Inset past the viewport so the drift never exposes an edge.
+   -------------------------------------------------------------------------- */
+
+.nr-grain {
+  position: fixed;
+  inset: -100px;
+  z-index: var(--z-grain);
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  background-image: var(--nr-grain-tex);
+  background-repeat: repeat;
+  background-size: 160px 160px;
+  will-change: transform;
+  animation: nr-grain-drift 0.86s steps(1, end) infinite;
+  contain: layout paint style;
+}
+
+@keyframes nr-grain-drift {
+  0% { transform: translate3d(0, 0, 0); }
+  12.5% { transform: translate3d(-38px, 22px, 0); }
+  25% { transform: translate3d(26px, -34px, 0); }
+  37.5% { transform: translate3d(-19px, -47px, 0); }
+  50% { transform: translate3d(43px, 15px, 0); }
+  62.5% { transform: translate3d(-45px, 41px, 0); }
+  75% { transform: translate3d(31px, 36px, 0); }
+  87.5% { transform: translate3d(-27px, -21px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+/* --------------------------------------------------------------------------
+   Nav
+   -------------------------------------------------------------------------- */
+
+.nr-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-chrome);
+  display: flex;
+  align-items: center;
+  gap: clamp(0.75rem, 2.5vw, 2.25rem);
+  padding: 0.75rem var(--gutter);
+  /* A real bar rather than floating labels: the grid scrolls under it, so it
+     needs its own plane to stay legible against whatever passes beneath. */
+  background: color-mix(in srgb, var(--void) 82%, transparent);
+  backdrop-filter: saturate(140%) blur(14px);
+  -webkit-backdrop-filter: saturate(140%) blur(14px);
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.nr-nav__mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex: none;
+}
+
+.nr-nav__glyph {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  color: var(--accent);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 5;
+  transition: transform 0.55s var(--ease-out-expo);
+}
+
+.nr-nav__mark:hover .nr-nav__glyph,
+.nr-nav__mark:focus-visible .nr-nav__glyph {
+  transform: rotate(180deg);
+}
+
+.nr-nav__label {
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-transform: none;
+  color: var(--text);
+}
+
+.nr-nav__links {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-right: auto;
+}
+
+/* Nav links are plain words now — the mono tracking read as chrome, not as
+   somewhere you could click. */
+.nr-link {
+  display: inline-block;
+  padding: 0.45rem 0.75rem;
+  border-radius: var(--r-btn);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text-mid);
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.nr-link:hover,
+.nr-link:focus-visible {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.nr-link[aria-current="page"] { color: var(--text); }
+
+/* --------------------------------------------------------------------------
+   Nav actions — theme switch + primary call to action
+   -------------------------------------------------------------------------- */
+
+.nr-nav__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex: none;
+}
+
+.nr-theme {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+}
+
+.nr-theme__btn {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-pill);
+  color: var(--text-mid);
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.nr-theme__btn svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.nr-theme__btn:hover { color: var(--text); }
+
+.nr-theme__btn[aria-pressed="true"] {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-1);
+}
+
+.nr-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+  padding: 0 1.05rem;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.2s var(--ease-out-expo), filter 0.2s ease;
+}
+
+.nr-cta:hover,
+.nr-cta:focus-visible {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.nr-cta--ghost {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+
+.nr-cta--ghost:hover,
+.nr-cta--ghost:focus-visible {
+  background: var(--surface-2);
+  filter: none;
+}
+
+@media (max-width: 720px) {
+  .nr-nav { gap: 0.5rem; padding-inline: 1rem; }
+  .nr-nav__label { display: none; }
+  .nr-link { padding-inline: 0.5rem; font-size: 0.85rem; }
+  .nr-cta { height: 34px; padding: 0 0.8rem; font-size: 0.82rem; }
+}
+
+@media (max-width: 560px) {
+  .nr-cta--ghost { display: none; }
+}
+
+/* --------------------------------------------------------------------------
+   Corner chrome
+   -------------------------------------------------------------------------- */
+
+.nr-corner {
+  position: fixed;
+  z-index: var(--z-chrome);
+  pointer-events: none;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ash);
+  white-space: nowrap;
+}
+
+.nr-corner--bl {
+  left: var(--gutter);
+  bottom: var(--gutter);
+}
+
+.nr-corner--br {
+  right: var(--gutter);
+  bottom: var(--gutter);
+  /* Status reads warm, the mark reads cold — the two corners hold the page
+     between them instead of both being the same cyan. */
+  color: var(--ember);
+}
+
+.nr-corner--br.is-glitch {
+  color: var(--acid);
+  transform: translate3d(-2px, 0, 0);
+}
+
+@media (max-width: 480px) {
+  .nr-corner {
+    font-size: 0.52rem;
+    letter-spacing: 0.16em;
+  }
+
+  .nr-nav__label,
+  .nr-link {
+    font-size: 0.58rem;
+    letter-spacing: 0.18em;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Reduced motion
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .nr-grain {
+    animation: none;
+  }
+
+  .nr-nav__glyph,
+  .nr-link::after,
+  .nr-skip {
+    transition-duration: 0.01ms;
+  }
+
+  .nr-nav__mark:hover .nr-nav__glyph {
+    transform: none;
+  }
+
+  .nr-corner--br.is-glitch {
+    transform: none;
+  }
+}

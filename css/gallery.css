@@ -1,0 +1,1720 @@
+/* ==========================================================================
+   NULLRIFT — GALLERY
+   Chrome and catalogue furniture for the motion systems.
+   Brand tokens (--void, --cyan, --acid, --ash, --font-*, --ease-*) come from
+   css/base.css and are never redeclared here.
+   ========================================================================== */
+
+.g-body {
+  --g-gutter: clamp(1.25rem, 4.2vw, 5rem);
+  --g-max: 1720px;
+  --g-hair: var(--line);
+  --g-hair-soft: var(--line-soft);
+  /* Was a fixed near-white, which vanished on a light page. Now it simply
+     follows the theme's ink. */
+  --g-bone: var(--text);
+  --g-mono-size: 0.6875rem;
+  --g-mono-track: 0.17em;
+  /* GSAP power2.out, expressed as a bezier so hover never touches the RAF. */
+  --ease-power2-out: cubic-bezier(0.215, 0.61, 0.355, 1);
+
+  /* Transparent, not --void: html carries the base colour and body::before
+     carries the ambient wash. Painting an opaque body over the top would bury
+     both and put the page back to a single flat black. */
+  background: transparent;
+  color: var(--g-bone);
+  font-family: var(--font-body);
+}
+
+/* --------------------------------------------------------------------------
+   file:// guard — the page cannot work off disk, so say so instead of
+   rendering a grid of dead frames with no explanation anywhere.
+   -------------------------------------------------------------------------- */
+
+.g-fileproto,
+.g-fileproto body {
+  overflow: hidden;
+}
+
+.g-filewarn {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--g-gutter, 1.5rem);
+  background: rgba(0, 0, 0, 0.94);
+  backdrop-filter: blur(6px);
+}
+
+.g-filewarn__box {
+  max-width: 62ch;
+  border: 1px solid rgba(0, 255, 219, 0.4);
+  background: var(--surface);
+  padding: clamp(1.5rem, 4vw, 2.75rem);
+  box-shadow: 0 0 40px rgba(0, 255, 219, 0.08);
+}
+
+.g-filewarn__tag {
+  margin: 0 0 1.1rem;
+  color: #ff5a3c;
+}
+
+.g-filewarn__title {
+  margin: 0 0 1.1rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.5rem, 3.4vw, 2.4rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--g-bone);
+}
+
+.g-filewarn__body {
+  margin: 0 0 1rem;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-mid);
+}
+
+.g-filewarn__body code,
+.g-filewarn__body strong {
+  color: var(--g-bone);
+  font-weight: 500;
+}
+
+.g-filewarn__body code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+}
+
+/* Deliberately not .mono — that utility uppercases, and an uppercased path is
+   a command that fails when pasted. */
+.g-filewarn__cmd {
+  margin: 0 0 1.25rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--g-hair);
+  background: var(--sunken);
+  color: var(--acid);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.7;
+  letter-spacing: 0.04em;
+  overflow-x: auto;
+  white-space: pre;
+  text-transform: none;
+  user-select: all;
+}
+
+.g-filewarn__link {
+  color: var(--cyan);
+  text-underline-offset: 3px;
+}
+
+/* --------------------------------------------------------------------------
+   Utilities
+   -------------------------------------------------------------------------- */
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--g-mono-size);
+  font-weight: 400;
+  letter-spacing: var(--g-mono-track);
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+.dim { color: var(--ash); }
+
+.g-noscript {
+  padding: 8rem var(--g-gutter) 4rem;
+  max-width: 46ch;
+  color: var(--ash);
+  line-height: 1.6;
+}
+
+/* --------------------------------------------------------------------------
+   Scrims — keep the shared fixed chrome legible over full-bleed exhibits
+   without restyling anything base.css owns.
+   -------------------------------------------------------------------------- */
+
+.g-scrim {
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 95;
+  height: clamp(4.5rem, 11vh, 7.5rem);
+  pointer-events: none;
+}
+
+.g-scrim--top {
+  display: none;
+  top: 0;
+  background: linear-gradient(to bottom, var(--void) 0%, color-mix(in srgb, var(--void) 55%, transparent) 45%, transparent 100%);
+}
+
+.g-scrim--bottom {
+  bottom: 0;
+  background: linear-gradient(to top, var(--void) 0%, color-mix(in srgb, var(--void) 55%, transparent) 45%, transparent 100%);
+}
+
+/* --------------------------------------------------------------------------
+   Scroll progress hairline
+   -------------------------------------------------------------------------- */
+
+.g-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 90;
+  height: 1px;
+  background: var(--g-hair-soft);
+  pointer-events: none;
+}
+
+.g-progress__bar {
+  display: block;
+  height: 100%;
+  width: 100%;
+  /* Runs cold to warm across the page, so the rail reports depth as well as
+     position. One flat cyan line said nothing. */
+  background: linear-gradient(90deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 70%, var(--ember)) 55%, var(--ember) 100%);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  will-change: transform;
+}
+
+/* --------------------------------------------------------------------------
+   Shell
+   -------------------------------------------------------------------------- */
+
+.g-main {
+  position: relative;
+  width: 100%;
+  max-width: var(--g-max);
+  margin-inline: auto;
+  padding-inline: var(--g-gutter);
+}
+
+/* --------------------------------------------------------------------------
+   Hero
+   -------------------------------------------------------------------------- */
+
+.hero {
+  position: relative;
+  padding-block: clamp(6rem, 15vh, 10rem) clamp(3.5rem, 9vh, 6rem);
+  max-width: 62rem;
+}
+
+.hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0 0 clamp(1.25rem, 3vh, 2rem);
+  padding: 0.4rem 0.85rem 0.4rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-mid);
+}
+
+.hero__pip {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--r-pill);
+  background: var(--acid);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--acid) 22%, transparent);
+}
+
+/* Sentence case at a humane size. The old all-caps slab filled the viewport
+   and said nothing; this leaves room for the work to be the loud part. */
+.hero__title {
+  margin: 0 0 clamp(1.1rem, 2.6vh, 1.75rem);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2.9rem, 8vw, 6.2rem);
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+  text-transform: none;
+  color: var(--text);
+}
+
+.mast__line { display: block; }
+
+.hero__deck {
+  margin: 0 0 clamp(1.75rem, 4vh, 2.5rem);
+  max-width: 54ch;
+  font-size: clamp(1.02rem, 1.35vw, 1.2rem);
+  line-height: 1.6;
+  color: var(--text-mid);
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-bottom: clamp(2.5rem, 6vh, 4rem);
+}
+
+.hero__cta {
+  height: 46px;
+  padding: 0 1.4rem;
+  font-size: 0.95rem;
+}
+
+.hero__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 clamp(1.75rem, 5vw, 3.5rem);
+  margin: 0;
+  padding: 1.4rem 0 0;
+  list-style: none;
+  border-top: 1px solid var(--line-soft);
+}
+
+.hero__stats li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+}
+
+.hero__stats strong {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.5rem;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.hero__stats span {
+  font-size: 0.85rem;
+  color: var(--ash);
+}
+
+/* The headline is plain text that is always painted. It never waits on a script
+   to become visible; two offset colour copies tear across it for well under a
+   second on arrival, then stop. */
+.mast__word {
+  position: relative;
+  display: inline-block;
+  animation: mast-jitter 0.62s steps(1, end) 1 both;
+}
+
+.mast__word::before,
+.mast__word::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.mast__word::before {
+  color: var(--accent);
+  animation: mast-tear-a 0.62s steps(1, end) 1 both;
+}
+
+.mast__word::after {
+  color: var(--ember);
+  animation: mast-tear-b 0.62s steps(1, end) 1 both;
+}
+
+.mast__line:nth-child(2) .mast__word,
+.mast__line:nth-child(2) .mast__word::before,
+.mast__line:nth-child(2) .mast__word::after {
+  animation-delay: 0.09s;
+}
+
+/* The null mark is the logo, so it wears the logo's accent. overflow stays
+   visible: the slash overshoots the ring by design. */
+.mast__glyph {
+  display: inline-block;
+  overflow: visible;
+  margin-left: 0.1em;
+  padding-right: 0.06em;
+  color: var(--accent);
+  font-size: 0.72em;
+  vertical-align: baseline;
+  text-shadow: 0 0 28px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+@keyframes mast-jitter {
+  0%   { transform: translate3d(-3px, 0, 0); }
+  14%  { transform: translate3d(4px, 0, 0); }
+  28%  { transform: translate3d(-2px, 0, 0); }
+  46%  { transform: translate3d(2px, 0, 0); }
+  64%  { transform: translate3d(-1px, 0, 0); }
+  100% { transform: none; }
+}
+
+@keyframes mast-tear-a {
+  0%   { opacity: 0.9; clip-path: inset(14% 0 62% 0); transform: translate3d(-9px, 0, 0); }
+  18%  { opacity: 0.85; clip-path: inset(66% 0 14% 0); transform: translate3d(7px, 0, 0); }
+  36%  { opacity: 0.7; clip-path: inset(38% 0 44% 0); transform: translate3d(-5px, 0, 0); }
+  54%  { opacity: 0.5; clip-path: inset(78% 0 8% 0); transform: translate3d(4px, 0, 0); }
+  72%  { opacity: 0.3; clip-path: inset(24% 0 66% 0); transform: translate3d(-2px, 0, 0); }
+  100% { opacity: 0; clip-path: inset(50% 0 50% 0); transform: none; }
+}
+
+@keyframes mast-tear-b {
+  0%   { opacity: 0.75; clip-path: inset(58% 0 22% 0); transform: translate3d(8px, 0, 0); }
+  18%  { opacity: 0.7; clip-path: inset(10% 0 72% 0); transform: translate3d(-6px, 0, 0); }
+  36%  { opacity: 0.55; clip-path: inset(46% 0 34% 0); transform: translate3d(5px, 0, 0); }
+  54%  { opacity: 0.4; clip-path: inset(20% 0 68% 0); transform: translate3d(-3px, 0, 0); }
+  72%  { opacity: 0.22; clip-path: inset(70% 0 18% 0); transform: translate3d(2px, 0, 0); }
+  100% { opacity: 0; clip-path: inset(50% 0 50% 0); transform: none; }
+}
+
+/* --------------------------------------------------------------------------
+   The library — live preview grid
+   -------------------------------------------------------------------------- */
+
+.library {
+  position: relative;
+  padding-block: clamp(3rem, 9vh, 7rem) clamp(4rem, 11vh, 9rem);
+  border-top: 1px solid var(--g-hair);
+  scroll-margin-top: clamp(3.5rem, 8vh, 6rem);
+}
+
+.library__head {
+  margin-bottom: clamp(2rem, 5vh, 3.5rem);
+  max-width: 62ch;
+}
+
+.library__label {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin: 0 0 1.1rem;
+  color: var(--accent);
+}
+
+/* The label carries its own rule out to the margin — section furniture that
+   holds the eye rather than a floating caption. */
+.library__label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  max-width: 22rem;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 45%, transparent), transparent);
+}
+
+.library__title {
+  margin: 0 0 0.9rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.6rem, 3.4vw, 2.75rem);
+  line-height: 1;
+  letter-spacing: -0.032em;
+  color: var(--g-bone);
+}
+
+.library__deck {
+  margin: 0;
+  font-size: clamp(0.9rem, 1.1vw, 1.02rem);
+  line-height: 1.6;
+  color: var(--text-mid);
+}
+
+.library__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(1rem, 2.2vw, 1.75rem);
+}
+
+/* Card --------------------------------------------------------------------- */
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  scroll-margin-top: 6rem;
+  transform: translateZ(0);
+  will-change: transform;
+  box-shadow: var(--shadow-1);
+  transition:
+    border-color 0.25s var(--ease-power2-out),
+    box-shadow 0.25s var(--ease-power2-out),
+    transform 0.25s var(--ease-power2-out);
+}
+
+.card:focus { outline: none; }
+
+/* The legacy frame contributes nothing inside a card — the border lives on
+   .card and the fill lives on .card__preview. Only the border is cleared here;
+   clearing the background too let the page colour show through any gap an
+   animation leaves, which is glaring on a light theme. */
+.card.card .exhibit__frame {
+  border: 0;
+}
+
+/* The preview is a rounded plate the card holds, with its own clipping so the
+   animation inside can never square off the corners. */
+.card__preview {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: calc(var(--r-card) - 8px);
+  background: var(--sunken);
+  isolation: isolate;
+}
+
+.card__preview .exhibit__stage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  max-height: none;
+}
+
+.card__plate {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  z-index: 5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  pointer-events: none;
+}
+
+/* Both ends of the plate are chips sitting on the artwork, so they stay
+   legible whatever the animation underneath is doing. */
+.card__plate > span {
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--r-pill);
+  background: rgba(8, 11, 16, 0.62);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+}
+
+.card__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--ash);
+}
+
+/* A lamp, not just a word. Steady when live, so it reads as instrumentation
+   rather than decoration. */
+.card__status::before {
+  content: "";
+  width: 4px;
+  height: 4px;
+  flex: none;
+  background: currentColor;
+  opacity: 0.55;
+  transition: opacity 0.3s var(--ease-out-expo);
+}
+
+.card__status[data-state="live"] { color: var(--acid); }
+.card__status[data-state="live"]::before {
+  opacity: 1;
+  box-shadow: 0 0 7px currentColor;
+}
+.card__status[data-state="loading"] { color: var(--cyan); }
+.card__status[data-state="loading"]::before {
+  animation: card-lamp 0.9s steps(1, end) infinite;
+}
+.card__status[data-state="failed"] { color: #ff5a3c; }
+
+@keyframes card-lamp {
+  0%, 55% { opacity: 1; }
+  56%, 100% { opacity: 0.2; }
+}
+
+.card__cue {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  z-index: 5;
+  padding: 0.42rem 0.8rem;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition: opacity 0.25s var(--ease-out-expo), transform 0.25s var(--ease-out-expo);
+}
+
+.card__info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+  padding: 16px 8px 8px;
+}
+
+.card__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.card__link {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* The whole card is clickable, but the hit area is wired in JS rather than by
+   a stretched ::after overlay — an overlay would swallow the pointer events
+   the live preview underneath it needs to stay interactive on hover. */
+.card__link:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 3px;
+}
+
+.card__desc {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-mid);
+}
+
+.card__actions {
+  position: relative;
+  z-index: 7;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.frame__btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 2.35rem;
+  padding: 0 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s var(--ease-out-expo);
+}
+
+.frame__btn svg { display: block; width: 14px; height: 14px; }
+
+.frame__btn:hover,
+.frame__btn:focus-visible {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.frame__btn:active { transform: translateY(0); }
+
+.card__actions .frame__btn { min-height: 2.2rem; padding: 0 0.9rem; }
+
+/* The catalogue's primary action wears the accent from the start. */
+.frame__btn--prompt {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.frame__btn--prompt:hover,
+.frame__btn--prompt:focus-visible {
+  filter: brightness(1.08);
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* Hover — only one card can be hot at a time, so the lift never stacks. */
+@media (hover: hover) {
+  .card {
+    transition:
+      transform 0.3s var(--ease-power2-out),
+      border-color 0.3s var(--ease-power2-out),
+      box-shadow 0.3s var(--ease-power2-out);
+  }
+
+  .card.is-hot,
+  .card:focus-within {
+    z-index: 3;
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+    box-shadow: var(--shadow-2);
+    transform: translateY(-4px);
+  }
+
+  .card.is-hot .card__cue {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Pricing
+   -------------------------------------------------------------------------- */
+
+.plans {
+  position: relative;
+  padding-block: clamp(4rem, 11vh, 8rem) clamp(3rem, 8vh, 6rem);
+  border-top: 1px solid var(--line-soft);
+}
+
+.plans__head {
+  max-width: 60ch;
+  margin-bottom: clamp(2.25rem, 6vh, 3.5rem);
+}
+
+.plans__label {
+  margin: 0 0 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--accent);
+}
+
+.plans__title,
+.faq__title {
+  margin: 0 0 0.9rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.9rem, 4.4vw, 3.2rem);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  color: var(--text);
+}
+
+.plans__deck {
+  margin: 0;
+  font-size: clamp(0.95rem, 1.2vw, 1.08rem);
+  line-height: 1.6;
+  color: var(--text-mid);
+}
+
+.plans__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(0.9rem, 1.8vw, 1.4rem);
+  align-items: stretch;
+}
+
+/* Plan card ---------------------------------------------------------------- */
+
+.plan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(1.4rem, 2.6vw, 2rem);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-1);
+  transition:
+    border-color 0.25s var(--ease-power2-out),
+    box-shadow 0.25s var(--ease-power2-out),
+    transform 0.25s var(--ease-power2-out);
+}
+
+@media (hover: hover) {
+  .plan:hover {
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+    box-shadow: var(--shadow-2);
+    transform: translateY(-4px);
+  }
+}
+
+.plan--feature {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  box-shadow: var(--shadow-2);
+}
+
+.plan__flag {
+  position: absolute;
+  top: 0;
+  right: clamp(1.4rem, 2.6vw, 2rem);
+  transform: translateY(-50%);
+  padding: 0.34rem 0.75rem;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.plan__tier {
+  margin: 0 0 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.plan__price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  margin: 0 0 0.4rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2.4rem, 5vw, 3.1rem);
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.plan__cur {
+  font-size: 0.46em;
+  align-self: flex-start;
+  margin-top: 0.35em;
+  color: var(--text-mid);
+  letter-spacing: 0;
+}
+
+/* Billing cadence sits beside the number, never inside it — a price that reads
+   as "89.99once" is a price nobody trusts. */
+.plan__per {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--text-mid);
+}
+
+.plan__unit {
+  margin: 0 0 1.2rem;
+  padding-bottom: 1.2rem;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 0.88rem;
+  color: var(--text-mid);
+}
+
+.plan__name {
+  margin: 0 0 0.9rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.12rem;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.plan__list,
+.studio__list {
+  flex: 1;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.62rem;
+  align-content: start;
+}
+
+.plan__list li,
+.studio__list li {
+  position: relative;
+  padding-left: 1.55rem;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--text-mid);
+}
+
+.plan__list strong,
+.studio__list strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.plan__list li::before,
+.studio__list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.42em;
+  width: 9px;
+  height: 5px;
+  border-left: 1.6px solid var(--accent);
+  border-bottom: 1.6px solid var(--accent);
+  transform: rotate(-45deg);
+}
+
+.plan__cta {
+  width: 100%;
+  min-height: 2.8rem;
+  font-size: 0.88rem;
+  text-decoration: none;
+}
+
+/* A checkout target that is not configured must never look like a buy button. */
+.plan__cta[data-unwired] {
+  background: var(--surface-2);
+  border-color: var(--line);
+  color: var(--ash);
+  cursor: not-allowed;
+  filter: none;
+}
+
+.plan__cta[data-unwired]:hover {
+  background: var(--surface-2);
+  color: var(--ash);
+  transform: none;
+}
+
+/* Studio — the wide partnership card.
+
+   It sells the most expensive thing on the page, so it is built to read as a
+   different object rather than a fourth column: a tinted panel holding an
+   always-dark buy card, which keeps the same silhouette in either theme. */
+
+.studio {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: clamp(1.5rem, 3.5vw, 3rem);
+  align-items: stretch;
+  margin-top: clamp(1.5rem, 3vh, 2.25rem);
+  padding: clamp(1.6rem, 3.2vw, 2.75rem);
+  border: 1px solid color-mix(in srgb, var(--violet) 30%, var(--line));
+  border-radius: var(--r-card);
+  background:
+    radial-gradient(88% 130% at 100% 0%, color-mix(in srgb, var(--violet) 26%, transparent), transparent 62%),
+    radial-gradient(80% 120% at 0% 100%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 64%),
+    var(--surface-2);
+  box-shadow: var(--shadow-2);
+}
+
+.studio__label {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--violet);
+}
+
+.studio__title {
+  margin: 0 0 1rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.65rem, 3.3vw, 2.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.032em;
+  color: var(--text);
+}
+
+.studio__deck {
+  margin: 0 0 1.4rem;
+  max-width: 46ch;
+  font-size: 0.98rem;
+  line-height: 1.6;
+  color: var(--text-mid);
+}
+
+.studio__list { margin-bottom: 0; }
+.studio__list li::before { border-color: var(--violet); }
+
+/* The buy card is always dark, in both themes — it is the object you are
+   actually buying, and it should not dissolve into the panel behind it. */
+.studio__buy {
+  display: flex;
+  flex-direction: column;
+  padding: clamp(1.35rem, 2.5vw, 1.9rem);
+  border: 1px solid var(--ink-line);
+  border-radius: calc(var(--r-card) - 4px);
+  background: var(--ink);
+  color: var(--ink-text);
+  box-shadow: 0 20px 44px -18px rgba(0, 0, 0, 0.75);
+}
+
+.studio__flag {
+  align-self: flex-start;
+  margin: 0 0 1.1rem;
+  padding: 0.34rem 0.75rem;
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--ember) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ember) 45%, transparent);
+  color: var(--ember);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.studio__price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  margin: 0 0 0.4rem;
+}
+
+.studio__was {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 500;
+  color: var(--ink-mid);
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+}
+
+.studio__now {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.15rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2.6rem, 5.5vw, 3.6rem);
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+  color: var(--ink-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.studio__now .plan__cur { color: var(--ink-mid); }
+
+.studio__note {
+  margin: 0 0 1.3rem;
+  font-size: 0.85rem;
+  color: var(--ink-mid);
+}
+
+.studio__guarantee {
+  margin-bottom: 1.4rem;
+  padding: 0.95rem 1.1rem;
+  border: 1px solid color-mix(in srgb, var(--acid) 32%, transparent);
+  border-radius: var(--r-btn);
+  background: color-mix(in srgb, var(--acid) 9%, transparent);
+}
+
+.studio__guarantee-title {
+  margin: 0 0 0.3rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--acid);
+}
+
+.studio__guarantee-body {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: var(--ink-mid);
+}
+
+.studio__guarantee-body strong { color: var(--ink-text); font-weight: 600; }
+
+.studio__cta { margin-top: auto; }
+
+/* Inside the dark buy card the button needs the dark card's own neutrals, not
+   the page theme's — otherwise it turns white-on-white in light mode. */
+.studio__cta.frame__btn {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.studio__cta.frame__btn[data-unwired] {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--ink-line);
+  color: var(--ink-mid);
+}
+
+.plans__note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 1rem;
+  margin: clamp(1.75rem, 4vh, 2.75rem) 0 0;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--line-soft);
+  font-size: 0.88rem;
+  color: var(--ash);
+}
+
+.plans__mail {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  padding-bottom: 1px;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.plans__mail:hover,
+.plans__mail:focus-visible {
+  color: var(--text);
+  border-color: var(--text);
+}
+
+/* --------------------------------------------------------------------------
+   FAQ
+   -------------------------------------------------------------------------- */
+
+.faq {
+  padding-block: clamp(3.5rem, 9vh, 6.5rem);
+  border-top: 1px solid var(--line-soft);
+}
+
+.faq__title { margin-bottom: clamp(1.75rem, 4vh, 2.75rem); }
+
+.faq__list {
+  border-top: 1px solid var(--line-soft);
+  max-width: 78ch;
+}
+
+/* <details> carries the open/closed state natively, so this needs no script
+   and still works with the keyboard and with search-in-page. */
+.faq__item { border-bottom: 1px solid var(--line-soft); }
+
+.faq__q {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 1.35rem 3rem 1.35rem 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.02rem, 1.7vw, 1.3rem);
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  color: var(--text);
+  cursor: pointer;
+  list-style: none;
+  transition: color 0.2s ease;
+}
+
+.faq__q::-webkit-details-marker { display: none; }
+.faq__q:hover { color: var(--accent); }
+
+/* A plus that becomes a minus — one element, rotated. */
+.faq__q::before,
+.faq__q::after {
+  content: "";
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  width: 15px;
+  height: 1.6px;
+  background: currentColor;
+  transition: transform 0.28s var(--ease-out-expo), opacity 0.28s ease;
+}
+
+.faq__q::before { transform: translateY(-50%); }
+.faq__q::after { transform: translateY(-50%) rotate(90deg); }
+
+.faq__item[open] .faq__q::after {
+  transform: translateY(-50%) rotate(0deg);
+  opacity: 0;
+}
+
+.faq__item[open] .faq__q { color: var(--accent); }
+
+.faq__a {
+  padding: 0 3rem 1.5rem 0;
+  animation: faq-open 0.3s var(--ease-out-expo) both;
+}
+
+.faq__a p {
+  margin: 0;
+  max-width: 68ch;
+  font-size: 0.98rem;
+  line-height: 1.65;
+  color: var(--text-mid);
+}
+
+@keyframes faq-open {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faq__a { animation: none; }
+}
+
+@media (max-width: 1000px) {
+  .plans__grid { grid-template-columns: minmax(0, 1fr); }
+  .plan--feature { order: -1; }
+  .plan__flag { right: auto; left: clamp(1.4rem, 2.6vw, 2rem); }
+  .studio { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Frame ------------------------------------------------------------------- */
+
+.exhibit__frame {
+  position: relative;
+  border: 1px solid var(--g-hair);
+  background: var(--sunken);
+}
+
+.exhibit__frame::before,
+.exhibit__frame::after {
+  content: "";
+  position: absolute;
+  z-index: 4;
+  width: 11px;
+  height: 11px;
+  border: 1px solid var(--cyan);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.exhibit__frame::before { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+.exhibit__frame::after { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
+
+.exhibit__stage {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: transparent;
+  touch-action: manipulation;
+}
+
+/* --------------------------------------------------------------------------
+   Fullscreen expand
+   -------------------------------------------------------------------------- */
+
+html.is-expanded,
+html.is-expanded body {
+  overflow: hidden;
+}
+
+.exhibit.is-expanded {
+  position: fixed;
+  inset: 0;
+  z-index: 12000;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  background: var(--void);
+}
+
+.exhibit.is-expanded .card__info,
+.exhibit.is-expanded .card__cue {
+  display: none;
+}
+
+/* The lift/glow must not survive into fullscreen. */
+.exhibit.is-expanded {
+  border: 0;
+  box-shadow: none;
+  transform: none !important;
+}
+
+.exhibit.is-expanded .card__preview {
+  aspect-ratio: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.exhibit.is-expanded .card__plate {
+  padding-top: calc(0.7rem + env(safe-area-inset-top, 0px));
+  padding-inline: clamp(1rem, 3vw, 2rem);
+}
+
+.exhibit.is-expanded .exhibit__frame {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  border: 0;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+.exhibit.is-expanded .exhibit__frame::before,
+.exhibit.is-expanded .exhibit__frame::after {
+  display: none;
+}
+
+.exhibit.is-expanded .exhibit__stage {
+  flex: 1;
+  aspect-ratio: auto;
+  max-height: none;
+  min-height: 0;
+}
+
+.expand-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 12010;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: calc(0.85rem + env(safe-area-inset-top, 0px)) clamp(1rem, 3vw, 2rem) 0.85rem;
+  pointer-events: none;
+}
+
+.expand-bar[hidden] { display: none !important; }
+
+.expand-bar__meta {
+  display: flex;
+  gap: 0.85rem;
+  color: var(--cyan);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-shadow: 0 0 18px rgba(0, 0, 0, 0.85);
+}
+
+.expand-bar__close {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.35rem;
+  padding: 0 0.9rem;
+  border: 1px solid rgba(0, 255, 219, 0.4);
+  background: rgba(0, 0, 0, 0.72);
+  color: var(--cyan);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  cursor: pointer;
+  transition: background 0.25s var(--ease-out-expo), color 0.25s var(--ease-out-expo);
+}
+
+.expand-bar__close:hover,
+.expand-bar__close:focus-visible {
+  background: var(--cyan);
+  color: var(--void);
+  outline: none;
+}
+
+/* --------------------------------------------------------------------------
+   Prompt panel
+   -------------------------------------------------------------------------- */
+
+.prompt {
+  position: fixed;
+  inset: 0;
+  z-index: 13000;
+  display: flex;
+  padding: clamp(0.5rem, 2vw, 1.25rem);
+}
+
+.prompt[hidden] { display: none !important; }
+
+.prompt__veil {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--void) 72%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: prompt-veil 0.3s ease both;
+}
+
+@keyframes prompt-veil { from { opacity: 0; } to { opacity: 1; } }
+
+.prompt__sheet {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: min(54rem, 100%);
+  max-height: 100%;
+  margin: 0 0 0 auto;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
+  animation: prompt-in 0.42s var(--ease-out-expo) both;
+}
+
+.prompt__head,
+.prompt__toolbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem clamp(1.1rem, 2.6vw, 1.75rem);
+}
+
+.prompt__head { border-bottom: 1px solid var(--line-soft); }
+
+.prompt__id {
+  display: flex;
+  gap: 0.6rem;
+  color: var(--accent);
+}
+
+.prompt__x {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  color: var(--text-mid);
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.prompt__x:hover,
+.prompt__x:focus-visible {
+  background: var(--accent);
+  color: var(--accent-ink);
+  outline: none;
+}
+
+.prompt__title-row {
+  flex: none;
+  padding: 1.4rem clamp(1.1rem, 2.6vw, 1.75rem) 0;
+}
+
+.prompt__title {
+  margin: 0 0 0.4rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.6rem, 3.2vw, 2.3rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+
+.prompt__tech { margin: 0; }
+
+.prompt__use {
+  flex: none;
+  margin: 0;
+  padding: 0.9rem clamp(1.1rem, 2.6vw, 1.75rem) 1.2rem;
+  max-width: 52ch;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-mid);
+}
+
+.prompt__toolbar {
+  border-top: 1px solid var(--line-soft);
+  border-bottom: 1px solid var(--line-soft);
+  background: var(--surface-2);
+}
+
+.prompt__copy {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.35rem;
+  padding: 0 1.1rem;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  cursor: pointer;
+  transition: filter 0.2s ease, transform 0.2s var(--ease-out-expo);
+}
+
+.prompt__copy:hover,
+.prompt__copy:focus-visible {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.prompt__copy.is-copied { filter: none; }
+
+.prompt__body {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 1.25rem clamp(1.1rem, 2.6vw, 1.75rem) 1.5rem;
+  overflow: auto;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.75;
+  color: var(--text-mid);
+  white-space: pre-wrap;
+  word-break: break-word;
+  tab-size: 2;
+  background: var(--void);
+  scrollbar-width: thin;
+}
+
+.prompt__body::-webkit-scrollbar { width: 8px; }
+.prompt__body::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  border-radius: var(--r-pill);
+}
+
+.prompt__foot {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem clamp(1.1rem, 2.6vw, 1.75rem);
+  border-top: 1px solid var(--line-soft);
+}
+
+
+/* Monospace stays for identifiers, but the shouty tracking does not belong in
+   the new panel — these are labels, not chrome. */
+.prompt .mono {
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-size: 0.78rem;
+}
+
+.prompt__tech,
+.prompt__foot {
+  font-size: 0.82rem;
+  letter-spacing: 0;
+}
+
+@keyframes prompt-in {
+  from { transform: translateX(4%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* --------------------------------------------------------------------------
+   Touch + narrow
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 720px) {
+  .prompt { padding: 0; }
+
+  .prompt__sheet {
+    width: 100%;
+    max-height: 100%;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    animation-name: prompt-in-mobile;
+  }
+
+  .card__actions {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+@keyframes prompt-in-mobile {
+  from { transform: translateY(6%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .frame__btn,
+  .card__link,
+  .expand-bar__close,
+  .prompt__x,
+  .prompt__copy,
+  .prompt__veil {
+    cursor: pointer;
+  }
+
+  /* With no hover there is nothing to reveal the affordance, so it stays up. */
+  .card__cue {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prompt__sheet,
+  .prompt__veil { animation: none; }
+}
+
+/* --------------------------------------------------------------------------
+   Outro
+   -------------------------------------------------------------------------- */
+
+.outro {
+  position: relative;
+  padding-block: clamp(5rem, 15vh, 11rem) clamp(4rem, 9vh, 7rem);
+  border-top: 1px solid var(--g-hair);
+}
+
+.outro__rule { display: none; }
+
+.outro__title {
+  margin: 1.1rem 0 1.4rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2.4rem, 8.5vw, 8rem);
+  line-height: 0.88;
+  letter-spacing: -0.042em;
+  text-transform: uppercase;
+}
+
+.outro__deck {
+  max-width: 44ch;
+  margin: 0 0 clamp(2.5rem, 6vh, 4rem);
+  font-size: clamp(0.95rem, 1.2vw, 1.1rem);
+  line-height: 1.6;
+  color: var(--text-mid);
+}
+
+.outro__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.1rem;
+  padding: 1.05rem 1.6rem;
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-decoration: none;
+  overflow: hidden;
+  position: relative;
+  isolation: isolate;
+}
+
+.outro__cta::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--cyan);
+  transform: scaleY(0);
+  transform-origin: 50% 100%;
+  transition: transform 0.6s var(--ease-out-expo);
+}
+
+.outro__cta:hover,
+.outro__cta:focus-visible { color: var(--void); }
+
+.outro__cta:hover::before,
+.outro__cta:focus-visible::before { transform: scaleY(1); }
+
+.outro__cta-arrow { transition: transform 0.6s var(--ease-out-expo); }
+.outro__cta:hover .outro__cta-arrow { transform: translate(3px, -3px); }
+
+.outro__foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem 2rem;
+  margin-top: clamp(4rem, 12vh, 8rem);
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--g-hair-soft);
+}
+
+/* --------------------------------------------------------------------------
+   Entrance state (only when the module boots)
+   -------------------------------------------------------------------------- */
+
+/* Nothing here touches .mast__word. The headline must be legible from the very
+   first paint whether or not any script ever runs, so it is never given a
+   hidden start state to recover from. */
+.g-js [data-reveal-fade] { opacity: 0; }
+.g-js .mast__rule { transform: scaleX(0); }
+.g-js .card { opacity: 0; }
+
+.g-js.g-static [data-reveal-fade],
+.g-js.g-static .mast__rule,
+.g-js.g-static .card {
+  transform: none;
+  opacity: 1;
+}
+
+/* --------------------------------------------------------------------------
+   Responsive
+   -------------------------------------------------------------------------- */
+
+/* Three across is the design; below that the cards would be too small for the
+   previews to read, so the grid steps down rather than shrinking further. */
+@media (max-width: 1100px) {
+  .library__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* Plans stay side by side longer than previews do — they are text, not
+     canvases, so they survive a narrower column. */
+  .plans__grid { gap: 1rem; }
+}
+
+@media (max-width: 860px) {
+  .plans__grid { grid-template-columns: minmax(0, 1fr); }
+  .plan--feature { order: -1; }
+  .plan__flag { right: auto; left: clamp(1.25rem, 2.4vw, 1.9rem); }
+}
+
+@media (max-width: 900px) {
+  .mast__grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 700px) {
+  .library__grid { grid-template-columns: minmax(0, 1fr); }
+
+  /* One per row means a full-width card, so the preview can be shallower. */
+  .card__preview { aspect-ratio: 3 / 2; }
+
+  .mast__spec > div { grid-template-columns: 6.5rem minmax(0, 1fr); }
+}
+
+@media (max-width: 420px) {
+  .g-body { --g-mono-size: 0.625rem; --g-mono-track: 0.13em; }
+  .card__preview { aspect-ratio: 4 / 3; }
+  .mast__title { letter-spacing: -0.03em; }
+}
+
+/* --------------------------------------------------------------------------
+   Reduced motion — everything resolves to a composed, static page
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .g-js [data-reveal-fade],
+  .g-js .mast__rule,
+  .g-js .card {
+    transform: none;
+    opacity: 1;
+  }
+
+  /* No tearing, no jitter — the headline simply is. */
+  .mast__word,
+  .mast__word::before,
+  .mast__word::after {
+    animation: none;
+  }
+
+  .mast__word::before,
+  .mast__word::after { opacity: 0; }
+
+  .cue__tick { animation: none; }
+
+  .cue__tick { transform: scaleX(1); opacity: 1; }
+
+  .g-progress { display: none; }
+
+  .g-body *,
+  .g-body *::before,
+  .g-body *::after {
+    transition-duration: 0.01ms !important;
+  }
+}

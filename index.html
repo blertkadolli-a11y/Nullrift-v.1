@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#05070c" media="(prefers-color-scheme: dark)">
+  <meta name="color-scheme" content="light dark">
+  <title>NULLRIFT</title>
+  <meta name="description" content="NULLRIFT — scroll-driven motion studies for the open web. Plain HTML, CSS and JavaScript. No framework, no build step.">
+
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="alternate icon" href="assets/nullrift-logo.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/nullrift-logo.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap">
+
+  <!-- Theme resolved before first paint; deferring it would flash. -->
+  <script>
+  (function () {
+    try {
+      var t = localStorage.getItem('nr-theme');
+      if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+    } catch (e) {}
+  })();
+  </script>
+
+  <link rel="stylesheet" href="css/base.css?v=5">
+  <link rel="stylesheet" href="css/index.css">
+
+  <script>
+    /* Runs before first paint: flags that JS is available (so the opening
+       moment can start from its hidden state) and pins the document to top. */
+    document.documentElement.classList.add("js");
+    if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+  </script>
+
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script defer src="js/chrome.js?v=3"></script>
+  <script defer src="js/index.js"></script>
+
+  <noscript>
+    <style>
+      .intro { display: none; }
+      .sheet { opacity: 1; }
+      .card { transform: rotateY(180deg); }
+      .crease-map { opacity: 0; }
+      .reverse-map { opacity: 0.82; }
+      .depth-frame,
+      .edge-flash { display: none; }
+    </style>
+  </noscript>
+</head>
+
+<body>
+  <a class="nr-skip" href="#main">Skip to content</a>
+
+  <div class="nr-grain" aria-hidden="true"></div>
+
+  <header class="nr-nav">
+    <a class="nr-nav__mark" href="index.html" aria-label="NULLRIFT home">
+      <svg class="nr-nav__glyph" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+        <circle cx="32" cy="32" r="19"></circle>
+        <path d="M14.68 49.32 49.32 14.68"></path>
+      </svg>
+      <span class="nr-nav__label">NULLRIFT</span>
+    </a>
+
+    <nav class="nr-nav__links" aria-label="Primary">
+      <a href="gallery.html" class="nr-link" data-nr-exit>Gallery</a>
+      <a href="gallery.html#pricing" class="nr-link" data-nr-exit>Pricing</a>
+    </nav>
+
+    <div class="nr-nav__actions">
+      <div class="nr-theme" role="group" aria-label="Colour theme">
+        <button type="button" class="nr-theme__btn" data-theme-set="light" aria-pressed="false" title="Light">
+          <span class="sr-only">Light theme</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 2.6v2.2M12 19.2v2.2M4.2 12H2M22 12h-2.2M6.5 6.5 4.9 4.9M19.1 19.1l-1.6-1.6M17.5 6.5l1.6-1.6M4.9 19.1l1.6-1.6"></path></svg>
+        </button>
+        <button type="button" class="nr-theme__btn" data-theme-set="dark" aria-pressed="false" title="Dark">
+          <span class="sr-only">Dark theme</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1Z"></path></svg>
+        </button>
+        <button type="button" class="nr-theme__btn" data-theme-set="auto" aria-pressed="false" title="Match system">
+          <span class="sr-only">Match system theme</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 0 1 0 18Z" fill="currentColor" stroke="none"></path></svg>
+        </button>
+      </div>
+      <a class="nr-cta" href="gallery.html" data-nr-exit>Enter the gallery</a>
+    </div>
+  </header>
+
+  <div class="nr-corner nr-corner--bl">nullrift.design</div>
+  <div class="nr-corner nr-corner--br" data-nr-status>SYSTEM NOMINAL</div>
+
+  <!-- ===================== SECTION 0 — OPENING MOMENT ===================== -->
+  <div class="intro" id="intro">
+    <div class="intro__veil" id="intro-veil" aria-hidden="true"></div>
+
+    <div class="intro__inner" id="intro-inner">
+      <span class="intro__rule" aria-hidden="true"></span>
+
+      <p class="intro__head" id="intro-head">
+        <span class="intro__word"><span class="intro__word-in">WELCOME</span></span>
+        <span class="intro__word"><span class="intro__word-in">TO</span></span>
+        <span class="intro__word"><span class="intro__word-in">NULLRIFT<i class="intro__dot">.</i></span></span>
+      </p>
+
+      <p class="intro__sub">
+        <span class="sr-only">you're going to like it here.</span>
+        <span class="intro__sub-text" id="intro-sub" aria-hidden="true">you're going to like it here.</span>
+      </p>
+    </div>
+
+    <div class="intro__cue" id="intro-cue" aria-hidden="true">
+      <span class="intro__cue-label">// scroll</span>
+      <span class="intro__cue-line"><i></i></span>
+    </div>
+  </div>
+
+  <main id="main">
+    <h1 class="sr-only">NULLRIFT — scroll-driven motion studies for the open web</h1>
+
+    <!-- ===================== SECTION A — THE ENTRANCE ===================== -->
+    <section class="story" id="story" aria-hidden="true">
+      <div class="pin" id="pin">
+        <div class="depth">
+          <div class="depth-frame"></div>
+          <div class="depth-frame"></div>
+          <div class="depth-frame"></div>
+          <div class="depth-frame"></div>
+        </div>
+
+        <div class="sheet" id="sheet">
+          <div id="facets"></div>
+
+          <svg class="crease-map" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <g fill="none" stroke="#00ffdb" stroke-opacity="0.34" stroke-width="0.18" vector-effect="non-scaling-stroke">
+              <rect x="11" y="14" width="78" height="72"/>
+              <rect x="23" y="27" width="54" height="46"/>
+              <rect x="34" y="38" width="32" height="24"/>
+              <rect x="41" y="44" width="18" height="12"/>
+              <path d="M0 0 L41 44 M100 0 L59 44 M100 100 L59 56 M0 100 L41 56"/>
+              <path d="M11 14 L41 44 M89 14 L59 44 M89 86 L59 56 M11 86 L41 56"/>
+              <path d="M23 27 L41 44 M77 27 L59 44 M77 73 L59 56 M23 73 L41 56"/>
+              <path d="M34 38 L41 44 M66 38 L59 44 M66 62 L59 56 M34 62 L41 56"/>
+              <path d="M41 44 L50 50 L59 44 M59 56 L50 50 L41 56"/>
+            </g>
+          </svg>
+
+          <svg class="reverse-map" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <g fill="none" stroke="#00ffdb" stroke-opacity="0.55" stroke-width="0.52" vector-effect="non-scaling-stroke">
+              <rect x="11" y="14" width="78" height="72"/>
+              <rect x="23" y="27" width="54" height="46"/>
+              <rect x="34" y="38" width="32" height="24"/>
+              <rect x="41" y="44" width="18" height="12"/>
+              <path d="M0 0 L41 44 M100 0 L59 44 M100 100 L59 56 M0 100 L41 56"/>
+            </g>
+          </svg>
+        </div>
+
+        <div class="edge-flash"></div>
+      </div>
+    </section>
+
+    <!-- ===================== SECTION B — HOMEPAGE ===================== -->
+    <section class="statement" aria-labelledby="statement-title">
+      <p class="eyebrow" data-reveal>// 001 &mdash; WHAT THIS IS</p>
+      <h2 class="statement__line" id="statement-title">
+        <span data-reveal>SCROLL-DRIVEN MOTION,</span>
+        <span data-reveal>WRITTEN BY HAND.</span>
+      </h2>
+      <p class="statement__body" data-reveal>
+        Every study is one file you can read top to bottom. Plain HTML, CSS and JavaScript;
+        GSAP where it earns its place. No framework, no build step, nothing between you and
+        the timeline. The source is the documentation.
+      </p>
+      <ul class="statement__meta" data-reveal>
+        <li>PLAIN HTML / CSS / JS</li>
+        <li>GSAP + SCROLLTRIGGER</li>
+        <li>NO BUILD STEP</li>
+      </ul>
+    </section>
+
+    <section class="cta" aria-labelledby="cta-title">
+      <p class="eyebrow" data-reveal>// 002 &mdash; THE WORK</p>
+      <h2 class="sr-only" id="cta-title">Enter the gallery</h2>
+      <div class="cta__stage" id="cta-stage">
+        <a class="enter" href="gallery.html" data-nr-exit data-cursor="hover">
+          <span class="enter__fill" aria-hidden="true"></span>
+          <svg class="enter__edge" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <rect x="0" y="0" width="100" height="100" pathLength="1" vector-effect="non-scaling-stroke"/>
+          </svg>
+          <span class="enter__label"><span class="enter__inner">ENTER THE GALLERY</span></span>
+        </a>
+      </div>
+      <p class="cta__note" data-reveal>The studies live in the gallery. Take what you need.</p>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <span class="foot__rule" aria-hidden="true"></span>
+    <div class="foot__row">
+      <svg class="foot__glyph" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+        <circle cx="32" cy="32" r="19"></circle>
+        <path d="M14.68 49.32 49.32 14.68"></path>
+      </svg>
+      <span>NULLRIFT &mdash; SCROLL-DRIVEN MOTION STUDIES</span>
+    </div>
+  </footer>
+
+  <div class="rift" id="rift" aria-hidden="true"><span class="rift__edge"></span></div>
+</body>
+</html>

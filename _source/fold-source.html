@@ -1,0 +1,838 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f2eadc">
+  <title>Fold Study No. 04</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <style>
+    :root {
+      --bone: #f2eadc;
+      --vermilion: #ff3b18;
+      --ink: #11100e;
+      --blue: #1438ff;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      background: var(--bone);
+    }
+
+    body {
+      min-width: 320px;
+      overflow-x: hidden;
+      background: var(--bone);
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+    }
+
+    .story {
+      position: relative;
+      min-height: 100svh;
+      background: var(--ink);
+    }
+
+    .pin {
+      position: relative;
+      width: 100%;
+      height: 100svh;
+      min-height: 32rem;
+      overflow: hidden;
+      isolation: isolate;
+      background: var(--ink);
+      perspective: clamp(850px, 88vw, 1500px);
+      perspective-origin: 50% 48%;
+    }
+
+    .definitions {
+      position: absolute;
+      width: 0;
+      height: 0;
+      overflow: hidden;
+    }
+
+    .depth {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      overflow: hidden;
+      background: var(--ink);
+      transform-style: preserve-3d;
+    }
+
+    .depth::before,
+    .depth::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+    }
+
+    .depth::before {
+      inset: 0;
+      background: var(--vermilion);
+      clip-path: polygon(0 0, 24% 0, 59% 42%, 100% 18%, 100% 0);
+    }
+
+    .depth::after {
+      inset: 0;
+      background: var(--blue);
+      clip-path: polygon(0 84%, 41% 58%, 100% 72%, 100% 100%, 0 100%);
+    }
+
+    .depth-frame {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      border: clamp(2px, 0.28vw, 5px) solid var(--bone);
+      opacity: 0;
+      transform-style: preserve-3d;
+      will-change: transform, opacity;
+    }
+
+    .depth-frame:nth-child(1) {
+      width: 74vw;
+      height: 72svh;
+      border-color: var(--vermilion);
+    }
+
+    .depth-frame:nth-child(2) {
+      width: 54vw;
+      height: 51svh;
+      border-color: var(--bone);
+    }
+
+    .depth-frame:nth-child(3) {
+      width: 36vw;
+      height: 33svh;
+      border-color: var(--blue);
+    }
+
+    .depth-frame:nth-child(4) {
+      width: 20vw;
+      height: 17svh;
+      border-color: var(--vermilion);
+    }
+
+    .sheet {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      opacity: 0;
+      transform-style: preserve-3d;
+      transform-origin: 50% 50%;
+      will-change: transform, opacity;
+    }
+
+    .facet {
+      position: absolute;
+      inset: -0.1%;
+      transform-style: preserve-3d;
+      backface-visibility: visible;
+      will-change: transform, opacity;
+    }
+
+    .card {
+      position: absolute;
+      inset: 0;
+      transform-style: preserve-3d;
+      transform-origin: 50% 50%;
+      will-change: transform;
+    }
+
+    .face {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      transform-style: preserve-3d;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
+    .front {
+      background: var(--bone);
+      transform: translate3d(0, 0, 0.5px);
+    }
+
+    .back {
+      background: var(--vermilion);
+      transform: rotateY(180deg) translate3d(0, 0, 0.5px);
+    }
+
+    .face svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .crease-map,
+    .reverse-map {
+      position: absolute;
+      inset: 0;
+      z-index: 7;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      will-change: transform, opacity;
+    }
+
+    .crease-map {
+      opacity: 0.72;
+      mix-blend-mode: multiply;
+    }
+
+    .reverse-map {
+      opacity: 0;
+      transform: translate3d(0, 0, 2px);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
+    .edge-flash {
+      position: absolute;
+      z-index: 8;
+      top: 50%;
+      left: 50%;
+      width: min(30vw, 30rem);
+      aspect-ratio: 1.5;
+      border: clamp(3px, 0.5vw, 8px) solid var(--bone);
+      opacity: 0;
+      pointer-events: none;
+      will-change: transform, opacity;
+    }
+
+    @media (max-width: 700px) {
+      .pin {
+        min-height: 30rem;
+        perspective: 780px;
+        perspective-origin: 50% 50%;
+      }
+
+      .depth-frame:nth-child(1) {
+        width: 88vw;
+        height: 76svh;
+      }
+
+      .depth-frame:nth-child(2) {
+        width: 67vw;
+        height: 55svh;
+      }
+
+      .depth-frame:nth-child(3) {
+        width: 47vw;
+        height: 36svh;
+      }
+
+      .depth-frame:nth-child(4) {
+        width: 29vw;
+        height: 18svh;
+      }
+
+      .edge-flash {
+        width: 46vw;
+        aspect-ratio: 1;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .story {
+        min-height: 100svh;
+      }
+
+      .sheet {
+        opacity: 1;
+      }
+
+      .card {
+        transform: rotateY(180deg);
+      }
+
+      .crease-map {
+        opacity: 0;
+      }
+
+      .reverse-map {
+        opacity: 0.82;
+      }
+
+      .depth-frame,
+      .edge-flash {
+        display: none;
+      }
+    }
+
+    .static-reverse .sheet {
+      opacity: 1;
+    }
+
+    .static-reverse .card {
+      transform: rotateY(180deg);
+    }
+
+    .static-reverse .crease-map {
+      opacity: 0;
+    }
+
+    .static-reverse .reverse-map {
+      opacity: 0.82;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="story" id="story" aria-labelledby="page-title">
+      <h1 class="sr-only" id="page-title">An impossible folding sheet</h1>
+
+      <div class="pin" id="pin">
+        <svg class="definitions" aria-hidden="true">
+          <defs>
+            <symbol id="front-art" viewBox="0 0 100 100">
+              <rect width="100" height="100" fill="#f2eadc"/>
+              <polygon points="-8,7 31,-4 53,100 14,100" fill="#ff3b18"/>
+              <polygon points="66,0 100,0 100,31 77,43" fill="#11100e"/>
+              <polygon points="0,67 48,52 75,100 0,100" fill="#11100e"/>
+              <polygon points="53,27 100,49 100,59 49,38" fill="#ff3b18"/>
+              <path d="M-4 22 L104 80" fill="none" stroke="#11100e" stroke-width="0.42"/>
+              <circle cx="67" cy="42" r="23" fill="none" stroke="#11100e" stroke-width="1.2"/>
+              <circle cx="67" cy="42" r="16" fill="none" stroke="#f2eadc" stroke-width="0.45"/>
+              <text x="4" y="6" fill="#11100e" font-family="Arial, sans-serif" font-size="1.4" letter-spacing="0.28">FOLD STUDY / 04</text>
+              <text x="96" y="92" fill="#f2eadc" font-family="Arial, sans-serif" font-size="1.2" letter-spacing="0.2" text-anchor="end">RECTO / 100 × 100</text>
+            </symbol>
+
+            <symbol id="back-art" viewBox="0 0 100 100">
+              <rect width="100" height="100" fill="#ff3b18"/>
+              <polygon points="0,0 58,0 39,44 0,67" fill="#11100e"/>
+              <polygon points="100,18 60,43 78,100 100,100" fill="#f2eadc"/>
+              <polygon points="0,82 37,59 54,100 0,100" fill="#1438ff"/>
+              <rect x="11" y="14" width="78" height="72" fill="none" stroke="#f2eadc" stroke-width="0.62"/>
+              <rect x="23" y="27" width="54" height="46" fill="none" stroke="#11100e" stroke-width="0.62"/>
+              <rect x="34" y="38" width="32" height="24" fill="none" stroke="#f2eadc" stroke-width="0.62"/>
+              <rect x="41" y="44" width="18" height="12" fill="#11100e"/>
+              <path d="M11 14 L41 44 M89 14 L59 44 M89 86 L59 56 M11 86 L41 56" fill="none" stroke="#11100e" stroke-width="0.62"/>
+              <g transform="translate(100 0) scale(-1 1)">
+                <text x="4" y="6" fill="#f2eadc" font-family="Arial, sans-serif" font-size="1.35" letter-spacing="0.25">VERSO / FOLD STUDY 04</text>
+              </g>
+            </symbol>
+          </defs>
+        </svg>
+
+        <div class="depth" aria-hidden="true">
+          <div class="depth-frame"></div>
+          <div class="depth-frame"></div>
+          <div class="depth-frame"></div>
+          <div class="depth-frame"></div>
+        </div>
+
+        <div class="sheet" id="sheet" aria-hidden="true">
+          <div id="facets"></div>
+
+          <svg class="crease-map" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <g fill="none" stroke="#11100e" stroke-width="0.18" vector-effect="non-scaling-stroke">
+              <rect x="11" y="14" width="78" height="72"/>
+              <rect x="23" y="27" width="54" height="46"/>
+              <rect x="34" y="38" width="32" height="24"/>
+              <rect x="41" y="44" width="18" height="12"/>
+              <path d="M0 0 L41 44 M100 0 L59 44 M100 100 L59 56 M0 100 L41 56"/>
+              <path d="M11 14 L41 44 M89 14 L59 44 M89 86 L59 56 M11 86 L41 56"/>
+              <path d="M23 27 L41 44 M77 27 L59 44 M77 73 L59 56 M23 73 L41 56"/>
+              <path d="M34 38 L41 44 M66 38 L59 44 M66 62 L59 56 M34 62 L41 56"/>
+              <path d="M41 44 L50 50 L59 44 M59 56 L50 50 L41 56"/>
+            </g>
+          </svg>
+
+          <svg class="reverse-map" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <g fill="none" stroke="#f2eadc" stroke-width="0.52" vector-effect="non-scaling-stroke">
+              <rect x="11" y="14" width="78" height="72"/>
+              <rect x="23" y="27" width="54" height="46"/>
+              <rect x="34" y="38" width="32" height="24"/>
+              <rect x="41" y="44" width="18" height="12"/>
+              <path d="M0 0 L41 44 M100 0 L59 44 M100 100 L59 56 M0 100 L41 56"/>
+            </g>
+          </svg>
+        </div>
+
+        <div class="edge-flash" aria-hidden="true"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const story = document.getElementById("story");
+      const pin = document.getElementById("pin");
+      const sheet = document.getElementById("sheet");
+      const facetHost = document.getElementById("facets");
+      const creaseMap = document.querySelector(".crease-map");
+      const reverseMap = document.querySelector(".reverse-map");
+      const frames = [...document.querySelectorAll(".depth-frame")];
+      const edgeFlash = document.querySelector(".edge-flash");
+
+      const desktopBounds = {
+        x: [0, 11, 23, 34, 41],
+        xr: [100, 89, 77, 66, 59],
+        y: [0, 14, 27, 38, 44],
+        yb: [100, 86, 73, 62, 56]
+      };
+
+      const mobileBounds = {
+        x: [0, 8, 18, 29, 36],
+        xr: [100, 92, 82, 71, 64],
+        y: [0, 15, 29, 40, 44],
+        yb: [100, 85, 71, 60, 56]
+      };
+
+      const facets = [];
+
+      function pointsToPolygon(points) {
+        return `polygon(${points.map(([x, y]) => `${x}% ${y}%`).join(",")})`;
+      }
+
+      function createFacet(meta) {
+        const facet = document.createElement("div");
+        facet.className = `facet facet--${meta.side}`;
+        facet.dataset.ring = meta.ring;
+        facet.dataset.side = meta.side;
+        facet.innerHTML = `
+          <div class="card">
+            <div class="face front">
+              <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+                <use href="#front-art" width="100" height="100"></use>
+              </svg>
+            </div>
+            <div class="face back">
+              <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+                <use href="#back-art" width="100" height="100"></use>
+              </svg>
+            </div>
+          </div>
+        `;
+        facetHost.appendChild(facet);
+        facets.push({ element: facet, ...meta });
+      }
+
+      for (let ring = 0; ring < 4; ring += 1) {
+        ["top", "right", "bottom", "left"].forEach((side) => {
+          createFacet({ ring, side, core: false });
+        });
+      }
+
+      ["top", "right", "bottom", "left"].forEach((side) => {
+        createFacet({ ring: 4, side, core: true });
+      });
+
+      function geometryFor(meta, bounds) {
+        const ring = meta.ring;
+        const outer = ring < 4
+          ? {
+              left: bounds.x[ring],
+              right: bounds.xr[ring],
+              top: bounds.y[ring],
+              bottom: bounds.yb[ring]
+            }
+          : {
+              left: bounds.x[4],
+              right: bounds.xr[4],
+              top: bounds.y[4],
+              bottom: bounds.yb[4]
+            };
+        const inner = ring < 4
+          ? {
+              left: bounds.x[ring + 1],
+              right: bounds.xr[ring + 1],
+              top: bounds.y[ring + 1],
+              bottom: bounds.yb[ring + 1]
+            }
+          : { left: 50, right: 50, top: 50, bottom: 50 };
+
+        const shapes = {
+          top: [
+            [outer.left, outer.top],
+            [outer.right, outer.top],
+            [inner.right, inner.top],
+            [inner.left, inner.top]
+          ],
+          right: [
+            [outer.right, outer.top],
+            [outer.right, outer.bottom],
+            [inner.right, inner.bottom],
+            [inner.right, inner.top]
+          ],
+          bottom: [
+            [outer.right, outer.bottom],
+            [outer.left, outer.bottom],
+            [inner.left, inner.bottom],
+            [inner.right, inner.bottom]
+          ],
+          left: [
+            [outer.left, outer.bottom],
+            [outer.left, outer.top],
+            [inner.left, inner.top],
+            [inner.left, inner.bottom]
+          ]
+        };
+
+        const origins = {
+          top: `50% ${outer.top}%`,
+          right: `${outer.right}% 50%`,
+          bottom: `50% ${outer.bottom}%`,
+          left: `${outer.left}% 50%`
+        };
+
+        return {
+          clipPath: pointsToPolygon(shapes[meta.side]),
+          transformOrigin: meta.core ? "50% 50%" : origins[meta.side]
+        };
+      }
+
+      function applyGeometry(isMobile) {
+        const bounds = isMobile ? mobileBounds : desktopBounds;
+        facets.forEach((facet) => {
+          const geometry = geometryFor(facet, bounds);
+          facet.element.style.clipPath = geometry.clipPath;
+          facet.element.style.webkitClipPath = geometry.clipPath;
+          facet.element.style.transformOrigin = geometry.transformOrigin;
+        });
+      }
+
+      applyGeometry(window.matchMedia("(max-width: 700px)").matches);
+
+      if (!window.gsap || !window.ScrollTrigger) {
+        document.body.classList.add("static-reverse");
+        return;
+      }
+
+      gsap.registerPlugin(ScrollTrigger);
+
+      const elements = facets.map((facet) => facet.element);
+      const cards = elements.map((element) => element.querySelector(".card"));
+      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      if (reduced) {
+        gsap.set(sheet, { opacity: 1 });
+        gsap.set(cards, { rotationY: 180, force3D: true });
+        gsap.set(creaseMap, { opacity: 0 });
+        gsap.set(reverseMap, { opacity: 0.82 });
+        return;
+      }
+
+      gsap.set(elements, {
+        rotationX: 0,
+        rotationY: 0,
+        rotationZ: 0,
+        x: 0,
+        y: 0,
+        z: 0,
+        scale: 1,
+        opacity: 1,
+        force3D: true
+      });
+      gsap.set(cards, {
+        rotationY: 0,
+        force3D: true
+      });
+      gsap.set(frames, {
+        xPercent: -50,
+        yPercent: -50,
+        scale: (index) => 0.72 + index * 0.07,
+        z: (index) => -480 - index * 170,
+        rotationZ: (index) => index % 2 ? 4 : -4,
+        opacity: 0,
+        force3D: true
+      });
+      gsap.set(edgeFlash, {
+        xPercent: -50,
+        yPercent: -50,
+        scale: 0.32,
+        rotationZ: 45,
+        opacity: 0,
+        force3D: true
+      });
+
+      gsap.fromTo(
+        sheet,
+        { opacity: 0, scale: 1.035, z: -30 },
+        { opacity: 1, scale: 1, z: 0, duration: 1.25, ease: "power4.out" }
+      );
+
+      const sideAxis = {
+        top: "x",
+        right: "y",
+        bottom: "x",
+        left: "y"
+      };
+
+      const towardSign = {
+        top: 1,
+        right: 1,
+        bottom: -1,
+        left: -1
+      };
+
+      const recessSign = {
+        top: -1,
+        right: -1,
+        bottom: 1,
+        left: 1
+      };
+
+      function axisRotation(meta, amount, signs) {
+        return sideAxis[meta.side] === "x"
+          ? { rotationX: signs[meta.side] * amount, rotationY: 0 }
+          : { rotationX: 0, rotationY: signs[meta.side] * amount };
+      }
+
+      function rotationValue(axis, phase, index) {
+        const meta = facets[index];
+        const amounts = {
+          tension: [2.4, 4.2, 5.4, 7.2, 10],
+          cross: [34, 56, 69, 78, 84],
+          tunnel: [28, 46, 63, 77, 86]
+        };
+        const signs = phase === "tunnel" ? recessSign : towardSign;
+        const direction = phase === "cross" && meta.ring % 2 ? -1 : 1;
+        const rotation = axisRotation(
+          meta,
+          amounts[phase][meta.ring] * direction,
+          signs
+        );
+        return axis === "x" ? rotation.rotationX : rotation.rotationY;
+      }
+
+      function buildStory(isMobile) {
+        applyGeometry(isMobile);
+
+        const tunnelDepths = isMobile
+          ? [70, -125, -330, -570, -860]
+          : [80, -80, -245, -430, -680];
+        const crossDepths = isMobile
+          ? [130, 310, 90, 390, 520]
+          : [120, 270, 80, 330, 470];
+
+        const timeline = gsap.timeline({
+          defaults: { ease: "power4.out" },
+          scrollTrigger: {
+            trigger: story,
+            start: "top top",
+            // 7.2 viewports gives the folds enough physical weight; the aperture
+            // reaches camera-threshold around 59% rather than flashing past.
+            end: () => `+=${Math.round(window.innerHeight * 7.2)}`,
+            pin,
+            scrub: 0.65,
+            anticipatePin: 1,
+            invalidateOnRefresh: true
+          }
+        });
+
+        /*
+          ACT I — FLAT / TENSION
+          Alternating hinges lift only a few degrees. The printed image remains
+          continuous, so the viewport still reads as one stressed sheet.
+        */
+        timeline
+          .to(creaseMap, {
+            opacity: 0.96,
+            scale: 1.003,
+            duration: 0.72
+          }, 0)
+          .to(elements, {
+            rotationX: (index) => rotationValue("x", "tension", index),
+            rotationY: (index) => rotationValue("y", "tension", index),
+            z: (index) => (facets[index].ring % 2 ? -1 : 1) * (10 + facets[index].ring * 8),
+            duration: 1.16,
+            stagger: 0.08,
+            ease: "expo.out"
+          }, 0.22)
+          .to(elements, {
+            z: (index) => (facets[index].side === "top" || facets[index].side === "left")
+              ? 34 + facets[index].ring * 12
+              : -18 - facets[index].ring * 10,
+            rotationZ: (index) => (index % 2 ? 0.22 : -0.22) * (facets[index].ring + 1),
+            duration: 0.82,
+            stagger: 0.08,
+            ease: "expo.out"
+          }, 1.02)
+          .to(creaseMap, {
+            opacity: 0.28,
+            duration: 0.58
+          }, 1.46);
+
+        /*
+          ACT II — IMPOSSIBLE FOLD / PASSAGE
+          Concentric rings alternate their hinge direction while crossing in Z.
+          This deliberate interpenetration is the physical impossibility.
+        */
+        timeline
+          .to(elements, {
+            rotationX: (index) => rotationValue("x", "cross", index),
+            rotationY: (index) => rotationValue("y", "cross", index),
+            rotationZ: 0,
+            z: (index) => crossDepths[facets[index].ring],
+            scale: (index) => facets[index].core ? 1.12 : 1,
+            duration: 1.32,
+            stagger: 0.08,
+            ease: "expo.out"
+          }, 1.7)
+          .to(frames, {
+            opacity: (index) => 0.95 - index * 0.12,
+            scale: (index) => 0.98 - index * 0.06,
+            rotationZ: (index) => index % 2 ? -2 : 2,
+            duration: 0.92,
+            stagger: 0.08,
+            ease: "expo.out"
+          }, 2.22)
+          .to(edgeFlash, {
+            opacity: 0.94,
+            scale: 1,
+            rotationZ: 45,
+            duration: 0.74
+          }, 2.36)
+          .to(edgeFlash, {
+            opacity: 0,
+            scale: 1.62,
+            duration: 0.64
+          }, 2.98)
+          .to(elements, {
+            rotationX: (index) => rotationValue("x", "tunnel", index),
+            rotationY: (index) => rotationValue("y", "tunnel", index),
+            z: (index) => tunnelDepths[facets[index].ring],
+            scale: (index) => facets[index].core ? 0.72 : 1,
+            opacity: (index) => facets[index].core ? 0.08 : 1,
+            duration: 1.58,
+            stagger: 0.08,
+            ease: "expo.out"
+          }, 2.86)
+          .to(frames, {
+            z: (index) => -100 - index * (isMobile ? 155 : 120),
+            scale: (index) => 1.08 - index * 0.09,
+            rotationZ: (index) => index % 2 ? 5 : -5,
+            duration: 1.34,
+            stagger: 0.08,
+            ease: "expo.out"
+          }, 3.08)
+          .to(sheet, {
+            scale: isMobile ? 4.65 : 3.85,
+            z: isMobile ? 390 : 460,
+            duration: 1.5
+          }, 4.18)
+          .to(frames, {
+            scale: (index) => (1.72 - index * 0.13) * (isMobile ? 1.24 : 1),
+            z: (index) => 160 + index * 70,
+            duration: 1.38,
+            stagger: 0.08,
+            ease: "expo.out"
+          }, 4.22)
+          // Hold at camera-threshold; the inside-out crossing crests near 62%.
+          .to({}, { duration: 0.54 });
+
+        /*
+          ACT III — INSIDE-OUT CODA
+          The sheet is larger than the viewport while every facet rolls onto
+          its back. It then returns as a single vermilion plane.
+        */
+        timeline
+          .to(elements, {
+            rotationX: 0,
+            rotationY: 0,
+            rotationZ: 0,
+            z: 0,
+            scale: 1,
+            opacity: 1,
+            duration: 1.42,
+            stagger: {
+              each: 0.08,
+              from: "center"
+            },
+            ease: "expo.out"
+          }, 6.18)
+          .to(cards, {
+            rotationY: 180,
+            duration: 1.42,
+            stagger: {
+              each: 0.08,
+              from: "center"
+            },
+            ease: "expo.out"
+          }, 6.18)
+          .to(frames, {
+            opacity: 0,
+            scale: 2.2,
+            duration: 0.72,
+            stagger: 0.08,
+            ease: "expo.out"
+          }, 6.18)
+          .to(sheet, {
+            scale: 1,
+            z: 0,
+            duration: 1.5
+          }, 6.34)
+          .to(reverseMap, {
+            opacity: 0.78,
+            duration: 0.64
+          }, 7.14)
+          .to(creaseMap, {
+            opacity: 0,
+            duration: 0.42
+          }, 7.14)
+          .to(
+            elements.filter((_, index) => index >= 12 && index <= 17),
+            {
+              rotationX: (index) => index % 2 ? 0 : 17,
+              rotationY: (index) => index % 2 ? -17 : 0,
+              z: (index) => index % 2 ? 82 : 118,
+              duration: 0.58,
+              stagger: 0.08,
+              ease: "expo.out"
+            },
+            8.02
+          )
+          .to(
+            elements.filter((_, index) => index >= 12 && index <= 17),
+            {
+              rotationX: 0,
+              rotationY: 0,
+              z: 0,
+              duration: 0.32,
+              stagger: 0.08,
+              ease: "expo.out"
+            },
+            8.62
+          )
+          // The dead-flat ending is held long enough to compare both sides.
+          .to({}, { duration: 1.16 });
+
+        return () => timeline.kill();
+      }
+
+      const media = gsap.matchMedia();
+      media.add(
+        {
+          isMobile: "(max-width: 700px)",
+          isDesktop: "(min-width: 701px)"
+        },
+        (context) => buildStory(context.conditions.isMobile)
+      );
+    })();
+  </script>
+</body>
+</html>
