@@ -154,9 +154,6 @@
     var facetHost = document.getElementById("facets");
     var creaseMap = document.querySelector(".crease-map");
     var reverseMap = document.querySelector(".reverse-map");
-    var frames = Array.prototype.slice.call(
-      document.querySelectorAll(".depth-frame")
-    );
     var edgeFlash = document.querySelector(".edge-flash");
 
     if (!story || !pin || !sheet || !facetHost) return { reveal: noop };
@@ -329,21 +326,6 @@
     });
     gsap.set(cards, {
       rotationY: 0,
-      force3D: true
-    });
-    gsap.set(frames, {
-      xPercent: -50,
-      yPercent: -50,
-      scale: function (index) {
-        return 0.72 + index * 0.07;
-      },
-      z: function (index) {
-        return -480 - index * 170;
-      },
-      rotationZ: function (index) {
-        return index % 2 ? 4 : -4;
-      },
-      opacity: 0,
       force3D: true
     });
     gsap.set(edgeFlash, {
@@ -530,24 +512,6 @@
           1.7
         )
         .to(
-          frames,
-          {
-            opacity: function (index) {
-              return 0.95 - index * 0.12;
-            },
-            scale: function (index) {
-              return 0.98 - index * 0.06;
-            },
-            rotationZ: function (index) {
-              return index % 2 ? -2 : 2;
-            },
-            duration: 0.92,
-            stagger: 0.08,
-            ease: "expo.out"
-          },
-          2.22
-        )
-        .to(
           edgeFlash,
           {
             opacity: 0.94,
@@ -591,24 +555,6 @@
           2.86
         )
         .to(
-          frames,
-          {
-            z: function (index) {
-              return -100 - index * (isMobile ? 155 : 120);
-            },
-            scale: function (index) {
-              return 1.08 - index * 0.09;
-            },
-            rotationZ: function (index) {
-              return index % 2 ? 5 : -5;
-            },
-            duration: 1.34,
-            stagger: 0.08,
-            ease: "expo.out"
-          },
-          3.08
-        )
-        .to(
           sheet,
           {
             scale: isMobile ? 4.65 : 3.85,
@@ -616,21 +562,6 @@
             duration: 1.5
           },
           4.18
-        )
-        .to(
-          frames,
-          {
-            scale: function (index) {
-              return (1.72 - index * 0.13) * (isMobile ? 1.24 : 1);
-            },
-            z: function (index) {
-              return 160 + index * 70;
-            },
-            duration: 1.38,
-            stagger: 0.08,
-            ease: "expo.out"
-          },
-          4.22
         )
         // Hold at camera-threshold; the inside-out crossing crests near 62%.
         .to({}, { duration: 0.54 });
@@ -668,17 +599,6 @@
               each: 0.08,
               from: "center"
             },
-            ease: "expo.out"
-          },
-          6.18
-        )
-        .to(
-          frames,
-          {
-            opacity: 0,
-            scale: 2.2,
-            duration: 0.72,
-            stagger: 0.08,
             ease: "expo.out"
           },
           6.18

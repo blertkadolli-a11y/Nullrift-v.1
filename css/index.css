@@ -137,7 +137,7 @@ html.is-locked body {
   font-family: var(--font-mono);
   font-size: 0.62rem;
   letter-spacing: 0.28em;
-  color: var(--ash);
+  color: var(--text-mid);
 }
 
 .intro__cue-line {
@@ -228,43 +228,6 @@ html.js .intro.is-static .intro__cue { opacity: 1; }
   inset: 0;
   background: rgba(0, 255, 135, 0.038);
   clip-path: polygon(0 84%, 41% 58%, 100% 72%, 100% 100%, 0 100%);
-}
-
-.depth-frame {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  border: clamp(2px, 0.28vw, 5px) solid var(--cyan);
-  opacity: 0;
-  transform-style: preserve-3d;
-  will-change: transform, opacity;
-}
-
-.depth-frame:nth-child(1) {
-  width: 74vw;
-  height: 72svh;
-  border-color: rgba(0, 255, 219, 0.85);
-  box-shadow: 0 0 42px rgba(0, 255, 219, 0.22);
-}
-
-.depth-frame:nth-child(2) {
-  width: 54vw;
-  height: 51svh;
-  border-color: rgba(0, 255, 219, 0.38);
-}
-
-.depth-frame:nth-child(3) {
-  width: 36vw;
-  height: 33svh;
-  border-color: rgba(0, 255, 135, 0.5);
-  box-shadow: 0 0 34px rgba(0, 255, 135, 0.14);
-}
-
-.depth-frame:nth-child(4) {
-  width: 20vw;
-  height: 17svh;
-  border-color: rgba(0, 255, 219, 0.95);
-  box-shadow: 0 0 30px rgba(0, 255, 219, 0.3);
 }
 
 .sheet {
@@ -376,7 +339,7 @@ html.js .intro.is-static .intro__cue { opacity: 1; }
   font-size: clamp(0.44rem, 0.9vw, 0.66rem);
   letter-spacing: 0.44em;
   text-transform: uppercase;
-  color: var(--ash);
+  color: var(--text-mid);
 }
 
 .plate__mark {
@@ -433,7 +396,7 @@ html.js .intro.is-static .intro__cue { opacity: 1; }
   font-size: clamp(0.42rem, 0.85vw, 0.62rem);
   letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: var(--ash);
+  color: var(--text-mid);
 }
 
 /* --- reverse face --------------------------------------------------------- */
@@ -510,26 +473,6 @@ html.js .intro.is-static .intro__cue { opacity: 1; }
     min-height: 30rem;
     perspective: 780px;
     perspective-origin: 50% 50%;
-  }
-
-  .depth-frame:nth-child(1) {
-    width: 88vw;
-    height: 76svh;
-  }
-
-  .depth-frame:nth-child(2) {
-    width: 67vw;
-    height: 55svh;
-  }
-
-  .depth-frame:nth-child(3) {
-    width: 47vw;
-    height: 36svh;
-  }
-
-  .depth-frame:nth-child(4) {
-    width: 29vw;
-    height: 18svh;
   }
 
   .edge-flash {
@@ -722,6 +665,55 @@ html.js .intro.is-static .intro__cue { opacity: 1; }
   color: var(--void);
 }
 
+.enter:active {
+  transform: scale(0.985);
+}
+
+/* Light theme: neon fill is hard to read; use the deepened accent + clear press. */
+:root[data-theme="light"] .enter {
+  border-color: color-mix(in srgb, var(--accent) 42%, transparent);
+}
+
+:root[data-theme="light"] .enter__fill {
+  background: var(--accent);
+}
+
+:root[data-theme="light"] .enter__edge rect {
+  stroke: var(--accent);
+}
+
+:root[data-theme="light"] .enter:hover .enter__label,
+:root[data-theme="light"] .enter:focus-visible .enter__label {
+  color: var(--accent-ink);
+}
+
+:root[data-theme="light"] .enter:active .enter__fill {
+  filter: brightness(0.94);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) .enter {
+    border-color: color-mix(in srgb, var(--accent) 42%, transparent);
+  }
+
+  :root:not([data-theme]) .enter__fill {
+    background: var(--accent);
+  }
+
+  :root:not([data-theme]) .enter__edge rect {
+    stroke: var(--accent);
+  }
+
+  :root:not([data-theme]) .enter:hover .enter__label,
+  :root:not([data-theme]) .enter:focus-visible .enter__label {
+    color: var(--accent-ink);
+  }
+
+  :root:not([data-theme]) .enter:active .enter__fill {
+    filter: brightness(0.94);
+  }
+}
+
 .cta__note {
   max-width: 40ch;
   font-family: var(--font-mono);
@@ -834,7 +826,6 @@ html.js .intro.is-static .intro__cue { opacity: 1; }
     opacity: 0.82;
   }
 
-  .depth-frame,
   .edge-flash {
     display: none;
   }

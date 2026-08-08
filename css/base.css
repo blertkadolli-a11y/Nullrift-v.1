@@ -46,8 +46,21 @@
 
   /* --- text ramp --------------------------------------------------------- */
   --text: #e9f1f4;
-  --text-mid: #a2adb8;
-  --ash: #79838f;
+  --text-mid: #b4bfc9;
+  --ash: #8e99a5;
+
+  /* --- interactive feedback (overridden in light) ------------------------ */
+  --hover-link: var(--text);
+  --hover-link-bg: var(--surface-2);
+  --hover-link-decoration: none;
+  --hover-theme: var(--accent);
+  --hover-theme-bg: transparent;
+  --hover-cta-filter: brightness(1.08);
+  --hover-cta-lift: -1px;
+  --hover-cta-shadow: none;
+  --hover-cta-bg: var(--accent);
+  --active-theme-bg: var(--surface);
+  --active-theme-fg: var(--text);
 
   /* --- ambient wash ------------------------------------------------------ */
   --wash-a: rgba(0, 255, 219, 0.055);
@@ -92,23 +105,23 @@
    -------------------------------------------------------------------------- */
 
 :root[data-theme="light"] {
-  --accent: #00a58c;
+  --accent: #009e86;
   --accent-ink: #ffffff;
 
   --void: #f6f7f9;
   --sunken: #0b0e13;          /* preview wells stay dark — the art lives there */
   --surface: #ffffff;
-  --surface-2: #f0f2f5;
+  --surface-2: #eef1f5;
 
-  --line: rgba(16, 26, 38, 0.13);
-  --line-soft: rgba(16, 26, 38, 0.07);
+  --line: rgba(16, 26, 38, 0.16);
+  --line-soft: rgba(16, 26, 38, 0.09);
 
   --text: #0d1219;
-  --text-mid: #55606d;
-  --ash: #78828f;
+  --text-mid: #3f4a57;
+  --ash: #5a6572;
 
-  --wash-a: rgba(0, 180, 158, 0.08);
-  --wash-b: rgba(122, 96, 255, 0.06);
+  --wash-a: rgba(0, 160, 140, 0.1);
+  --wash-b: rgba(122, 96, 255, 0.05);
   --wash-c: rgba(255, 138, 60, 0.05);
 
   --shadow-1: 0 1px 2px rgba(16, 26, 38, 0.06);
@@ -117,29 +130,41 @@
   --grain-opacity: 0.022;
   --scroll-thumb: #c8ced6;
 
-  --hair: rgba(0, 165, 140, 0.3);
-  --hair-soft: rgba(16, 26, 38, 0.08);
+  --hair: rgba(0, 158, 134, 0.35);
+  --hair-soft: rgba(16, 26, 38, 0.1);
+
+  --hover-link: #007a68;
+  --hover-link-bg: rgba(0, 158, 134, 0.12);
+  --hover-link-decoration: underline;
+  --hover-theme: #007a68;
+  --hover-theme-bg: rgba(0, 158, 134, 0.14);
+  --hover-cta-filter: none;
+  --hover-cta-lift: -2px;
+  --hover-cta-shadow: 0 10px 22px -12px rgba(0, 90, 76, 0.5);
+  --hover-cta-bg: color-mix(in srgb, var(--accent) 86%, #003d34);
+  --active-theme-bg: var(--accent);
+  --active-theme-fg: var(--accent-ink);
 }
 
 @media (prefers-color-scheme: light) {
   :root:not([data-theme]) {
-    --accent: #00a58c;
+    --accent: #009e86;
     --accent-ink: #ffffff;
 
     --void: #f6f7f9;
     --sunken: #0b0e13;
     --surface: #ffffff;
-    --surface-2: #f0f2f5;
+    --surface-2: #eef1f5;
 
-    --line: rgba(16, 26, 38, 0.13);
-    --line-soft: rgba(16, 26, 38, 0.07);
+    --line: rgba(16, 26, 38, 0.16);
+    --line-soft: rgba(16, 26, 38, 0.09);
 
     --text: #0d1219;
-    --text-mid: #55606d;
-    --ash: #78828f;
+    --text-mid: #3f4a57;
+    --ash: #5a6572;
 
-    --wash-a: rgba(0, 180, 158, 0.08);
-    --wash-b: rgba(122, 96, 255, 0.06);
+    --wash-a: rgba(0, 160, 140, 0.1);
+    --wash-b: rgba(122, 96, 255, 0.05);
     --wash-c: rgba(255, 138, 60, 0.05);
 
     --shadow-1: 0 1px 2px rgba(16, 26, 38, 0.06);
@@ -148,8 +173,20 @@
     --grain-opacity: 0.022;
     --scroll-thumb: #c8ced6;
 
-    --hair: rgba(0, 165, 140, 0.3);
-    --hair-soft: rgba(16, 26, 38, 0.08);
+    --hair: rgba(0, 158, 134, 0.35);
+    --hair-soft: rgba(16, 26, 38, 0.1);
+
+    --hover-link: #007a68;
+    --hover-link-bg: rgba(0, 158, 134, 0.12);
+    --hover-link-decoration: underline;
+    --hover-theme: #007a68;
+    --hover-theme-bg: rgba(0, 158, 134, 0.14);
+    --hover-cta-filter: none;
+    --hover-cta-lift: -2px;
+    --hover-cta-shadow: 0 10px 22px -12px rgba(0, 90, 76, 0.5);
+    --hover-cta-bg: color-mix(in srgb, var(--accent) 86%, #003d34);
+    --active-theme-bg: var(--accent);
+    --active-theme-fg: var(--accent-ink);
   }
 }
 
@@ -340,6 +377,8 @@ button {
   align-items: center;
   gap: 0.55rem;
   flex: none;
+  border-radius: var(--r-btn);
+  transition: background-color 0.2s ease;
 }
 
 .nr-nav__glyph {
@@ -350,12 +389,13 @@ button {
   fill: none;
   stroke: currentColor;
   stroke-width: 5;
-  transition: transform 0.55s var(--ease-out-expo);
+  transition: transform 0.55s var(--ease-out-expo), color 0.2s ease;
 }
 
 .nr-nav__mark:hover .nr-nav__glyph,
 .nr-nav__mark:focus-visible .nr-nav__glyph {
   transform: rotate(180deg);
+  color: var(--hover-theme);
 }
 
 .nr-nav__label {
@@ -365,6 +405,16 @@ button {
   letter-spacing: -0.02em;
   text-transform: none;
   color: var(--text);
+  transition: color 0.2s ease;
+}
+
+.nr-nav__mark:hover .nr-nav__label,
+.nr-nav__mark:focus-visible .nr-nav__label {
+  color: var(--hover-link);
+}
+
+.nr-nav__mark:active {
+  background: var(--hover-link-bg);
 }
 
 .nr-nav__links {
@@ -386,13 +436,25 @@ button {
   letter-spacing: 0;
   text-transform: none;
   color: var(--text-mid);
-  transition: color 0.2s ease, background-color 0.2s ease;
+  text-decoration: none;
+  text-underline-offset: 0.22em;
+  text-decoration-thickness: 1.5px;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    text-decoration-color 0.2s ease;
 }
 
 .nr-link:hover,
 .nr-link:focus-visible {
-  color: var(--text);
-  background: var(--surface-2);
+  color: var(--hover-link);
+  background: var(--hover-link-bg);
+  text-decoration: var(--hover-link-decoration);
+  text-decoration-color: color-mix(in srgb, var(--hover-link) 70%, transparent);
+}
+
+.nr-link:active {
+  background: color-mix(in srgb, var(--hover-link) 18%, transparent);
 }
 
 .nr-link[aria-current="page"] { color: var(--text); }
@@ -426,7 +488,10 @@ button {
   border-radius: var(--r-pill);
   color: var(--text-mid);
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.15s var(--ease-out-expo);
 }
 
 .nr-theme__btn svg {
@@ -439,11 +504,20 @@ button {
   stroke-linejoin: round;
 }
 
-.nr-theme__btn:hover { color: var(--text); }
+.nr-theme__btn:hover,
+.nr-theme__btn:focus-visible {
+  color: var(--hover-theme);
+  background: var(--hover-theme-bg);
+}
+
+.nr-theme__btn:active {
+  transform: scale(0.92);
+  background: color-mix(in srgb, var(--hover-theme) 22%, transparent);
+}
 
 .nr-theme__btn[aria-pressed="true"] {
-  background: var(--surface);
-  color: var(--text);
+  background: var(--active-theme-bg);
+  color: var(--active-theme-fg);
   box-shadow: var(--shadow-1);
 }
 
@@ -462,13 +536,25 @@ button {
   letter-spacing: -0.01em;
   white-space: nowrap;
   cursor: pointer;
-  transition: transform 0.2s var(--ease-out-expo), filter 0.2s ease;
+  transition:
+    transform 0.2s var(--ease-out-expo),
+    filter 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .nr-cta:hover,
 .nr-cta:focus-visible {
-  filter: brightness(1.08);
-  transform: translateY(-1px);
+  filter: var(--hover-cta-filter);
+  transform: translateY(var(--hover-cta-lift));
+  box-shadow: var(--hover-cta-shadow);
+  background: var(--hover-cta-bg);
+}
+
+.nr-cta:active {
+  transform: translateY(0);
+  filter: brightness(0.96);
+  box-shadow: none;
 }
 
 .nr-cta--ghost {
