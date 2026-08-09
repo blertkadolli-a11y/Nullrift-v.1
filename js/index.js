@@ -2,7 +2,12 @@
    NULLRIFT — index.js
 
    Section 0  the opening moment (scroll is locked until it resolves)
-   Section A  brand hero reveal (mark + wordmark — no fold / plate / wireframe)
+   Section A  the fold — ported verbatim from _source/fold-source.html.
+              Geometry, act structure, durations, positions, staggers and
+              easings are unchanged; only the printed artwork is new. The one
+              sequencing change: the sheet's entrance tween is built paused and
+              played the instant the opening moment clears, so the fold is
+              never assembling behind an opaque overlay.
    Section B  homepage reveals, magnetic CTA, page-exit rift.
    ========================================================================== */
 
@@ -93,34 +98,594 @@
   })();
 
   /* ======================================================================
-     SECTION A — BRAND HERO
+     SECTION A — THE FOLD
      ====================================================================== */
 
-  function initHero() {
-    var hero = document.getElementById("hero");
-    var brand = document.getElementById("hero-brand");
-    if (!hero || !brand) return { reveal: noop };
+  function foldGlyph(className) {
+    return (
+      '<svg class="' +
+      className +
+      '" viewBox="0 0 64 64" aria-hidden="true" focusable="false">' +
+      '<circle cx="32" cy="32" r="19"></circle>' +
+      '<path d="M14.68 49.32 49.32 14.68"></path>' +
+      "</svg>"
+    );
+  }
 
-    function show() {
-      if (!hasGSAP || reduced) {
-        hero.classList.add("is-static");
-        return;
-      }
-      gsap.fromTo(
-        brand,
-        { opacity: 0, y: 12, scale: 0.985 },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 1.05,
-          ease: "expo.out",
-          overwrite: true
-        }
+  /* The recto keeps the source study's polygon coordinates — same composition,
+     new palette — with the wordmark set in real type so it never distorts. */
+  var FACET_MARKUP =
+    '<div class="card">' +
+    '<div class="face front">' +
+    '<div class="plate">' +
+    '<svg class="plate__geo" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">' +
+    '<polygon class="geo--1" points="-8,7 31,-4 53,100 14,100"></polygon>' +
+    '<polygon class="geo--2" points="66,0 100,0 100,31 77,43"></polygon>' +
+    '<polygon class="geo--3" points="0,67 48,52 75,100 0,100"></polygon>' +
+    '<polygon class="geo--2" points="53,27 100,49 100,59 49,38"></polygon>' +
+    '<path class="geo-line" vector-effect="non-scaling-stroke" d="M-4 22 L104 80"></path>' +
+    '<ellipse class="geo-line" vector-effect="non-scaling-stroke" cx="67" cy="42" rx="23" ry="23"></ellipse>' +
+    '<ellipse class="geo-line geo-line--soft" vector-effect="non-scaling-stroke" cx="67" cy="42" rx="16" ry="16"></ellipse>' +
+    "</svg>" +
+    '<div class="plate__body">' +
+    '<span class="plate__eyebrow">Motion system &mdash; study no. 04</span>' +
+    '<span class="plate__mark">' +
+    foldGlyph("plate__glyph") +
+    '<span class="plate__divider"></span>' +
+    '<span class="plate__word">NULLRIFT</span>' +
+    "</span>" +
+    '<span class="plate__rule"></span>' +
+    '<span class="plate__meta"><span>Recto</span><span>100 &times; 100</span></span>' +
+    "</div>" +
+    "</div>" +
+    "</div>" +
+    '<div class="face back">' +
+    '<div class="plate plate--reverse">' +
+    '<span class="plate__halo"></span>' +
+    foldGlyph("plate__glyph plate__glyph--big") +
+    "</div>" +
+    "</div>" +
+    "</div>";
+
+  function initFold() {
+    var story = document.getElementById("story");
+    var pin = document.getElementById("pin");
+    var sheet = document.getElementById("sheet");
+    var facetHost = document.getElementById("facets");
+    var creaseMap = document.querySelector(".crease-map");
+    var reverseMap = document.querySelector(".reverse-map");
+    var edgeFlash = document.querySelector(".edge-flash");
+
+    if (!story || !pin || !sheet || !facetHost) return { reveal: noop };
+
+    var desktopBounds = {
+      x: [0, 11, 23, 34, 41],
+      xr: [100, 89, 77, 66, 59],
+      y: [0, 14, 27, 38, 44],
+      yb: [100, 86, 73, 62, 56]
+    };
+
+    var mobileBounds = {
+      x: [0, 8, 18, 29, 36],
+      xr: [100, 92, 82, 71, 64],
+      y: [0, 15, 29, 40, 44],
+      yb: [100, 85, 71, 60, 56]
+    };
+
+    var facets = [];
+
+    function pointsToPolygon(points) {
+      return (
+        "polygon(" +
+        points
+          .map(function (pair) {
+            return pair[0] + "% " + pair[1] + "%";
+          })
+          .join(",") +
+        ")"
       );
     }
 
-    return { reveal: show };
+    function createFacet(meta) {
+      var facet = document.createElement("div");
+      facet.className = "facet facet--" + meta.side;
+      /* acid green lands on alternating facets only */
+      if (facets.length % 2) facet.classList.add("facet--alt");
+      facet.dataset.ring = meta.ring;
+      facet.dataset.side = meta.side;
+      facet.innerHTML = FACET_MARKUP;
+      facetHost.appendChild(facet);
+      facets.push({
+        element: facet,
+        ring: meta.ring,
+        side: meta.side,
+        core: meta.core
+      });
+    }
+
+    for (var ring = 0; ring < 4; ring += 1) {
+      ["top", "right", "bottom", "left"].forEach(function (side) {
+        createFacet({ ring: ring, side: side, core: false });
+      });
+    }
+
+    ["top", "right", "bottom", "left"].forEach(function (side) {
+      createFacet({ ring: 4, side: side, core: true });
+    });
+
+    function geometryFor(meta, bounds) {
+      var ringIndex = meta.ring;
+      var outer =
+        ringIndex < 4
+          ? {
+              left: bounds.x[ringIndex],
+              right: bounds.xr[ringIndex],
+              top: bounds.y[ringIndex],
+              bottom: bounds.yb[ringIndex]
+            }
+          : {
+              left: bounds.x[4],
+              right: bounds.xr[4],
+              top: bounds.y[4],
+              bottom: bounds.yb[4]
+            };
+      var inner =
+        ringIndex < 4
+          ? {
+              left: bounds.x[ringIndex + 1],
+              right: bounds.xr[ringIndex + 1],
+              top: bounds.y[ringIndex + 1],
+              bottom: bounds.yb[ringIndex + 1]
+            }
+          : { left: 50, right: 50, top: 50, bottom: 50 };
+
+      var shapes = {
+        top: [
+          [outer.left, outer.top],
+          [outer.right, outer.top],
+          [inner.right, inner.top],
+          [inner.left, inner.top]
+        ],
+        right: [
+          [outer.right, outer.top],
+          [outer.right, outer.bottom],
+          [inner.right, inner.bottom],
+          [inner.right, inner.top]
+        ],
+        bottom: [
+          [outer.right, outer.bottom],
+          [outer.left, outer.bottom],
+          [inner.left, inner.bottom],
+          [inner.right, inner.bottom]
+        ],
+        left: [
+          [outer.left, outer.bottom],
+          [outer.left, outer.top],
+          [inner.left, inner.top],
+          [inner.left, inner.bottom]
+        ]
+      };
+
+      var origins = {
+        top: "50% " + outer.top + "%",
+        right: outer.right + "% 50%",
+        bottom: "50% " + outer.bottom + "%",
+        left: outer.left + "% 50%"
+      };
+
+      return {
+        clipPath: pointsToPolygon(shapes[meta.side]),
+        transformOrigin: meta.core ? "50% 50%" : origins[meta.side]
+      };
+    }
+
+    function applyGeometry(isMobile) {
+      var bounds = isMobile ? mobileBounds : desktopBounds;
+      facets.forEach(function (facet) {
+        var geometry = geometryFor(facet, bounds);
+        facet.element.style.clipPath = geometry.clipPath;
+        facet.element.style.webkitClipPath = geometry.clipPath;
+        facet.element.style.transformOrigin = geometry.transformOrigin;
+      });
+    }
+
+    applyGeometry(window.matchMedia("(max-width: 700px)").matches);
+
+    if (!hasGSAP) {
+      document.body.classList.add("static-reverse");
+      return { reveal: noop };
+    }
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    var elements = facets.map(function (facet) {
+      return facet.element;
+    });
+    var cards = elements.map(function (element) {
+      return element.querySelector(".card");
+    });
+
+    if (reduced) {
+      gsap.set(sheet, { opacity: 1 });
+      gsap.set(cards, { rotationY: 180, force3D: true });
+      gsap.set(creaseMap, { opacity: 0 });
+      gsap.set(reverseMap, { opacity: 0.82 });
+      return { reveal: noop };
+    }
+
+    gsap.set(elements, {
+      rotationX: 0,
+      rotationY: 0,
+      rotationZ: 0,
+      x: 0,
+      y: 0,
+      z: 0,
+      scale: 1,
+      opacity: 1,
+      force3D: true
+    });
+    gsap.set(cards, {
+      rotationY: 0,
+      force3D: true
+    });
+    gsap.set(edgeFlash, {
+      xPercent: -50,
+      yPercent: -50,
+      scale: 0.32,
+      rotationZ: 45,
+      opacity: 0,
+      force3D: true
+    });
+
+    /* Same tween as the source study, held until the opening moment clears. */
+    var entrance = gsap.fromTo(
+      sheet,
+      { opacity: 0, scale: 1.035, z: -30 },
+      {
+        opacity: 1,
+        scale: 1,
+        z: 0,
+        duration: 1.25,
+        ease: "power4.out",
+        paused: true
+      }
+    );
+
+    var sideAxis = {
+      top: "x",
+      right: "y",
+      bottom: "x",
+      left: "y"
+    };
+
+    var towardSign = {
+      top: 1,
+      right: 1,
+      bottom: -1,
+      left: -1
+    };
+
+    var recessSign = {
+      top: -1,
+      right: -1,
+      bottom: 1,
+      left: 1
+    };
+
+    function axisRotation(meta, amount, signs) {
+      return sideAxis[meta.side] === "x"
+        ? { rotationX: signs[meta.side] * amount, rotationY: 0 }
+        : { rotationX: 0, rotationY: signs[meta.side] * amount };
+    }
+
+    function rotationValue(axis, phase, index) {
+      var meta = facets[index];
+      var amounts = {
+        tension: [2.4, 4.2, 5.4, 7.2, 10],
+        cross: [34, 56, 69, 78, 84],
+        tunnel: [28, 46, 63, 77, 86]
+      };
+      var signs = phase === "tunnel" ? recessSign : towardSign;
+      var direction = phase === "cross" && meta.ring % 2 ? -1 : 1;
+      var rotation = axisRotation(
+        meta,
+        amounts[phase][meta.ring] * direction,
+        signs
+      );
+      return axis === "x" ? rotation.rotationX : rotation.rotationY;
+    }
+
+    function buildStory(isMobile) {
+      applyGeometry(isMobile);
+
+      var tunnelDepths = isMobile
+        ? [70, -125, -330, -570, -860]
+        : [80, -80, -245, -430, -680];
+      var crossDepths = isMobile
+        ? [130, 310, 90, 390, 520]
+        : [120, 270, 80, 330, 470];
+
+      var timeline = gsap.timeline({
+        defaults: { ease: "power4.out" },
+        scrollTrigger: {
+          trigger: story,
+          start: "top top",
+          // 7.2 viewports gives the folds enough physical weight; the aperture
+          // reaches camera-threshold around 59% rather than flashing past.
+          end: function () {
+            return "+=" + Math.round(window.innerHeight * 7.2);
+          },
+          pin: pin,
+          scrub: 0.65,
+          anticipatePin: 1,
+          invalidateOnRefresh: true
+        }
+      });
+
+      /*
+        ACT I — FLAT / TENSION
+        Alternating hinges lift only a few degrees. The printed image remains
+        continuous, so the viewport still reads as one stressed sheet.
+      */
+      timeline
+        .to(
+          creaseMap,
+          {
+            opacity: 0.96,
+            scale: 1.003,
+            duration: 0.72
+          },
+          0
+        )
+        .to(
+          elements,
+          {
+            rotationX: function (index) {
+              return rotationValue("x", "tension", index);
+            },
+            rotationY: function (index) {
+              return rotationValue("y", "tension", index);
+            },
+            z: function (index) {
+              return (
+                (facets[index].ring % 2 ? -1 : 1) * (10 + facets[index].ring * 8)
+              );
+            },
+            duration: 1.16,
+            stagger: 0.08,
+            ease: "expo.out"
+          },
+          0.22
+        )
+        .to(
+          elements,
+          {
+            z: function (index) {
+              return facets[index].side === "top" || facets[index].side === "left"
+                ? 34 + facets[index].ring * 12
+                : -18 - facets[index].ring * 10;
+            },
+            rotationZ: function (index) {
+              return (index % 2 ? 0.22 : -0.22) * (facets[index].ring + 1);
+            },
+            duration: 0.82,
+            stagger: 0.08,
+            ease: "expo.out"
+          },
+          1.02
+        )
+        .to(
+          creaseMap,
+          {
+            opacity: 0.28,
+            duration: 0.58
+          },
+          1.46
+        );
+
+      /*
+        ACT II — IMPOSSIBLE FOLD / PASSAGE
+        Concentric rings alternate their hinge direction while crossing in Z.
+        This deliberate interpenetration is the physical impossibility.
+      */
+      timeline
+        .to(
+          elements,
+          {
+            rotationX: function (index) {
+              return rotationValue("x", "cross", index);
+            },
+            rotationY: function (index) {
+              return rotationValue("y", "cross", index);
+            },
+            rotationZ: 0,
+            z: function (index) {
+              return crossDepths[facets[index].ring];
+            },
+            scale: function (index) {
+              return facets[index].core ? 1.12 : 1;
+            },
+            duration: 1.32,
+            stagger: 0.08,
+            ease: "expo.out"
+          },
+          1.7
+        )
+        .to(
+          edgeFlash,
+          {
+            opacity: 0.94,
+            scale: 1,
+            rotationZ: 45,
+            duration: 0.74
+          },
+          2.36
+        )
+        .to(
+          edgeFlash,
+          {
+            opacity: 0,
+            scale: 1.62,
+            duration: 0.64
+          },
+          2.98
+        )
+        .to(
+          elements,
+          {
+            rotationX: function (index) {
+              return rotationValue("x", "tunnel", index);
+            },
+            rotationY: function (index) {
+              return rotationValue("y", "tunnel", index);
+            },
+            z: function (index) {
+              return tunnelDepths[facets[index].ring];
+            },
+            scale: function (index) {
+              return facets[index].core ? 0.72 : 1;
+            },
+            opacity: function (index) {
+              return facets[index].core ? 0.08 : 1;
+            },
+            duration: 1.58,
+            stagger: 0.08,
+            ease: "expo.out"
+          },
+          2.86
+        )
+        .to(
+          sheet,
+          {
+            scale: isMobile ? 4.65 : 3.85,
+            z: isMobile ? 390 : 460,
+            duration: 1.5
+          },
+          4.18
+        )
+        // Hold at camera-threshold; the inside-out crossing crests near 62%.
+        .to({}, { duration: 0.54 });
+
+      /*
+        ACT III — INSIDE-OUT CODA
+        The sheet is larger than the viewport while every facet rolls onto
+        its back. It then returns as a single cyan-marked plane.
+      */
+      timeline
+        .to(
+          elements,
+          {
+            rotationX: 0,
+            rotationY: 0,
+            rotationZ: 0,
+            z: 0,
+            scale: 1,
+            opacity: 1,
+            duration: 1.42,
+            stagger: {
+              each: 0.08,
+              from: "center"
+            },
+            ease: "expo.out"
+          },
+          6.18
+        )
+        .to(
+          cards,
+          {
+            rotationY: 180,
+            duration: 1.42,
+            stagger: {
+              each: 0.08,
+              from: "center"
+            },
+            ease: "expo.out"
+          },
+          6.18
+        )
+        .to(
+          sheet,
+          {
+            scale: 1,
+            z: 0,
+            duration: 1.5
+          },
+          6.34
+        )
+        .to(
+          reverseMap,
+          {
+            opacity: 0.78,
+            duration: 0.64
+          },
+          7.14
+        )
+        .to(
+          creaseMap,
+          {
+            opacity: 0,
+            duration: 0.42
+          },
+          7.14
+        )
+        .to(
+          elements.filter(function (_, index) {
+            return index >= 12 && index <= 17;
+          }),
+          {
+            rotationX: function (index) {
+              return index % 2 ? 0 : 17;
+            },
+            rotationY: function (index) {
+              return index % 2 ? -17 : 0;
+            },
+            z: function (index) {
+              return index % 2 ? 82 : 118;
+            },
+            duration: 0.58,
+            stagger: 0.08,
+            ease: "expo.out"
+          },
+          8.02
+        )
+        .to(
+          elements.filter(function (_, index) {
+            return index >= 12 && index <= 17;
+          }),
+          {
+            rotationX: 0,
+            rotationY: 0,
+            z: 0,
+            duration: 0.32,
+            stagger: 0.08,
+            ease: "expo.out"
+          },
+          8.62
+        )
+        // The dead-flat ending is held long enough to compare both sides.
+        .to({}, { duration: 1.16 });
+
+      return function () {
+        timeline.kill();
+      };
+    }
+
+    var media = gsap.matchMedia();
+    media.add(
+      {
+        isMobile: "(max-width: 700px)",
+        isDesktop: "(min-width: 701px)"
+      },
+      function (context) {
+        return buildStory(context.conditions.isMobile);
+      }
+    );
+
+    return {
+      reveal: function () {
+        entrance.play();
+      }
+    };
   }
 
   /* ======================================================================
@@ -292,7 +857,7 @@
         EXIT
       )
       .to(inner, { autoAlpha: 0, duration: 0.16 }, EXIT + 0.24)
-      /* the black lifts and the brand is already there behind it */
+      /* the black lifts and the fold is already there behind it */
       .call(
         function () {
           fold.reveal();
@@ -434,16 +999,16 @@
      ====================================================================== */
 
   function boot() {
-    var fold = initHero();
+    var fold = initFold();
     initReveals();
     initMagnetic();
     initExitRift();
 
-    /* Lock first, ask questions later: the hero must never be reachable
+    /* Lock first, ask questions later: the fold must never be reachable
        before the opening moment has played out. */
     if (hasGSAP && !reduced && document.getElementById("intro")) {
       scrollLock.lock();
-      /* Never leave the page locked — or the brand invisible — if anything
+      /* Never leave the page locked — or the sheet invisible — if anything
          downstream fails to resolve the opening moment. */
       window.setTimeout(function () {
         if (!scrollLock.locked) return;
