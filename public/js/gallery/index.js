@@ -22,6 +22,10 @@ function versioned(spec) {
 
 /* Loaded eagerly, but through the versioned URL, so it cannot go stale. */
 const promptsReady = import(versioned('./prompts.js'));
+
+/* Small and needed on the first prompt click, so it comes in with the page.
+   Signing in itself happens on auth.html, not in a dialog here. */
+import * as auth from './auth.js';
 let prompts = null;
 promptsReady.then(function (m) { prompts = m; }, function () { prompts = null; });
 
@@ -32,18 +36,36 @@ promptsReady.then(function (m) { prompts = m; }, function () { prompts = null; }
    CHECKOUT       one hosted-checkout URL per tier. Paste the payment links
                   from whichever processor you use (Stripe Payment Links,
                   Gumroad, Lemon Squeezy, Paddle — all give you a plain URL).
+   BOOKING        one URL per call length for the Studio tier.
 
    A tier left blank renders as visibly disabled rather than as a buy button
    that goes nowhere. Never ship a live-looking checkout that cannot take
    money — that is how you lose a customer permanently.
    ========================================================================== */
-const CONTACT_MAIL = 'hello@nullrift.design';
+const CONTACT_MAIL = 'nullriftdesign@gmail.com';
 
 const CHECKOUT = {
   monthly: '',
   pro: '',
-  team: '',
-  studio: ''
+  team: ''
+};
+
+/* Studio is booked, not bought — the price is agreed on the call, so the card
+   sells a slot rather than a checkout.
+
+   `url` is deliberately format-agnostic. It can be a Cal.com event that takes
+   the deposit itself (its Stripe app), or a Stripe Payment Link whose
+   post-payment redirect lands on the Cal.com event. Both satisfy "paid before
+   the booking confirms" and the markup cannot tell them apart, so switching
+   between them later is one string, not a rebuild.
+
+   `deposit` is what the copy quotes, in whole dollars, and it must match what
+   the URL actually charges. Set it to 0 to present that length as free — that
+   is the whole change required if the deposit turns out to be suppressing
+   bookings. */
+const BOOKING = {
+  '15': { url: '', deposit: 50, label: 'Fit check' },
+  '30': { url: '', deposit: 50, label: 'Full brief' }
 };
 
 const html = document.documentElement;
@@ -204,31 +226,226 @@ stampCounts();
 
 /* ------------------------------------------------------------- commerce ui */
 
-function wireCommerce() {
-  const mail = document.querySelector('[data-contact-mail]');
-  if (mail) {
-    mail.textContent = CONTACT_MAIL;
-    mail.href = 'mailto:' + CONTACT_MAIL +
-      '?subject=' + encodeURIComponent('NULLRIFT — commission a system');
+/* Blank config target → visibly disabled, never a live-looking control that
+   goes nowhere. Shared by checkout and booking so there is one behaviour to
+   reason about, and one place to fix it. */
+function wireTarget(el, url, deadLabel) {
+  const label = el.querySelector('[data-cta-label]') || el.querySelector('span') || el;
+  if (url) {
+    el.href = url;
+    el.removeAttribute('data-unwired');
+    el.removeAttribute('aria-disabled');
+    if (el.dataset.label) label.textContent = el.dataset.label;
+    return;
   }
+  el.setAttribute('data-unwired', '');
+  el.setAttribute('aria-disabled', 'true');
+  el.removeAttribute('href');
+  if (!el.dataset.label) el.dataset.label = label.textContent;
+  label.textContent = deadLabel;
+}
+
+function wireCommerce() {
+  /* querySelectorAll, not querySelector: the Studio card carries a second
+     mailto beside the one in the pricing footnote. */
+  document.querySelectorAll('[data-contact-mail]').forEach((mail) => {
+    const subject = mail.dataset.contactMail || 'NULLRIFT — commission a system';
+    if (!mail.dataset.keepText) mail.textContent = CONTACT_MAIL;
+    mail.href = 'mailto:' + CONTACT_MAIL + '?subject=' + encodeURIComponent(subject);
+  });
 
   document.querySelectorAll('[data-checkout]').forEach((el) => {
-    const url = CHECKOUT[el.dataset.checkout];
-    const label = el.querySelector('span') || el;
-    if (url) {
-      el.href = url;
-      el.removeAttribute('data-unwired');
-      el.removeAttribute('aria-disabled');
-      return;
-    }
-    /* No processor connected yet — say so plainly instead of pretending. */
-    el.setAttribute('data-unwired', '');
-    el.setAttribute('aria-disabled', 'true');
-    el.removeAttribute('href');
-    el.dataset.label = label.textContent;
-    label.textContent = 'Checkout not connected';
+    wireTarget(el, CHECKOUT[el.dataset.checkout], 'Checkout not connected');
+  });
+
+  document.querySelectorAll('[data-book]').forEach((el) => {
+    const slot = BOOKING[el.dataset.book];
+    wireTarget(el, slot && slot.url, 'Booking not connected');
+  });
+
+  /* The quoted deposit comes from the same object that holds the URL charging
+     it, so the copy cannot drift away from what the visitor is actually asked
+     to pay. */
+  document.querySelectorAll('[data-deposit]').forEach((el) => {
+    const slot = BOOKING[el.dataset.deposit];
+    if (!slot) return;
+    el.textContent = slot.deposit > 0 ? '$' + slot.deposit + ' deposit' : 'Free';
   });
 }
+
+/* Where "sign in" goes, with a same-origin return path attached. */
+function authHref(promptId) {
+  const back = 'gallery.html' + (promptId ? '#ex-' + promptId : location.hash || '');
+  return 'auth.html?next=' + encodeURIComponent(back);
+}
+
+/* ------------------------------------------------------------- account ui */
+
+/* Signed out: one "Sign in" button. Signed in: the person's picture and first
+   name, opening a small menu.
+
+   The shell is built once per sign-in state and then *repainted* in place.
+   Rebuilding it on every profile change used to destroy the very button the
+   visitor had just clicked — the menu vanished mid-interaction and menuOpen
+   desynced from a menu that no longer existed. */
+function wireAccount() {
+  const slot = document.querySelector('[data-account-slot]');
+  if (!slot) return;
+
+  let menuOpen = false;
+  let shell = null;   /* 'out' | 'in' — which markup is currently mounted */
+  let av = null;      /* avatars module, imported once */
+
+  function closeMenu() {
+    menuOpen = false;
+    const m = slot.querySelector('.acct__menu');
+    if (m) m.hidden = true;
+    const t = slot.querySelector('.acct__chip');
+    if (t) t.setAttribute('aria-expanded', 'false');
+  }
+
+  /* Capture phase, deliberately. Each exhibit installs a capture-phase click
+     handler that calls stopPropagation() so a click on a live preview counts
+     as opening the card — which means a bubble listener here never sees clicks
+     on most of the page, and the menu could not be dismissed. document is the
+     outermost node, so its capture listener runs before any of them. */
+  document.addEventListener('click', (e) => {
+    if (menuOpen && !slot.contains(e.target)) closeMenu();
+  }, true);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && menuOpen) closeMenu();
+  });
+
+  function say(text, kind) {
+    const note = slot.querySelector('[data-avatar-note]');
+    if (!note) return;
+    note.hidden = !text;
+    note.dataset.kind = kind || 'ok';
+    note.textContent = text || '';
+  }
+
+  /* Everything that can change without the account changing. Called on every
+     profile update, and it touches only text and the avatar — never innerHTML
+     on the container, so open menus and live listeners survive. */
+  function paint() {
+    const profile = auth.getProfile();
+    const name = av.firstName(profile, auth.getEmail());
+
+    const face = slot.querySelector('.acct__chip .avatar');
+    if (face) face.innerHTML = av.renderAvatar(profile);
+
+    /* textContent, not interpolation — a username is user input and must never
+       reach innerHTML. */
+    const n1 = slot.querySelector('.acct__name');
+    const n2 = slot.querySelector('.acct__whoname');
+    const mail = slot.querySelector('.acct__mail');
+    if (n1) n1.textContent = name;
+    if (n2) n2.textContent = name;
+    if (mail) mail.textContent = auth.getEmail();
+
+    slot.querySelectorAll('.acct__mark').forEach((b) => {
+      const current = profile && !profile.avatar_url &&
+        profile.avatar_preset === b.dataset.preset;
+      b.setAttribute('aria-checked', String(!!current));
+    });
+  }
+
+  function buildSignedIn() {
+    slot.innerHTML =
+      '<button type="button" class="acct__chip" aria-haspopup="true" aria-expanded="false">' +
+        '<span class="avatar avatar--sm"></span>' +
+        '<span class="acct__name"></span>' +
+      '</button>' +
+      '<div class="acct__menu" hidden>' +
+        '<p class="acct__who"><span class="acct__whoname"></span>' +
+          '<span class="acct__mail"></span></p>' +
+        '<p class="acct__label">Profile picture</p>' +
+        '<div class="acct__marks" role="radiogroup" aria-label="Profile picture"></div>' +
+        '<button type="button" class="acct__item" data-avatar-pick>Upload a picture…</button>' +
+        '<input type="file" accept="image/*" hidden data-avatar-file>' +
+        '<p class="acct__note" data-avatar-note hidden></p>' +
+        '<button type="button" class="acct__item" data-signout>Sign out</button>' +
+      '</div>';
+
+    const chip = slot.querySelector('.acct__chip');
+    const menu = slot.querySelector('.acct__menu');
+    chip.addEventListener('click', () => {
+      menuOpen = !menuOpen;
+      menu.hidden = !menuOpen;
+      chip.setAttribute('aria-expanded', String(menuOpen));
+    });
+
+    slot.querySelector('[data-signout]').addEventListener('click', async () => {
+      closeMenu();
+      await auth.signOut();
+    });
+
+    /* The same six pictures as sign-up, so one can be changed without going
+       anywhere near a file dialog. */
+    const marks = slot.querySelector('.acct__marks');
+    av.PRESETS.forEach((id) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'acct__mark';
+      b.dataset.preset = id;
+      b.setAttribute('role', 'radio');
+      b.setAttribute('aria-checked', 'false');
+      b.setAttribute('aria-label', 'Profile picture ' + id.slice(1));
+      b.innerHTML = av.presetSvg(id);
+      b.addEventListener('click', async () => {
+        say('Saving…');
+        try {
+          /* Clearing avatar_url is what lets a preset win again for someone
+             who had previously uploaded a photo. */
+          await auth.saveProfile({ avatar_preset: id, avatar_url: null });
+          say('');
+        } catch (err) {
+          say(err.message, 'error');
+        }
+      });
+      marks.appendChild(b);
+    });
+
+    /* A plain button forwarding to the hidden input, rather than a <label>
+       wrapping it: the label sits inside a menu that closes on outside clicks,
+       and the file dialog was swallowing the interaction. */
+    slot.querySelector('[data-avatar-pick]').addEventListener('click', () => {
+      slot.querySelector('[data-avatar-file]').click();
+    });
+
+    slot.querySelector('[data-avatar-file]').addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      say('Uploading…');
+      try {
+        await auth.uploadAvatar(file);
+        say('');
+      } catch (err) {
+        say(err.message, 'error');
+      }
+    });
+  }
+
+  function buildSignedOut() {
+    /* A real link to a real page, not a modal: it can be opened in a new tab,
+       linked to, and bookmarked, and `next` brings the visitor back here. */
+    slot.innerHTML =
+      '<a class="nr-cta nr-cta--ghost" href="' + authHref() + '">Sign in</a>';
+  }
+
+  auth.onChange(async (session) => {
+    if (!av) av = await import(versioned('./avatars.js'));
+
+    if (!session) {
+      if (shell !== 'out') { buildSignedOut(); shell = 'out'; menuOpen = false; }
+      return;
+    }
+
+    if (shell !== 'in') { buildSignedIn(); shell = 'in'; menuOpen = false; }
+    paint();
+  });
+}
+wireAccount();
 wireCommerce();
 
 /* --------------------------------------------------------------- lifecycle */
@@ -488,6 +705,48 @@ let promptOpenFor = null;
 let copyTimer = 0;
 let lastFocus = null;
 
+/* The body of the currently open prompt, once the server has released it.
+   Deliberately not cached across prompts: each one is fetched, and each fetch
+   is checked. */
+let openBody = '';
+
+/* One round trip, one prompt. Returns { body } or { error } — the caller
+   turns the error into the right dead end, because "sign in" and "pay" need
+   different exits. */
+async function fetchBody(id) {
+  let token = null;
+  try {
+    token = await auth.getAccessToken();
+  } catch (err) { token = null; }
+  if (!token) return { error: 'sign_in_required' };
+
+  let r;
+  try {
+    r = await fetch('/api/prompt?id=' + encodeURIComponent(id), {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+  } catch (err) {
+    return { error: 'offline' };
+  }
+  if (r.ok) {
+    const data = await r.json().catch(() => null);
+    return data && data.body ? { body: data.body } : { error: 'bad_response' };
+  }
+  if (r.status === 401) return { error: 'sign_in_required' };
+  if (r.status === 402) return { error: 'payment_required' };
+  if (r.status === 503) return { error: 'auth_unconfigured' };
+  return { error: 'unavailable' };
+}
+
+const GATE_COPY = {
+  sign_in_required: 'Sign in to read this prompt.',
+  payment_required: 'This prompt is part of a paid tier. See pricing to unlock it.',
+  auth_unconfigured: 'Accounts are not configured on this deployment yet.',
+  offline: 'Could not reach the server. Check your connection and try again.',
+  bad_response: 'The server did not return the prompt. Try again.',
+  unavailable: 'The prompt could not be loaded right now.'
+};
+
 async function openPrompt(ex) {
   /* The table is a separate module now, so wait for it rather than assuming
      it has landed. In practice it resolves long before anyone can click. */
@@ -497,13 +756,17 @@ async function openPrompt(ex) {
 
   lastFocus = document.activeElement;
   promptOpenFor = ex;
+  openBody = '';
+  /* Metadata is public and paints immediately; only the body waits on the
+     server, so the panel never opens blank. */
   if (promptFields.id) promptFields.id.textContent = 'EX.' + data.id;
   if (promptFields.title) promptFields.title.textContent = data.title;
   if (promptFields.tech) promptFields.tech.textContent = data.tech;
   if (promptFields.use) promptFields.use.textContent = data.use;
   if (promptFields.file) promptFields.file.textContent = data.file;
-  if (promptFields.body) promptFields.body.textContent = data.body;
+  if (promptFields.body) promptFields.body.textContent = 'Unlocking…';
   if (promptFields.copyLabel) promptFields.copyLabel.textContent = 'Copy prompt';
+  setPromptGate(null);
 
   const copyBtn = promptPanel.querySelector('[data-prompt-copy]');
   if (copyBtn) copyBtn.classList.remove('is-copied');
@@ -514,6 +777,92 @@ async function openPrompt(ex) {
 
   const closeBtn = promptPanel.querySelector('.prompt__x');
   if (closeBtn) closeBtn.focus({ preventScroll: true });
+
+  await releaseBody(ex.id);
+}
+
+/* Ask the server for the body, and if it says no, show the matching way out.
+   Re-entrant by design: signing in from the gate calls straight back here. */
+async function releaseBody(id) {
+  const out = await fetchBody(id);
+
+  /* The visitor may have closed the panel, or opened a different card, while
+     the request was in flight — do not paint a stale body into it. */
+  if (!promptOpenFor || promptOpenFor.id !== id) return;
+
+  if (out.body) {
+    openBody = out.body;
+    if (promptFields.body) promptFields.body.textContent = out.body;
+    setPromptGate(null);
+    return;
+  }
+
+  openBody = '';
+  if (promptFields.body) promptFields.body.textContent = '';
+  setPromptGate(out.error);
+}
+
+/* The locked state of the panel: a message plus exactly one action. */
+function setPromptGate(kind) {
+  if (!promptPanel) return;
+  let gate = promptPanel.querySelector('[data-prompt-gate]');
+
+  if (!kind) {
+    if (gate) gate.hidden = true;
+    promptPanel.classList.remove('is-locked');
+    const btn = promptPanel.querySelector('[data-prompt-copy]');
+    if (btn) btn.removeAttribute('aria-disabled');
+    return;
+  }
+
+  if (!gate) {
+    gate = document.createElement('div');
+    gate.className = 'prompt__gate';
+    gate.setAttribute('data-prompt-gate', '');
+    gate.innerHTML =
+      '<p class="prompt__gate-msg" data-gate-msg></p>' +
+      '<button type="button" class="frame__btn frame__btn--prompt" data-gate-go></button>';
+    const host = promptFields.body ? promptFields.body.parentNode : promptPanel;
+    host.insertBefore(gate, promptFields.body || null);
+    gate.querySelector('[data-gate-go]').addEventListener('click', onGateAction);
+  }
+
+  gate.hidden = false;
+  gate.dataset.kind = kind;
+  promptPanel.classList.add('is-locked');
+  const copyBtn = promptPanel.querySelector('[data-prompt-copy]');
+  if (copyBtn) copyBtn.setAttribute('aria-disabled', 'true');
+  gate.querySelector('[data-gate-msg]').textContent = GATE_COPY[kind] || GATE_COPY.unavailable;
+
+  const go = gate.querySelector('[data-gate-go]');
+  if (kind === 'sign_in_required') go.textContent = 'Sign in';
+  else if (kind === 'payment_required') go.textContent = 'See pricing';
+  else go.textContent = 'Try again';
+}
+
+async function onGateAction() {
+  const gate = promptPanel.querySelector('[data-prompt-gate]');
+  const kind = gate ? gate.dataset.kind : '';
+  const id = promptOpenFor ? promptOpenFor.id : null;
+
+  if (kind === 'payment_required') {
+    closePrompt();
+    document.getElementById('pricing').scrollIntoView({ behavior: 'smooth' });
+    return;
+  }
+
+  if (kind === 'sign_in_required') {
+    /* Carry the prompt they were opening, so signing in lands them back on it
+       instead of dumping them at the top of the gallery. */
+    location.href = authHref(id);
+    return;
+  }
+
+  if (id) {
+    if (promptFields.body) promptFields.body.textContent = 'Unlocking…';
+    setPromptGate(null);
+    await releaseBody(id);
+  }
 }
 
 function closePrompt() {
@@ -524,22 +873,24 @@ function closePrompt() {
   const restore = lastFocus;
   lastFocus = null;
   promptOpenFor = null;
+  openBody = '';
   if (restore && typeof restore.focus === 'function') {
     restore.focus({ preventScroll: true });
   }
 }
 
 async function copyPrompt() {
-  const data = promptOpenFor && prompts ? prompts.getPrompt(promptOpenFor.id) : null;
-  if (!data) return;
+  /* Copies what the server actually released. There is no local table to fall
+     back to any more, so a locked panel has nothing to copy. */
+  if (!openBody) return;
   const label = promptFields.copyLabel;
   const btn = promptPanel && promptPanel.querySelector('[data-prompt-copy]');
   try {
-    await navigator.clipboard.writeText(data.body);
+    await navigator.clipboard.writeText(openBody);
   } catch (err) {
     /* Fallback for older engines / insecure contexts */
     const ta = document.createElement('textarea');
-    ta.value = data.body;
+    ta.value = openBody;
     ta.setAttribute('readonly', '');
     ta.style.cssText = 'position:fixed;left:-9999px;top:0';
     document.body.appendChild(ta);

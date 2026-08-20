@@ -105,6 +105,45 @@
     });
   }
 
+  /* ------------------------------------------------------------------- nav */
+
+  /* The header has no bar of its own at the top of the page. It grows one the
+     moment anything scrolls beneath it, which is the only point at which the
+     labels need a surface to stay readable. */
+  function initNav() {
+    var nav = document.querySelector(".nr-nav");
+    if (!nav) return;
+
+    var stuck = null;
+
+    /* The homepage pins a full-bleed hero for several viewports, so raw scroll
+       position says "scrolled" while the visitor is still looking at the first
+       screen — and the bar would appear over the artwork immediately. Where a
+       hero exists, the surface waits until the hero has actually left; the
+       controls themselves stay visible the whole time. */
+    var hero = document.querySelector("[data-nav-hero]");
+
+    /* Synchronous rather than rAF-batched: this is one class toggle guarded by
+       an unchanged-state early out, which is cheaper than the frame bookkeeping
+       and cannot be left stale by a throttled rAF. */
+    function paint() {
+      var next;
+      if (hero) {
+        /* Bottom of the hero measured against the bar's own height, so the
+           surface arrives exactly as real content slides underneath it. */
+        next = hero.getBoundingClientRect().bottom <= nav.offsetHeight;
+      } else {
+        next = window.pageYOffset > 8;
+      }
+      if (next === stuck) return;
+      stuck = next;
+      nav.classList.toggle("is-stuck", next);
+    }
+
+    window.addEventListener("scroll", paint, { passive: true });
+    paint();
+  }
+
   /* ------------------------------------------------------------------ boot */
 
   /* ----------------------------------------------------------------- theme */
@@ -150,6 +189,7 @@
 
   function boot() {
     initTheme();
+    initNav();
     initGrain();
     initStatus();
   }

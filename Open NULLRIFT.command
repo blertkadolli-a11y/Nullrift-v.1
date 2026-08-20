@@ -3,7 +3,8 @@
 #
 # The site is plain HTML/CSS/JS with no build step, but it does use ES modules,
 # and browsers refuse to run those from a file:// URL. So it has to be served.
-# This starts a static server on the first free port and opens the browser at it.
+# This starts the dev server (static public/ + the api/ endpoints) on the first
+# free port and opens the browser at it. Needs Node; no packages to install.
 
 cd "$(dirname "$0")" || exit 1
 
@@ -28,7 +29,7 @@ echo
 echo "Leave this window open while you browse. Press Ctrl-C to stop."
 echo
 
-python3 -m http.server "$PORT" >/dev/null 2>&1 &
+PORT="$PORT" node dev-server.mjs >/dev/null 2>&1 &
 SERVER_PID=$!
 
 # Stop the server when this window is closed or Ctrl-C is pressed.

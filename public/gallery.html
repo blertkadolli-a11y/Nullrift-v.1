@@ -28,12 +28,12 @@
 })();
 </script>
 
-<link rel="stylesheet" href="css/base.css?v=6">
-<link rel="stylesheet" href="css/gallery.css?v=28">
+<link rel="stylesheet" href="css/base.css?v=11">
+<link rel="stylesheet" href="css/gallery.css?v=36">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
-<script src="js/chrome.js?v=3" defer></script>
+<script src="js/chrome.js?v=6" defer></script>
 
 <script type="importmap">
 {
@@ -43,7 +43,7 @@
   }
 }
 </script>
-<script type="module" src="js/gallery/index.js?v=29"></script>
+<script type="module" src="js/gallery/index.js?v=41"></script>
 </head>
 
 <body class="g-body">
@@ -116,7 +116,7 @@
       </button>
     </div>
     <a class="nr-cta" href="#pricing">Get all from $7</a>
-    <a class="nr-cta nr-cta--ghost" href="index.html">Index</a>
+    <div class="acct" data-account-slot></div>
   </div>
 </header>
 
@@ -462,9 +462,38 @@
           </p>
         </div>
 
-        <a class="plan__cta frame__btn studio__cta" href="#" data-checkout="studio">
-          <span>Book your private call</span>
-        </a>
+        <div class="studio__book">
+          <p class="studio__book-label">Reserve your call</p>
+
+          <div class="studio__book-opts">
+            <a class="studio__slot" href="#" data-book="15"
+               aria-label="Reserve a 15 minute fit check">
+              <span class="studio__slot-len">15<i>min</i></span>
+              <span class="studio__slot-kind">Fit check</span>
+              <span class="studio__slot-fee" data-deposit="15">&mdash;</span>
+              <span class="studio__slot-state" data-cta-label>Reserve</span>
+            </a>
+
+            <a class="studio__slot" href="#" data-book="30"
+               aria-label="Reserve a 30 minute full brief">
+              <span class="studio__slot-len">30<i>min</i></span>
+              <span class="studio__slot-kind">Full brief</span>
+              <span class="studio__slot-fee" data-deposit="30">&mdash;</span>
+              <span class="studio__slot-state" data-cta-label>Reserve</span>
+            </a>
+          </div>
+
+          <p class="studio__book-note">
+            Pick a time, pay the deposit, and the Google&nbsp;Meet link arrives with your
+            confirmation. The deposit comes off your build &mdash; and comes back if I turn
+            the job down.
+          </p>
+
+          <p class="studio__book-alt">
+            Rather talk first?
+            <a data-contact-mail="NULLRIFT — Studio enquiry" href="#">&mdash;</a>
+          </p>
+        </div>
       </div>
     </article>
 

@@ -125,15 +125,15 @@ export default function create(ctx) {
       p + 'g{position:absolute;left:50%;top:0;border-radius:50%;pointer-events:none;',
       'transform:translate(-50%,-50%);will-change:opacity,transform;',
       'background:radial-gradient(ellipse 56% 50% at 50% 44%,',
-      'rgba(0,255,219,0.10) 0%,rgba(255,255,255,0.045) 36%,transparent 69%);}',
+      'rgba(139,147,255,0.10) 0%,rgba(255,255,255,0.045) 36%,transparent 69%);}',
 
       /* the orbit path, drawn so the mechanism reads even when circles sink */
       p + 'r{position:absolute;left:0;top:0;border-radius:50%;pointer-events:none;',
-      'border:1px solid rgba(0,255,219,0.12);transform:translate(-50%,-50%);}',
+      'border:1px solid rgba(139,147,255,0.12);transform:translate(-50%,-50%);}',
 
       p + 'h{position:absolute;left:50%;top:0;overflow:hidden;',
       'transform-origin:50% 50%;will-change:transform,opacity;',
-      'box-shadow:0 0 0 1px rgba(255,255,255,0.10),0 0 40px rgba(0,255,219,0.08),',
+      'box-shadow:0 0 0 1px rgba(255,255,255,0.10),0 0 40px rgba(139,147,255,0.08),',
       '0 24px 50px rgba(0,0,0,0.55);}',
 
       p + 'i{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;',
@@ -141,8 +141,8 @@ export default function create(ctx) {
 
       /* thin luminous rim hugging the frame */
       p + 'rm{position:absolute;inset:0;pointer-events:none;z-index:3;opacity:0.85;',
-      'background:linear-gradient(145deg,rgba(255,255,255,0.45) 0%,rgba(0,255,219,0.35) 28%,',
-      'rgba(255,255,255,0.06) 52%,rgba(0,255,219,0.22) 78%,rgba(255,255,255,0.3) 100%);',
+      'background:linear-gradient(145deg,rgba(255,255,255,0.45) 0%,rgba(139,147,255,0.35) 28%,',
+      'rgba(255,255,255,0.06) 52%,rgba(139,147,255,0.22) 78%,rgba(255,255,255,0.3) 100%);',
       '-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);',
       '-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,',
       'linear-gradient(#000 0 0);mask-composite:exclude;padding:1px;}',
@@ -155,13 +155,13 @@ export default function create(ctx) {
       /* the hero standing on something, rather than floating in void */
       p + 'fl{position:absolute;left:50%;pointer-events:none;',
       'transform:translateX(-50%);background:radial-gradient(ellipse 50% 50% at 50% 0%,',
-      'rgba(0,255,219,0.10) 0%,rgba(0,255,219,0.03) 45%,transparent 72%);}',
+      'rgba(139,147,255,0.10) 0%,rgba(139,147,255,0.03) 45%,transparent 72%);}',
 
       p + 'l{position:absolute;left:0;width:100%;text-align:center;pointer-events:none;',
       'will-change:transform,opacity;}',
       p + 'n{color:#fff;font-weight:500;letter-spacing:0.05em;line-height:1.15;}',
       p + 'c{font-family:var(--font-mono),"JetBrains Mono",monospace;',
-      'color:rgba(0,255,219,0.55);letter-spacing:0.18em;margin-top:0.45em;}',
+      'color:rgba(139,147,255,0.55);letter-spacing:0.18em;margin-top:0.45em;}',
 
       p + 'o{position:absolute;inset:0;pointer-events:none;}',
 
@@ -170,8 +170,8 @@ export default function create(ctx) {
       'pointer-events:auto;will-change:transform,opacity;appearance:none;',
       'transform-origin:50% 50%;}',
       p + 'd>img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;}',
-      p + 'd.on{border:2px solid #00ffdb;box-shadow:0 0 20px rgba(0,255,219,0.30);}',
-      p + 'd:focus-visible{outline:2px solid #00ffdb;outline-offset:3px;}',
+      p + 'd.on{border:2px solid #8b93ff;box-shadow:0 0 20px rgba(139,147,255,0.32);}',
+      p + 'd:focus-visible{outline:2px solid #8b93ff;outline-offset:3px;}',
 
       p + 'v{position:absolute;inset:0;pointer-events:none;z-index:5;',
       'background:radial-gradient(ellipse 78% 68% at 50% 42%,transparent 55%,rgba(0,0,0,0.55) 100%);}',

@@ -1014,6 +1014,13 @@
         if (!scrollLock.locked) return;
         var stuck = document.getElementById("intro");
         if (stuck && stuck.parentNode) stuck.parentNode.removeChild(stuck);
+        /* The opening moment hides the nav and corners and hands them back at
+           the end of its timeline. Tearing it down here skips that, so the
+           chrome has to be restored explicitly — otherwise a slow GSAP fetch
+           leaves the visitor on a page with no header at all. */
+        gsap.set(document.querySelectorAll(".nr-nav, .nr-corner"), {
+          autoAlpha: 1
+        });
         fold.reveal();
         scrollLock.unlock();
       }, 9000);

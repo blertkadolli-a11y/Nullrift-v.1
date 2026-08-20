@@ -2,3 +2,6 @@
 .claude/
 _backup/
 *.log
+
+# local secrets
+.env

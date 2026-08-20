@@ -1,17 +1,17 @@
 /* ==========================================================================
-   Buyer prompts for each catalogue exhibit.
-   Paste into an agent to recreate the system. Brand-agnostic.
-   Kept accurate to the shipping modules in js/gallery/0x-*.js.
+   THE PRODUCT.
+
+   This file sits outside public/, so Vercel never serves it as a static
+   asset and there is no URL that returns it. It is imported only by
+   api/prompt.js, which releases a single body per request and only after
+   checking the caller's session.
+
+   Do not import this from anything under public/ — that would ship the whole
+   catalogue to every visitor again, which is the exact hole this closes.
    ========================================================================== */
 
-export const PROMPTS = {
-  '01': {
-    id: '01',
-    title: 'Liquid Chrome Field',
-    tech: 'WebGL · FBO fluid · Stable Fluids',
-    use: 'Hero mastheads that liquefy under pointer velocity.',
-    file: 'NR-01-liquid-chrome-field.md',
-    body: `Build a production-ready interactive WebGL fluid field for a premium site hero.
+export const BODIES = {
+  '01': `Build a production-ready interactive WebGL fluid field for a premium site hero.
 
 TECHNICAL REQUIREMENTS
 - Three.js via ESM/CDN. No build step. No physics library.
@@ -46,16 +46,9 @@ INTERACTION
 
 DELIVERABLE
 - Single self-contained module: create({ root, reduced }) → { resize, update, activate, deactivate, destroy }.
-- One-line use case: "Hero mastheads that liquefy under pointer velocity."`
-  },
+- One-line use case: "Hero mastheads that liquefy under pointer velocity."`,
 
-  '02': {
-    id: '02',
-    title: 'Cauchy Lattice',
-    tech: 'WebGL2 · Cauchy lens · Jacobian caustics',
-    use: 'Spacetime-fold heroes steered by a pointer singularity.',
-    file: 'NR-02-cauchy-lattice.md',
-    body: `Build a production-ready interactive WebGL2 gravitational-lens spacetime fold — a continuous “Cauchy Lattice.”
+  '02': `Build a production-ready interactive WebGL2 gravitational-lens spacetime fold — a continuous “Cauchy Lattice.”
 
 TECHNICAL REQUIREMENTS
 - WebGL2 only. Fullscreen (or stage-filling) canvas, no depth/stencil, antialias off, high-performance, opaque. No build step, no frameworks.
@@ -85,16 +78,9 @@ INTERACTION
 
 DELIVERABLE
 - Single self-contained module with the API above.
-- Use case: "Spacetime-fold heroes steered by a pointer singularity."`
-  },
+- Use case: "Spacetime-fold heroes steered by a pointer singularity."`,
 
-  '03': {
-    id: '03',
-    title: 'Respirant Type',
-    tech: 'DOM · Variable axes · Per-glyph springs',
-    use: 'Editorial headlines that thicken toward the reader.',
-    file: 'NR-03-respirant-type.md',
-    body: `Build a production-ready kinetic typography system with zero canvas and zero WebGL.
+  '03': `Build a production-ready kinetic typography system with zero canvas and zero WebGL.
 
 TECHNICAL REQUIREMENTS
 - Pure DOM/CSS/JS. Every glyph is its own element.
@@ -119,16 +105,9 @@ INTERACTION
 
 DELIVERABLE
 - Single self-contained module with the API above.
-- Use case: "Editorial headlines that thicken toward the reader."`
-  },
+- Use case: "Editorial headlines that thicken toward the reader."`,
 
-  '04': {
-    id: '04',
-    title: 'Routed Rift',
-    tech: 'SVG · Octilinear autorouter',
-    use: 'Self-drawing schematics for process and architecture sections.',
-    file: 'NR-04-routed-rift.md',
-    body: `Build a production-ready generative SVG autorouter that feels like a live phosphor schematic.
+  '04': `Build a production-ready generative SVG autorouter that feels like a live phosphor schematic.
 
 TECHNICAL REQUIREMENTS
 - SVG only for the drawing surface. No canvas, no WebGL.
@@ -152,16 +131,9 @@ INTERACTION
 
 DELIVERABLE
 - Single self-contained module with the API above.
-- Use case: "Self-drawing schematics for process and architecture sections."`
-  },
+- Use case: "Self-drawing schematics for process and architecture sections."`,
 
-  '05': {
-    id: '05',
-    title: 'Null Cloud',
-    tech: 'WebGL · GPU points · Inertial scrub',
-    use: 'Scroll-scrubbed formation morphs for feature reveals.',
-    file: 'NR-05-null-cloud.md',
-    body: `Build a production-ready GPU point-cloud morph that the user scrubs by hand — matching exhibit "Null Cloud".
+  '05': `Build a production-ready GPU point-cloud morph that the user scrubs by hand — matching exhibit "Null Cloud".
 
 TECHNICAL REQUIREMENTS
 - Three.js Points in a single draw call. Bake six target formations into vertex attributes and morph on the GPU.
@@ -184,16 +156,9 @@ INTERACTION
 
 DELIVERABLE
 - Single self-contained module with the API above.
-- Use case: "Scroll-scrubbed formation morphs for feature reveals."`
-  },
+- Use case: "Scroll-scrubbed formation morphs for feature reveals."`,
 
-  '06': {
-    id: '06',
-    title: 'Impact Grid',
-    tech: 'DOM · CSS 3D · Wave-front springs',
-    use: 'Tactile tile grids that answer every click with a shockwave.',
-    file: 'NR-06-impact-grid.md',
-    body: `Build a production-ready DOM 3D impact grid — a struck steel membrane. No canvas. No WebGL.
+  '06': `Build a production-ready DOM 3D impact grid — a struck steel membrane. No canvas. No WebGL.
 
 TECHNICAL REQUIREMENTS
 - A perspective grid of DOM tiles. Each tile springs on rotateX, rotateY, and translateZ.
@@ -216,16 +181,9 @@ INTERACTION
 
 DELIVERABLE
 - Single self-contained module with the API above.
-- Use case: "Tactile tile grids that answer every click with a shockwave."`
-  },
+- Use case: "Tactile tile grids that answer every click with a shockwave."`,
 
-  '07': {
-    id: '07',
-    title: 'Product Orbit',
-    tech: 'DOM · Elliptical orbit · Scrub + detent',
-    use: 'Product pickers that feel like operating premium machinery.',
-    file: 'NR-07-product-orbit.md',
-    body: `Build a production-ready elliptical product orbit. No canvas. No WebGL. DOM only.
+  '07': `Build a production-ready elliptical product orbit. No canvas. No WebGL. DOM only.
 
 CONCEPT
 A hero product sits centre stage under soft gallery light. Below it, the whole catalogue
@@ -290,16 +248,9 @@ shrinks away and snaps back. It should be hard to stop scrubbing.
 
 DELIVERABLE
 - Single self-contained module with the API above.
-- Use case: "Product pickers that feel like operating premium machinery."`
-  },
+- Use case: "Product pickers that feel like operating premium machinery."`,
 
-  '08': {
-    id: '08',
-    title: 'Dot Reveal',
-    tech: 'Canvas 2D · Image-sampled dot field · Spotlight mask',
-    use: 'Portrait and product reveals that make the visitor go looking.',
-    file: 'NR-08-dot-reveal.md',
-    body: `Build a production-ready interactive Canvas 2D dot-reveal field. No WebGL, no framework, no build step.
+  '08': `Build a production-ready interactive Canvas 2D dot-reveal field. No WebGL, no framework, no build step.
 
 CONCEPT
 A photograph is hidden under a dense, evenly spaced grid of small circles. Each circle is tinted
@@ -369,12 +320,10 @@ VISUAL IDENTITY
 DELIVERABLE
 - Single self-contained module with the API above, plus one image asset.
 - Use case: "Portrait and product reveals that make the visitor go looking."`
-  }
 };
 
-
-export function getPrompt(id) {
+export function getBody(id) {
   if (id == null) return null;
   const key = String(id).padStart(2, '0');
-  return PROMPTS[key] || PROMPTS[String(id)] || null;
+  return BODIES[key] || BODIES[String(id)] || null;
 }
