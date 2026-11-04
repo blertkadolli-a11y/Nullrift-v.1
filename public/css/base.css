@@ -658,6 +658,20 @@ button {
   .nr-cta--ghost { display: none; }
 }
 
+/* Three links plus the actions do not fit a phone. Pricing is the one to
+   drop: the CTA beside it already says "Get all from $7" and goes there. */
+@media (max-width: 600px) {
+  .nr-link--pricing { display: none; }
+}
+
+/* Below this the bar cannot hold the mark, both shelf links, the theme switch
+   and the CTA — it overflowed and clipped the CTA off the edge. The switch is
+   the one that can go: with no stored choice the page already follows the
+   phone's own light/dark setting, which is what a phone user expects anyway. */
+@media (max-width: 480px) {
+  .nr-theme { display: none; }
+}
+
 /* --------------------------------------------------------------------------
    Corner chrome
    -------------------------------------------------------------------------- */

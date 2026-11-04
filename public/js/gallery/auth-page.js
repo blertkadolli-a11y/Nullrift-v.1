@@ -25,6 +25,20 @@ const deck = document.querySelector('[data-auth-deck]');
 let email = '';
 let preset = PRESETS[0];
 
+/* Supabase's OTP length is a project setting (Authentication → Sign In /
+   Providers → Email → Email OTP Length), not something this page controls, and
+   it can be anywhere from 6 to 10 digits. Hard-coding 6 here is what silently
+   blocked sign-in when the project was issuing 8 — the input capped at six
+   characters and the check rejected everything.
+
+   So: accept any length in Supabase's supported range, and use CODE_LENGTH
+   only to decide when to auto-submit. If the two ever disagree the visitor
+   just presses the button instead of it firing on the last keystroke — a lost
+   nicety, never a blocked sign-in. */
+const CODE_MIN = 6;
+const CODE_MAX = 10;
+const CODE_LENGTH = 6;
+
 /* Only same-origin paths are honoured. An open redirect here would let anyone
    send a NULLRIFT sign-in link that bounces to a site they control. */
 function nextTarget() {
@@ -96,7 +110,9 @@ steps.email.addEventListener('submit', async (e) => {
 steps.code.addEventListener('submit', async (e) => {
   e.preventDefault();
   const token = e.currentTarget.token.value.replace(/\D/g, '');
-  if (token.length !== 6) return message('The code is six digits.');
+  if (token.length < CODE_MIN) {
+    return message('That code looks too short — check the email and retype it.');
+  }
 
   busy(e.currentTarget, true, 'Signing in…');
   try {
@@ -125,9 +141,9 @@ steps.code.querySelector('[data-auth-resend]').addEventListener('click', async (
 /* Typing the last digit is unambiguous intent — submit rather than making them
    reach for a button they can already see the end of. */
 steps.code.querySelector('#au-code').addEventListener('input', (e) => {
-  const v = e.target.value.replace(/\D/g, '').slice(0, 6);
+  const v = e.target.value.replace(/\D/g, '').slice(0, CODE_MAX);
   e.target.value = v;
-  if (v.length === 6) steps.code.requestSubmit();
+  if (v.length === CODE_LENGTH) steps.code.requestSubmit();
 });
 
 /* --------------------------------------------------------------- step 3 */

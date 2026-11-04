@@ -27,11 +27,11 @@
 })();
 </script>
 
-<link rel="stylesheet" href="css/base.css?v=11">
-<link rel="stylesheet" href="css/auth.css?v=4">
+<link rel="stylesheet" href="css/base.css?v=13">
+<link rel="stylesheet" href="css/auth.css?v=6">
 
 <script src="js/chrome.js?v=6" defer></script>
-<script type="module" src="js/gallery/auth-page.js?v=5"></script>
+<script type="module" src="js/gallery/auth-page.js?v=7"></script>
 </head>
 
 <body class="authpage">
@@ -50,8 +50,9 @@
   </a>
 
   <nav class="nr-nav__links" aria-label="Primary">
-    <a href="gallery.html#catalogue" class="nr-link">Gallery</a>
-    <a href="gallery.html#pricing" class="nr-link">Pricing</a>
+    <a href="gallery.html#catalogue" class="nr-link">Animations</a>
+    <a href="templates.html#catalogue" class="nr-link">Templates</a>
+    <a href="gallery.html#pricing" class="nr-link nr-link--pricing">Pricing</a>
   </nav>
 
   <div class="nr-nav__actions">
@@ -100,7 +101,7 @@
       <label class="auth__label" for="au-code">Six-digit code</label>
       <input class="auth__input auth__input--code" id="au-code" name="token" type="text"
              inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*"
-             maxlength="6" placeholder="000000">
+             maxlength="10" placeholder="000000">
       <button class="auth__go" type="submit">Sign in</button>
 
       <p class="auth__fine">

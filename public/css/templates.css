@@ -1,0 +1,387 @@
+/* ==========================================================================
+   NULLRIFT — TEMPLATES
+   The second shelf. Everything structural (cards, fullscreen, prompt panel,
+   shelf switch) comes from gallery.css; this file only holds what makes a
+   template card read as a whole page rather than a single section.
+   ========================================================================== */
+
+/* Templates are pages, and a page needs room to be recognised as one. Two
+   wide columns instead of three narrow ones. */
+.tpl-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 900px) {
+  .tpl-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Template card -------------------------------------------------------------- */
+
+.tpl {
+  --tpl-chrome: 34px;
+}
+
+/* A desktop viewport in miniature: browser chrome on top, the page under it. */
+.tpl .card__preview {
+  aspect-ratio: 16 / 10.4;
+}
+
+.tpl .card__preview .exhibit__stage {
+  top: var(--tpl-chrome);
+  height: auto;
+}
+
+.tpl__chrome {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.9rem;
+  height: var(--tpl-chrome);
+  padding: 0 0.75rem;
+  background: #11131a;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  pointer-events: none;
+}
+
+.tpl__dots {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.tpl__dots i {
+  width: 9px;
+  height: 9px;
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.14);
+}
+
+/* The address bar. Centred and narrower than the bar, the way every real
+   browser draws it, so the shape reads before the text does. */
+.tpl__url {
+  justify-self: center;
+  max-width: 100%;
+  overflow: hidden;
+  padding: 0.22rem 0.9rem;
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tpl__url b {
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+/* The status lamp lives in the chrome here, not on a plate over the art. */
+.tpl__chrome .card__status {
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+}
+
+/* Fullscreen is the template itself; the browser chrome would be a second
+   frame inside the real one. */
+.tpl.is-expanded .tpl__chrome { display: none; }
+.tpl.is-expanded .card__preview .exhibit__stage { top: 0; }
+
+/* Info ----------------------------------------------------------------------- */
+
+.tpl .card__info {
+  gap: 0.55rem;
+  padding: 18px 10px 10px;
+}
+
+.tpl__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.tpl .card__title {
+  font-size: clamp(1.25rem, 1.9vw, 1.55rem);
+  letter-spacing: -0.03em;
+}
+
+.tpl__kind {
+  padding: 0.28rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  color: var(--text-mid);
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.tpl .card__desc {
+  max-width: 58ch;
+  font-size: 0.9rem;
+}
+
+/* What is in the box, as facts rather than adjectives. */
+.tpl__spec {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.35rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tpl__spec li {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  padding: 0.38rem 0.7rem;
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text-mid);
+  font-size: 0.76rem;
+  line-height: 1.2;
+}
+
+.tpl__spec strong {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.frame__btn--quiet {
+  background: transparent;
+}
+
+.frame__btn__arrow {
+  display: inline-block;
+  transition: transform 0.3s var(--ease-out-expo);
+}
+
+.frame__btn:hover .frame__btn__arrow,
+.frame__btn:focus-visible .frame__btn__arrow {
+  transform: translate(2px, -2px);
+}
+
+/* Next-up card -------------------------------------------------------------- */
+
+/* Not an exhibit — nothing is running in it, and it must not look like a
+   broken one. A dashed edge and a wireframe say "being drawn" plainly. */
+.tpl-soon {
+  background: transparent;
+  border-style: dashed;
+  box-shadow: none;
+}
+
+.tpl-soon .card__preview {
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 60%),
+    var(--surface);
+  border: 1px solid var(--line-soft);
+}
+
+.tpl-soon__wire {
+  position: absolute;
+  inset: calc(var(--tpl-chrome) + 8%) 9% 9%;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 6%;
+  opacity: 0.85;
+}
+
+.tpl-soon__wire i {
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+  animation: tpl-wire 2.8s ease-in-out infinite;
+}
+
+/* A headline, a deck, then a row of tiles — the bones of almost any page. */
+.tpl-soon__wire i:nth-child(1) { grid-column: 1 / 5; height: 18px; }
+.tpl-soon__wire i:nth-child(2) { grid-column: 1 / 4; height: 9px; animation-delay: 0.15s; }
+.tpl-soon__wire i:nth-child(3) { grid-column: 1 / 3; animation-delay: 0.3s; }
+.tpl-soon__wire i:nth-child(4) { grid-column: 3 / 5; animation-delay: 0.45s; }
+.tpl-soon__wire i:nth-child(5) { grid-column: 5 / 7; animation-delay: 0.6s; }
+
+@keyframes tpl-wire {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+.tpl-soon .tpl__chrome {
+  background: transparent;
+  border-bottom-color: var(--line-soft);
+}
+
+.tpl-soon .tpl__dots i { background: color-mix(in srgb, var(--text) 14%, transparent); }
+
+.tpl-soon .tpl__url {
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+  color: var(--ash);
+}
+
+.tpl-soon__badge {
+  position: relative;
+  z-index: 2;
+  padding: 0.45rem 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+  border-radius: var(--r-pill);
+  background: var(--void);
+  color: var(--accent);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.tpl-soon .card__title { color: var(--text-mid); }
+
+/* Animation or template? --------------------------------------------------- */
+
+.which {
+  padding-block: clamp(3.5rem, 10vh, 7rem);
+  border-top: 1px solid var(--g-hair);
+}
+
+.which__head {
+  max-width: 62ch;
+  margin-bottom: clamp(1.75rem, 4.5vh, 3rem);
+}
+
+.which__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(1rem, 2.2vw, 1.75rem);
+}
+
+.which__col {
+  display: flex;
+  flex-direction: column;
+  padding: clamp(1.4rem, 2.6vw, 2.1rem);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--surface);
+}
+
+.which__col--here {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  box-shadow: var(--shadow-2);
+}
+
+.which__tag {
+  margin: 0 0 0.9rem;
+  color: var(--ash);
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.which__col--here .which__tag { color: var(--accent); }
+
+.which__title {
+  margin: 0 0 0.6rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.25rem, 2.2vw, 1.7rem);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+
+.which__deck {
+  margin: 0 0 1.2rem;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--text-mid);
+}
+
+.which__list {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0 0 1.6rem;
+  padding: 0;
+  list-style: none;
+}
+
+.which__list li {
+  position: relative;
+  padding-left: 1.35rem;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--text-mid);
+}
+
+.which__list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 0.55rem;
+  height: 0.55rem;
+  border: 1.5px solid var(--accent);
+  border-radius: 2px;
+  transform: rotate(45deg);
+}
+
+.which__col .frame__btn { margin-top: auto; align-self: flex-start; }
+
+@media (max-width: 760px) {
+  .which__grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Plans pointer ------------------------------------------------------------ */
+
+/* The full plans live on the gallery and are not repeated here — two copies of
+   a price list is how one of them ends up wrong. This says the one thing a
+   template buyer needs to know and sends them to the real thing. */
+.tpl-plans {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1.5rem 3rem;
+  padding: clamp(1.6rem, 3.4vw, 2.6rem);
+  margin-bottom: clamp(3.5rem, 10vh, 7rem);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background:
+    radial-gradient(90% 140% at 100% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 60%),
+    var(--surface);
+}
+
+.tpl-plans__title {
+  margin: 0.5rem 0 0.6rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.4rem, 2.6vw, 2.1rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+
+.tpl-plans__deck {
+  max-width: 60ch;
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--text-mid);
+}
+
+.tpl-plans__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+@media (max-width: 760px) {
+  .tpl-plans { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tpl-soon__wire i { animation: none; }
+}

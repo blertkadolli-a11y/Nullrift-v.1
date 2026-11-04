@@ -85,7 +85,9 @@
 .auth__input--code {
   font-family: var(--font-mono);
   font-size: 1.6rem;
-  letter-spacing: 0.42em;
+  /* Sized for six digits but still fits ten without overflowing, so a change
+     to Supabase's OTP Length setting cannot break the layout. */
+  letter-spacing: 0.34em;
   text-align: center;
   font-variant-numeric: tabular-nums;
   padding-inline: 0.5rem;

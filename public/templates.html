@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#05070c" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<title>Templates — NULLRIFT / Complete Pages</title>
+<meta name="description" content="Complete website templates from NULLRIFT: whole pages with layout, type, motion and responsive behaviour already composed. Preview the real page running, then take the prompt and build your own. No framework, no build step.">
+
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="assets/nullrift-logo.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/nullrift-logo.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;700&display=swap">
+
+<!-- Theme is resolved before the first paint. Deferring this to a module would
+     flash the wrong theme on every load, which is worse than no toggle. -->
+<script>
+(function () {
+  try {
+    var t = localStorage.getItem('nr-theme');
+    if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+  } catch (e) { /* private mode — fall through to the system preference */ }
+})();
+</script>
+
+<link rel="stylesheet" href="css/base.css?v=13">
+<link rel="stylesheet" href="css/gallery.css?v=47">
+<link rel="stylesheet" href="css/templates.css?v=1">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+<script src="js/chrome.js?v=6" defer></script>
+
+<!-- The same orchestrator as the gallery: lazy mounting, fullscreen, the
+     gated prompt panel and accounts all behave identically on both shelves. -->
+<script type="module" src="js/gallery/index.js?v=50"></script>
+</head>
+
+<body class="g-body">
+
+<!-- Opened straight off disk, ES modules never run. Same guard as the gallery. -->
+<script>
+(function () {
+  if (location.protocol !== 'file:') return;
+  document.documentElement.classList.add('g-fileproto');
+  var dir = decodeURIComponent(location.pathname.replace(/\/[^/]*$/, '')) || '.';
+  window.addEventListener('DOMContentLoaded', function () {
+    var w = document.createElement('div');
+    w.className = 'g-filewarn';
+    w.innerHTML =
+      '<div class="g-filewarn__box">' +
+        '<p class="g-filewarn__tag mono">// CANNOT RUN FROM DISK</p>' +
+        '<h1 class="g-filewarn__title">This page needs a server.</h1>' +
+        '<p class="g-filewarn__body">You opened it as a <code>file://</code> URL. Browsers block ' +
+        'ES modules on that protocol, so none of the previews, the fullscreen view or the ' +
+        'prompt panel can load. Nothing here is broken &mdash; it just needs to be served.</p>' +
+        '<p class="g-filewarn__body">Double-click <strong>Open NULLRIFT.command</strong> in the ' +
+        'project folder, or run:</p>' +
+        '<pre class="g-filewarn__cmd">cd ' + dir + '\npython3 -m http.server 8080</pre>' +
+        '<p class="g-filewarn__body">Then open ' +
+        '<a class="g-filewarn__link" href="http://localhost:8080/templates.html">' +
+        'http://localhost:8080/templates.html</a></p>' +
+      '</div>';
+    document.body.appendChild(w);
+  });
+})();
+</script>
+
+<div class="nr-grain" aria-hidden="true"></div>
+
+<div class="g-scrim g-scrim--top" aria-hidden="true"></div>
+<div class="g-scrim g-scrim--bottom" aria-hidden="true"></div>
+
+<a class="nr-skip" href="#catalogue">Skip to the templates</a>
+
+<header class="nr-nav">
+  <a class="nr-nav__mark" href="index.html" aria-label="NULLRIFT home">
+    <svg class="nr-nav__glyph" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <circle cx="32" cy="32" r="19"></circle>
+      <path d="M14.68 49.32 49.32 14.68"></path>
+    </svg>
+    <span class="nr-nav__label">NULLRIFT</span>
+  </a>
+
+  <nav class="nr-nav__links" aria-label="Primary">
+    <a href="gallery.html" class="nr-link">Animations</a>
+    <a href="templates.html" class="nr-link" aria-current="page">Templates</a>
+    <a href="gallery.html#pricing" class="nr-link nr-link--pricing">Pricing</a>
+  </nav>
+
+  <div class="nr-nav__actions">
+    <div class="nr-theme" role="group" aria-label="Colour theme">
+      <button type="button" class="nr-theme__btn" data-theme-set="light" aria-pressed="false" title="Light">
+        <span class="sr-only">Light theme</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 2.6v2.2M12 19.2v2.2M4.2 12H2M22 12h-2.2M6.5 6.5 4.9 4.9M19.1 19.1l-1.6-1.6M17.5 6.5l1.6-1.6M4.9 19.1l1.6-1.6"></path></svg>
+      </button>
+      <button type="button" class="nr-theme__btn" data-theme-set="dark" aria-pressed="false" title="Dark">
+        <span class="sr-only">Dark theme</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1Z"></path></svg>
+      </button>
+      <button type="button" class="nr-theme__btn" data-theme-set="auto" aria-pressed="false" title="Match system">
+        <span class="sr-only">Match system theme</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 0 1 0 18Z" fill="currentColor" stroke="none"></path></svg>
+      </button>
+    </div>
+    <a class="nr-cta" href="gallery.html#pricing">Get all from $7</a>
+    <div class="acct" data-account-slot></div>
+  </div>
+</header>
+
+<div class="nr-corner nr-corner--bl">nullrift.design</div>
+<div class="nr-corner nr-corner--br" data-nr-status>SYSTEM NOMINAL</div>
+
+<div class="g-progress" aria-hidden="true"><span class="g-progress__bar" data-progress-bar></span></div>
+
+<main id="main" class="g-main">
+
+  <!-- ============================ HERO ============================ -->
+  <section class="hero" aria-labelledby="mast-title">
+    <p class="hero__eyebrow" data-reveal-fade>
+      <span class="hero__pip" aria-hidden="true"></span>
+      Templates &middot; <span data-count-total>01</span>&nbsp;live, more in production
+    </p>
+
+    <h1 class="hero__title" id="mast-title">
+      <span class="mast__line"><span class="mast__word" data-text="Site">Site</span></span>
+      <span class="mast__line"><span class="mast__word" data-text="templates">templates</span><span class="mast__glyph" aria-hidden="true">&#8709;</span></span>
+    </h1>
+
+    <p class="hero__deck" data-reveal-fade>
+      Complete pages, not parts. Each template is a whole site &mdash; layout, type, motion and
+      responsive behaviour already composed. Every preview below is the real page running:
+      open it, scroll it, then take the prompt and build your own.
+    </p>
+
+    <div class="hero__actions" data-reveal-fade>
+      <a class="nr-cta hero__cta" href="#catalogue">Browse templates</a>
+      <a class="nr-cta nr-cta--ghost hero__cta" href="#which">Template or animation?</a>
+    </div>
+
+    <ul class="hero__stats" data-reveal-fade>
+      <li><strong data-count-total>01</strong><span>templates</span></li>
+      <li><strong>360</strong><span>px and up</span></li>
+      <li><strong>60</strong><span>fps target</span></li>
+      <li><strong>0</strong><span>build steps</span></li>
+    </ul>
+  </section>
+
+  <!-- ============================ THE SHELF ============================ -->
+  <section class="library" id="catalogue" aria-labelledby="library-title">
+
+    <nav class="shelf" aria-label="Choose a shelf" data-reveal-fade>
+      <a class="shelf__opt" href="gallery.html#catalogue">
+        <span class="shelf__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M3 15c2.2 0 2.2-6 4.5-6S9.8 15 12 15s2.2-6 4.5-6S18.8 15 21 15"></path><path d="M3 19h18" opacity=".45"></path></svg>
+        </span>
+        <span class="shelf__text">
+          <span class="shelf__name">Animations <span class="shelf__count" data-count-kind="animation">08</span></span>
+          <span class="shelf__hint">Single sections you drop into a site you already have</span>
+        </span>
+      </a>
+      <a class="shelf__opt" href="templates.html#catalogue" aria-current="page">
+        <span class="shelf__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"></rect><path d="M3 8.5h18"></path><path d="M7 12.5h6M7 15.5h10" opacity=".55"></path></svg>
+        </span>
+        <span class="shelf__text">
+          <span class="shelf__name">Templates <span class="shelf__count" data-count-kind="template">01</span></span>
+          <span class="shelf__hint">Complete pages you start a whole site from</span>
+        </span>
+      </a>
+    </nav>
+
+    <div class="library__head">
+      <p class="mono library__label" data-reveal-fade>// THE TEMPLATES</p>
+      <h2 class="library__title" id="library-title" data-reveal-fade>Whole pages, running live.</h2>
+      <p class="library__deck" data-reveal-fade>
+        Each preview is the real page, scaled down &mdash; on desktop, hover one to flick down it.
+        Open it to use it at full size, scroll and all. New templates land here as they ship.
+      </p>
+    </div>
+
+    <div class="library__grid tpl-grid">
+
+    <!-- TPL.01 — the prompt behind it is catalogue entry 09 -->
+    <article class="exhibit card tpl" id="tpl-01" aria-labelledby="tpl-01-title"
+             data-exhibit="09" data-code="TPL.01" data-tech="Full page"
+             data-module="./09-oblique.js">
+      <div class="exhibit__frame card__preview">
+        <div class="tpl__chrome" aria-hidden="true">
+          <span class="tpl__dots"><i></i><i></i><i></i></span>
+          <span class="tpl__url mono"><b>oblique</b> / selected-commissions</span>
+          <span class="card__status mono" data-mount-status>IDLE</span>
+        </div>
+        <div class="exhibit__stage" data-stage aria-hidden="true"></div>
+        <span class="card__cue mono" aria-hidden="true">OPEN FULL PAGE</span>
+      </div>
+      <div class="card__info">
+        <div class="tpl__head">
+          <h2 class="card__title" id="tpl-01-title">
+            <a class="card__link" href="#tpl-01" data-card-open>Oblique</a>
+          </h2>
+          <span class="tpl__kind mono">Portfolio</span>
+        </div>
+        <p class="card__desc">
+          A portfolio index where every project lands like a print tossed on a table, each at its
+          own tilt. Click one and it straightens, grows, and tells its story.
+        </p>
+        <ul class="tpl__spec" aria-label="What is included">
+          <li><strong>1</strong> page</li>
+          <li><strong>18</strong> project slots</li>
+          <li>Detail panel</li>
+          <li>Smooth scroll</li>
+          <li>GSAP &middot; no framework</li>
+        </ul>
+        <div class="card__actions">
+          <button type="button" class="frame__btn frame__btn--prompt" data-prompt>
+            <span>Get the prompt</span>
+          </button>
+          <button type="button" class="frame__btn" data-card-open>
+            <span>Preview full page</span>
+          </button>
+          <a class="frame__btn frame__btn--quiet" href="oblique/index.html" target="_blank" rel="noopener">
+            <span>New tab</span><span class="frame__btn__arrow" aria-hidden="true">&#8599;</span>
+          </a>
+        </div>
+      </div>
+    </article>
+
+    <!-- Next up. Not an exhibit: nothing runs in it, and it never pretends to. -->
+    <article class="card tpl tpl-soon" aria-labelledby="tpl-next-title">
+      <div class="card__preview" aria-hidden="true">
+        <div class="tpl__chrome">
+          <span class="tpl__dots"><i></i><i></i><i></i></span>
+          <span class="tpl__url mono">tpl.02 / in-production</span>
+          <span></span>
+        </div>
+        <div class="tpl-soon__wire"><i></i><i></i><i></i><i></i><i></i></div>
+        <span class="tpl-soon__badge mono">In production</span>
+      </div>
+      <div class="card__info">
+        <div class="tpl__head">
+          <h2 class="card__title" id="tpl-next-title">Next template</h2>
+          <span class="tpl__kind mono">TPL.02</span>
+        </div>
+        <p class="card__desc">
+          Another complete page is on the bench. Tell us the site you wish existed &mdash; the most
+          asked-for one gets built next.
+        </p>
+        <div class="card__actions">
+          <a class="frame__btn" href="#" data-contact-mail="NULLRIFT — Template request" data-keep-text="1">
+            <span>Request a template</span>
+          </a>
+        </div>
+      </div>
+    </article>
+
+    </div>
+  </section>
+
+  <!-- ======================= TEMPLATE OR ANIMATION ======================= -->
+  <section class="which" id="which" aria-labelledby="which-title">
+    <div class="which__head">
+      <p class="mono library__label" data-reveal-fade>// WHICH ONE DO YOU NEED?</p>
+      <h2 class="library__title" id="which-title" data-reveal-fade>Starting a site, or upgrading one?</h2>
+      <p class="library__deck" data-reveal-fade>
+        Both shelves come as a prompt you paste into your AI coding tool. The difference is how
+        much of the site you get back.
+      </p>
+    </div>
+
+    <div class="which__grid">
+      <div class="which__col which__col--here">
+        <p class="which__tag mono">Templates &middot; this shelf</p>
+        <h3 class="which__title">The whole page.</h3>
+        <p class="which__deck">For when you are starting from nothing and want a finished site to make your own.</p>
+        <ul class="which__list">
+          <li>Layout, type system and motion already composed together</li>
+          <li>Responsive from 360px, with reduced-motion handled</li>
+          <li>Content slots you fill with your own work, copy and images</li>
+        </ul>
+        <a class="frame__btn frame__btn--prompt" href="#catalogue"><span>Browse templates</span></a>
+      </div>
+
+      <div class="which__col">
+        <p class="which__tag mono">Animations &middot; the gallery</p>
+        <h3 class="which__title">One section.</h3>
+        <p class="which__deck">For when the site already exists and one part of it needs to stop people scrolling.</p>
+        <ul class="which__list">
+          <li>A hero, a reveal, a product picker &mdash; one moment, done properly</li>
+          <li>Mounts into any element and tears itself down cleanly</li>
+          <li>Sits inside your existing layout and type, not over it</li>
+        </ul>
+        <a class="frame__btn" href="gallery.html#catalogue">
+          <span>Browse animations</span><span class="frame__btn__arrow" aria-hidden="true">&#8599;</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ PLANS ============================ -->
+  <aside class="tpl-plans" aria-labelledby="tpl-plans-title">
+    <div>
+      <p class="mono library__label">// PRICING</p>
+      <h2 class="tpl-plans__title" id="tpl-plans-title">Same library, same plans.</h2>
+      <p class="tpl-plans__deck">
+        Templates sit on the same shelf as the animations, so every plan covers them. Pro and
+        Team include every template, and every new one for 12 months. Or skip the build entirely:
+        on Studio we make the whole site for you.
+      </p>
+    </div>
+    <div class="tpl-plans__actions">
+      <a class="frame__btn frame__btn--prompt" href="gallery.html#pricing"><span>See plans</span></a>
+      <a class="frame__btn" href="#" data-contact-mail="NULLRIFT — Studio enquiry" data-keep-text="1"><span>Ask about Studio</span></a>
+    </div>
+  </aside>
+
+  <!-- ============================ OUTRO ============================ -->
+  <section class="outro" aria-labelledby="outro-title">
+    <div class="outro__rule"></div>
+    <p class="mono dim">END OF SHELF &mdash; TEMPLATES VOL.01</p>
+    <h2 class="outro__title" id="outro-title">Start from a whole page.</h2>
+    <p class="outro__deck">No framework, no build step. Every template ships with scroll, touch,
+      resize and reduced-motion handling already solved.</p>
+    <a class="outro__cta" href="gallery.html">
+      <span class="outro__cta-label">BROWSE THE ANIMATIONS</span>
+      <span class="outro__cta-arrow" aria-hidden="true">&#8599;</span>
+    </a>
+    <div class="outro__foot mono dim">
+      <span>NULLRIFT &copy; 2026</span>
+      <span>60FPS / 360PX / A11Y</span>
+      <span>nullrift.design</span>
+    </div>
+  </section>
+
+</main>
+
+<!-- Fullscreen expand chrome (stage is moved/raised via CSS on .is-expanded) -->
+<div class="expand-bar" id="expand-bar" hidden>
+  <div class="expand-bar__left">
+    <button type="button" class="expand-bar__back" data-expand-close>
+      <span aria-hidden="true">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M8.5 2L3.5 7l5 5" stroke="currentColor" stroke-width="1.4"
+                stroke-linecap="square" stroke-linejoin="miter"/>
+        </svg>
+      </span>
+      <span class="mono">BACK TO TEMPLATES</span>
+    </button>
+    <div class="expand-bar__meta mono">
+      <span data-expand-id>TPL.00</span>
+      <span class="dim" data-expand-tech hidden></span>
+      <span class="dim" data-expand-title>—</span>
+    </div>
+  </div>
+  <button type="button" class="expand-bar__close" data-expand-close aria-label="Exit fullscreen">
+    <span class="mono">ESC</span>
+    <span aria-hidden="true">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="1.25"/>
+      </svg>
+    </span>
+  </button>
+</div>
+
+<!-- Buyer prompt panel -->
+<div class="prompt" id="prompt-panel" hidden role="dialog" aria-modal="true" aria-labelledby="prompt-title">
+  <div class="prompt__veil" data-prompt-close tabindex="-1" aria-hidden="true"></div>
+  <div class="prompt__sheet">
+    <header class="prompt__head">
+      <div class="prompt__id mono">
+        <span data-prompt-id>TPL.00</span>
+        <span class="dim">/ BUYER PROMPT</span>
+      </div>
+      <button type="button" class="prompt__x" data-prompt-close aria-label="Close prompt">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="1.25"/>
+        </svg>
+      </button>
+    </header>
+
+    <div class="prompt__title-row">
+      <h2 class="prompt__title" id="prompt-title" data-prompt-title>Title</h2>
+      <p class="prompt__tech dim" data-prompt-tech></p>
+    </div>
+
+    <p class="prompt__use" data-prompt-use></p>
+
+    <div class="prompt__toolbar mono">
+      <span class="dim" data-prompt-file>NR-00.md</span>
+      <button type="button" class="prompt__copy" data-prompt-copy>
+        <span data-prompt-copy-label>Copy prompt</span>
+      </button>
+    </div>
+
+    <pre class="prompt__body" data-prompt-body tabindex="0"></pre>
+
+    <footer class="prompt__foot dim">
+      <span>Included with purchase. Paste into your AI coding tool as-is.</span>
+      <span>NULLRIFT VOL.01</span>
+    </footer>
+  </div>
+</div>
+
+<noscript>
+  <div class="g-noscript">
+    <p>The template previews are live pages and need JavaScript enabled. Each template&rsquo;s
+      contents are listed in the text beside it.</p>
+  </div>
+</noscript>
+
+</body>
+</html>

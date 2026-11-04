@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta
+      name="description"
+      content="Oblique — a tilted grid gallery. Eighteen prints laid out on the table, each at its own angle. Click one and it straightens, grows, and tells you what it is."
+    />
+    <meta name="theme-color" content="#1500E1" />
+    <title>Oblique — Tilted Grid Gallery</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300..800;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+    <script src="main.js" defer></script>
+  </head>
+
+  <body>
+    <!-- ─── atmosphere (outside the scroll, so it never moves) ─────── -->
+    <div class="grain" aria-hidden="true"></div>
+    <div class="vignette" aria-hidden="true"></div>
+    <div class="cursor" id="cursor" aria-hidden="true"><i class="cursor-dot" id="cursorDot"></i></div>
+
+    <span class="corner corner-tl" aria-hidden="true">// OBLIQUE.GRID v2</span>
+    <span class="corner corner-br" aria-hidden="true">nullrift.design</span>
+
+    <!-- ─── masthead ───────────────────────────────────────────────── -->
+    <header class="mast">
+      <a class="mast-brand" href="#" aria-label="Oblique, home">
+        <span class="mast-word">OBLIQUE</span><sup>&reg;</sup>
+      </a>
+      <span class="mast-mid" aria-hidden="true">Selected commissions</span>
+      <span class="mast-count" aria-hidden="true"><em id="mastCount">18</em> <i>/ 18</i></span>
+    </header>
+
+    <!-- ─── hero ───────────────────────────────────────────────────── -->
+    <section class="hero">
+      <p class="hero-eyebrow" aria-hidden="true">
+        <span>IDX 001&ndash;018</span><i class="hero-rule"></i><span>ARCHIVE 2016&ndash;2026</span>
+      </p>
+
+      <div class="hero-shift" id="heroShift">
+        <h1 class="hero-display">
+          <span class="hero-line"><span class="hero-word">Nothing</span></span>
+          <span class="hero-line"><span class="hero-word">here is</span></span>
+          <span class="hero-line"><span class="hero-word hero-word--serif">straight.</span></span>
+        </h1>
+
+        <p class="hero-sub">
+          Eighteen prints, laid out on the table the way they actually land &mdash;
+          each at its own angle. Pick one up to read it.
+        </p>
+      </div>
+
+      <p class="hero-cue" aria-hidden="true"><i></i>Scroll</p>
+    </section>
+
+    <!-- ─── marquee ────────────────────────────────────────────────── -->
+    <section class="marquee" aria-hidden="true">
+      <span class="marquee-rule"></span>
+      <div class="marquee-view"><div class="marquee-track" id="marqueeTrack"></div></div>
+      <span class="marquee-rule"></span>
+    </section>
+
+    <!-- ─── gallery ────────────────────────────────────────────────── -->
+    <main class="gallery" id="gallery" aria-label="Project gallery">
+      <!-- cards are composed in main.js from CONFIG.items -->
+    </main>
+
+    <!-- ─── colophon ───────────────────────────────────────────────── -->
+    <footer class="colophon">
+      <span class="colophon-rule" aria-hidden="true"></span>
+      <div class="colophon-row">
+        <p class="colophon-mark">OBLIQUE<sup>&reg;</sup></p>
+        <p class="colophon-note">
+          A tilted grid gallery for NULLRIFT. Every angle is decided once, at layout
+          time, and never again.
+        </p>
+        <p class="colophon-end">END OF INDEX</p>
+      </div>
+    </footer>
+
+    <!-- ─── expanded view chrome ───────────────────────────────────── -->
+    <div class="scrim" id="scrim" aria-hidden="true"></div>
+
+    <aside class="panel" id="panel" aria-hidden="true" aria-live="polite">
+      <button class="panel-close" id="panelClose" type="button">
+        <span class="panel-close-x" aria-hidden="true">&times;</span>
+        <span class="panel-close-label">Close</span>
+      </button>
+
+      <div class="panel-body">
+        <span class="panel-tag" id="panelTag"></span>
+        <h2 class="panel-title" id="panelTitle"></h2>
+        <p class="panel-desc" id="panelDesc"></p>
+        <p class="panel-meta">
+          <span id="panelIdx"></span>
+          <i class="panel-rule" aria-hidden="true"></i>
+          <span id="panelYear"></span>
+        </p>
+        <div class="panel-nav">
+          <button class="panel-arrow" id="panelPrev" type="button" aria-label="Previous project">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M15 4 L7 12 L15 20" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+          <button class="panel-arrow" id="panelNext" type="button" aria-label="Next project">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M9 4 L17 12 L9 20" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </aside>
+  </body>
+</html>

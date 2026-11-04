@@ -68,6 +68,28 @@ const BOOKING = {
   '30': { url: '', deposit: 50, label: 'Full brief' }
 };
 
+/* The founding-100 offer that greets a visitor when the grid comes into view.
+
+   `url` follows the same rule as CHECKOUT: blank renders the button visibly
+   disabled instead of live-looking and dead. Until Stripe is wired there is
+   no page that can take $200, so the default is the contact address — that
+   is a channel which actually works today and captures the buyer rather than
+   losing them. Swap it for the payment link the day checkout exists.
+
+   `claimed` is the only number the copy is allowed to quote, and it is a
+   number you set by hand from what you have actually sold. It deliberately
+   does not tick down on its own: an invented counter is a lie told to every
+   visitor, and it is the kind of lie people screenshot. Leave it null and the
+   copy simply says how many seats exist, which is true on day one. */
+const OFFER = {
+  seats: 100,
+  claimed: null,
+  price: 200,
+  url: '',
+  /* Shown on the button when `url` is blank. */
+  deadLabel: 'Opening soon'
+};
+
 const html = document.documentElement;
 html.classList.add('g-js');
 
@@ -90,6 +112,10 @@ class Exhibit {
   constructor(el) {
     this.el = el;
     this.id = el.dataset.exhibit;
+    /* What the chrome prints for this card. The id is the prompt key and is
+       shared by both shelves, so a template carries its own label (TPL.01)
+       rather than reading as an animation exhibit. */
+    this.code = el.dataset.code || 'EX.' + this.id;
     this.specifier = el.dataset.module;
     this.stage = el.querySelector('[data-stage]');
     this.frame = el.querySelector('.exhibit__frame');
@@ -224,6 +250,18 @@ function stampCounts() {
 }
 stampCounts();
 
+/* The switch between the two shelves quotes both of their sizes, and this page
+   only holds one shelf's cards — so those counts come from the catalogue
+   table, which knows every entry and which shelf it is on. */
+promptsReady.then((m) => {
+  if (!m || typeof m.countByKind !== 'function') return;
+  const counts = m.countByKind();
+  document.querySelectorAll('[data-count-kind]').forEach((el) => {
+    const n = counts[el.dataset.countKind];
+    if (typeof n === 'number') el.textContent = String(n).padStart(2, '0');
+  });
+}, () => { /* the markup keeps its fallback numbers */ });
+
 /* ------------------------------------------------------------- commerce ui */
 
 /* Blank config target → visibly disabled, never a live-looking control that
@@ -273,11 +311,22 @@ function wireCommerce() {
   });
 }
 
-/* Where "sign in" goes, with a same-origin return path attached. */
-function authHref(promptId) {
-  const back = 'gallery.html' + (promptId ? '#ex-' + promptId : location.hash || '');
+/* This orchestrator runs both shelves — gallery.html and templates.html — so
+   every path back here is built from the page actually loaded. */
+const PAGE = (location.pathname.split('/').pop() || 'gallery.html');
+
+/* Where "sign in" goes, with a same-origin return path attached. `cardId` is
+   the card's element id, so signing in lands back on the very card. */
+function authHref(cardId) {
+  const back = PAGE + (cardId ? '#' + cardId : location.hash || '');
   return 'auth.html?next=' + encodeURIComponent(back);
 }
+
+/* Cards that have moved shelf. An old link to the gallery still has to land
+   on the thing it pointed at, not on a grid that no longer holds it. */
+const MOVED = {
+  'ex-09': 'templates.html#tpl-01'
+};
 
 /* ------------------------------------------------------------- account ui */
 
@@ -608,11 +657,117 @@ exhibits.forEach((ex) => {
   }, true);
 });
 
+/* ------------------------------------------------------ founding-100 offer
+
+   Shown once the catalogue is actually on screen — the moment someone is
+   looking at the work is the moment the offer means something. Dismissing it
+   collapses it to a tab rather than destroying it, and that choice is
+   remembered, so a returning visitor is never popped at twice.
+--------------------------------------------------------------------------- */
+
+function wireOffer() {
+  const card = document.getElementById('offer');
+  const tab = document.getElementById('offer-tab');
+  const section = document.getElementById('catalogue');
+  if (!card || !tab || !section) return;
+
+  const KEY = 'nr.offer.dismissed';
+  let dismissed = false;
+  try { dismissed = localStorage.getItem(KEY) === '1'; } catch (err) { /* private mode */ }
+
+  /* Every number in the copy comes from OFFER, so the markup cannot drift
+     away from what is actually being sold. */
+  document.querySelectorAll('[data-offer-seats]').forEach((el) => {
+    el.textContent = String(OFFER.seats);
+  });
+  document.querySelectorAll('[data-offer-price]').forEach((el) => {
+    el.textContent = String(OFFER.price);
+  });
+
+  /* Only quote a remaining count once there is a real one to quote. */
+  const countEl = card.querySelector('[data-offer-count]');
+  if (countEl) {
+    const taken = Number(OFFER.claimed);
+    countEl.textContent = Number.isFinite(taken) && OFFER.claimed !== null
+      ? taken + ' of ' + OFFER.seats + ' claimed'
+      : OFFER.seats + ' seats total';
+  }
+
+  /* Same rule the pricing CTAs follow: no destination, no live-looking
+     button. wireTarget owns that decision in one place. */
+  const cta = card.querySelector('[data-offer-cta]');
+  if (cta) wireTarget(cta, OFFER.url, OFFER.deadLabel);
+
+  /* Centre stage means it is a real modal: it takes the scroll and the focus
+     while it is up, and gives both back on the way out. */
+  let lastOfferFocus = null;
+
+  function show() {
+    lastOfferFocus = document.activeElement;
+    card.hidden = false;
+    tab.hidden = true;
+    document.body.style.overflow = 'hidden';
+    const sheet = card.querySelector('.offer__card');
+    if (sheet) sheet.focus({ preventScroll: true });
+  }
+
+  function collapse() {
+    if (card.hidden) return;
+    card.hidden = true;
+    tab.hidden = false;
+    /* The prompt panel and fullscreen own this same property. Only hand the
+       scroll back if neither of them is still holding it. */
+    if (!expanded && (!promptPanel || promptPanel.hidden)) {
+      document.body.style.overflow = '';
+    }
+    const restore = lastOfferFocus;
+    lastOfferFocus = null;
+    if (restore && typeof restore.focus === 'function') {
+      restore.focus({ preventScroll: true });
+    } else {
+      tab.focus({ preventScroll: true });
+    }
+    try { localStorage.setItem(KEY, '1'); } catch (err) { /* private mode */ }
+  }
+
+  card.querySelectorAll('[data-offer-dismiss]').forEach((el) => {
+    el.addEventListener('click', collapse);
+  });
+  tab.addEventListener('click', show);
+
+  /* Escape collapses rather than closes: the offer should always still be
+     reachable, and a visitor pressing Escape wants it out of the way, not
+     gone. Ignored while the prompt panel or a fullscreen exhibit owns the
+     key — those have their own Escape behaviour and it must win. */
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || card.hidden) return;
+    if (expanded || (promptPanel && !promptPanel.hidden)) return;
+    collapse();
+  });
+
+  if (dismissed) {
+    /* Already turned it down once. Offer the tab, never the card. */
+    tab.hidden = false;
+    return;
+  }
+
+  const seen = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      seen.disconnect();
+      show();
+    });
+  }, { threshold: 0.18 });
+  seen.observe(section);
+}
+wireOffer();
+
 /* ------------------------------------------- expand + buyer prompt chrome */
 
 let expanded = null;
 const expandBar = document.getElementById('expand-bar');
 const expandIdEl = document.querySelector('[data-expand-id]');
+const expandTechEl = document.querySelector('[data-expand-tech]');
 const expandTitleEl = document.querySelector('[data-expand-title]');
 
 /* Opening an exhibit is a real navigation: it writes a history entry, so the
@@ -621,7 +776,10 @@ function openExhibit(ex) {
   if (!ex || expanded === ex) return;
   const hash = '#' + ex.el.id;
   if (window.location.hash !== hash) {
-    window.history.pushState({ nrExhibit: ex.id }, '', hash);
+    /* nrEntry marks an entry this page actually pushed, so the close path
+       knows it has one of its own to unwind. A deep link replaces state
+       instead, and unwinding that would walk off the site. */
+    window.history.pushState({ nrExhibit: ex.id, nrEntry: true }, '', hash);
   }
   openExpand(ex);
 }
@@ -647,8 +805,23 @@ function openExpand(ex) {
 
   if (expandBar) {
     expandBar.hidden = false;
-    if (expandIdEl) expandIdEl.textContent = 'EX.' + ex.id;
+    if (expandIdEl) expandIdEl.textContent = ex.code;
     if (expandTitleEl) expandTitleEl.textContent = title.trim().toUpperCase();
+
+    /* The card plate is hidden in fullscreen — it sat in the same corner as
+       this bar and the two printed over each other. Its tech tag is the one
+       thing the bar did not already say, so it moves here rather than being
+       lost. The plate reads "EX.09 · DOM"; only the tech half is wanted. */
+    if (expandTechEl) {
+      /* A template card has no plate — it wears browser chrome instead — so
+         it states its tag outright. */
+      const plate = ex.el.querySelector('.card__plate span');
+      const tech = ex.el.dataset.tech || (plate
+        ? (plate.textContent.split(/[·\u00b7]/).pop() || '').trim()
+        : '');
+      expandTechEl.textContent = tech ? '\u00b7 ' + tech.toUpperCase() : '';
+      expandTechEl.hidden = !tech;
+    }
   }
 
   /* Ensure the module is live, promoted to full quality, and sized to the
@@ -677,16 +850,48 @@ function closeExpand(silent) {
   html.classList.remove('is-expanded');
   if (expandBar) expandBar.hidden = true;
 
+  /* A close is only honest if the URL closes with it. Left pointing at the
+     exhibit, a reload silently re-opens something the visitor shut, and since
+     openExhibit only pushes an entry when the hash actually changes, the next
+     open pushes nothing and Back stops closing. A history-driven close is
+     skipped: there the history is already the thing telling us where we are. */
+  if (!silent && window.location.hash === '#' + ex.el.id) {
+    window.history.replaceState(
+      null, '', window.location.pathname + window.location.search
+    );
+  }
+
   /* Back down to card quality so the grid stays cheap. */
   ex.setPreview(true);
 
-  requestAnimationFrame(() => {
+  /* Two frames, not one. The card is still laid out fixed and full-bleed when
+     the class comes off, and a rect read in the very next frame can still
+     describe the fullscreen box — which reads as "already on screen" and
+     silently cancels the scroll below. One more frame and the grid layout is
+     the one being measured. */
+  requestAnimationFrame(() => requestAnimationFrame(() => {
     ex.measure(true);
+
+    /* A deep link opens fullscreen from a page that was never scrolled to the
+       grid, so closing would strand the visitor at the masthead with no sign
+       of where the exhibit went — a button that says BACK TO GALLERY has to
+       land on the gallery. Only when the card is genuinely off screen: an
+       ordinary close is already parked on it, and must not jump. */
+    const box = ex.el.getBoundingClientRect();
+    const margin = 80;
+    if (box.bottom < margin || box.top > window.innerHeight - margin) {
+      /* An explicit target rather than scrollIntoView: the grid entrance is
+         driven by a ScrollTrigger that has never fired on this path, and a
+         plain scrollTo fires it the same way a visitor's own scroll would. */
+      const top = box.top + window.scrollY - (window.innerHeight - box.height) / 2;
+      window.scrollTo({ top: Math.max(0, top), behavior: 'auto' });
+    }
+
     if (!silent) {
       const link = ex.el.querySelector('[data-card-open]');
       if (link) link.focus({ preventScroll: true });
     }
-  });
+  }));
 }
 
 /* ---- prompt panel ------------------------------------------------------- */
@@ -759,7 +964,7 @@ async function openPrompt(ex) {
   openBody = '';
   /* Metadata is public and paints immediately; only the body waits on the
      server, so the panel never opens blank. */
-  if (promptFields.id) promptFields.id.textContent = 'EX.' + data.id;
+  if (promptFields.id) promptFields.id.textContent = ex.code;
   if (promptFields.title) promptFields.title.textContent = data.title;
   if (promptFields.tech) promptFields.tech.textContent = data.tech;
   if (promptFields.use) promptFields.use.textContent = data.use;
@@ -847,14 +1052,20 @@ async function onGateAction() {
 
   if (kind === 'payment_required') {
     closePrompt();
-    document.getElementById('pricing').scrollIntoView({ behavior: 'smooth' });
+    /* Only the gallery carries the full plans. Elsewhere, go to them. */
+    const plans = document.getElementById('pricing');
+    if (plans && plans.querySelector('[data-checkout]')) {
+      plans.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      location.href = 'gallery.html#pricing';
+    }
     return;
   }
 
   if (kind === 'sign_in_required') {
     /* Carry the prompt they were opening, so signing in lands them back on it
        instead of dumping them at the top of the gallery. */
-    location.href = authHref(id);
+    location.href = authHref(promptOpenFor ? promptOpenFor.el.id : null);
     return;
   }
 
@@ -922,7 +1133,7 @@ function onGalleryClick(event) {
   if (event.target.closest('[data-expand-close]')) {
     event.preventDefault();
     /* Unwind the history entry openExhibit pushed. */
-    if (window.history.state && window.history.state.nrExhibit) window.history.back();
+    if (window.history.state && window.history.state.nrEntry) window.history.back();
     else closeExpand(false);
     return;
   }
@@ -957,7 +1168,7 @@ function onGalleryKey(event) {
       return;
     }
     if (expanded) {
-      if (window.history.state && window.history.state.nrExhibit) window.history.back();
+      if (window.history.state && window.history.state.nrEntry) window.history.back();
       else closeExpand(false);
     }
   }
@@ -1057,10 +1268,14 @@ function boot() {
 
   /* Deep link: /gallery.html#ex-04 opens that exhibit directly. */
   const id = (window.location.hash || '').replace('#', '');
+  if (id && MOVED[id] && !document.getElementById(id)) {
+    location.replace(MOVED[id]);
+    return;
+  }
   if (id) {
     const target = exhibits.find((ex) => ex.el.id === id);
     if (target) {
-      window.history.replaceState({ nrExhibit: target.id }, '', '#' + id);
+      window.history.replaceState({ nrExhibit: target.id, nrEntry: false }, '', '#' + id);
       openExpand(target);
     }
   }

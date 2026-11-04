@@ -319,7 +319,590 @@ VISUAL IDENTITY
 
 DELIVERABLE
 - Single self-contained module with the API above, plus one image asset.
-- Use case: "Portrait and product reveals that make the visitor go looking."`
+- Use case: "Portrait and product reveals that make the visitor go looking."`,
+
+  '09': `# Oblique — Tilted Grid Gallery · Build Prompt
+
+**What this builds:** a scroll-animated gallery of tilted "prints" on a bold colour
+field, with smooth scroll, per-card parallax, and click-to-expand detail panels.
+Vanilla HTML/CSS/JS + GSAP. No build step, no framework.
+
+**Works with:** Claude Code, Cursor, Windsurf, Copilot Agent, ChatGPT, or any coding
+model that can write files. Paste the whole thing as a single message.
+
+**Expect ~1,900 lines across 4 files.** If your tool has a short output limit, add
+this line to the end: *"Emit one file per message in this order: index.html,
+styles.css, main.js. Wait for me to say 'next' between files."*
+
+**Honest note to buyers:** language models are non-deterministic, so two runs will
+differ in comment wording and minor structure. Every number, rule and failure mode
+below is pinned, so any competent model produces a working, correct build. Run the
+acceptance checks at the bottom — they're the contract.
+
+═══════════════════════════════════════════════════════════════════════════
+COPY EVERYTHING BELOW THIS LINE
+═══════════════════════════════════════════════════════════════════════════
+
+You are a senior creative developer building a production component for a premium
+animation library. Judge your output against Awwwards Site-of-the-Day work. Build
+exactly what is specified — every number here was derived from a working, tested
+implementation. Do not simplify, do not substitute, do not "improve" the numbers.
+
+## Stack & files
+
+Vanilla HTML/CSS/JS. No framework, no bundler, no npm. Four files:
+
+\`\`\`
+index.html    markup + page chrome
+styles.css    tokens, card anatomy, 18 placeholder motifs
+main.js       CONFIG, scatter, layout, scroll engine, expand/collapse
+README.md     what it is, how to reskin
+\`\`\`
+
+GSAP 3.12.5 + ScrollTrigger from cdnjs, \`defer\`:
+\`\`\`
+https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js
+https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js
+\`\`\`
+
+Fonts (Google Fonts): **Inter Tight** 300–800 (display/body), **Instrument Serif**
+roman + italic (project titles, card watermark), **JetBrains Mono** 400/500 (all
+small caps meta). Three type voices, used consistently.
+
+## The concept
+
+Cards are **photographic prints laid on a coloured table** — not UI cards. Each has
+a white matte border with the caption printed on the bottom matte, and a real drop
+shadow. That single decision is what stops this reading as a generic hover-card
+component. Do not use rounded corners, gradients-on-cards, or glassmorphism.
+
+## THE ONE ARCHITECTURAL RULE
+
+Read this twice; everything depends on it.
+
+Each card is **three nested layers**, one owner each, so no two features ever write
+the same transform:
+
+\`\`\`html
+<button class="card">          <!-- absolute box. NEVER transformed. ScrollTrigger measures this -->
+  <span class="card-drift">    <!-- scroll parallax + velocity skew, nothing else -->
+    <span class="card-pose">   <!-- entrance / hover / expand — GSAP only -->
+      <span class="card-lift"></span>
+      <span class="card-print">
+        <span class="card-media">
+          <span class="card-frame"><!-- motif or <img> --></span>
+          <span class="card-wash"></span>
+          <span class="card-grain"></span>
+          <span class="card-num">01</span>
+          <span class="card-ghost">Title</span>
+        </span>
+        <span class="card-cap">
+          <span class="card-cap-i">01</span>
+          <span class="card-cap-t">Title</span>
+          <span class="card-cap-c">Category</span>
+        </span>
+      </span>
+    </span>
+  </span>
+</button>
+\`\`\`
+
+A card's **resting pose is always** \`{ x:0, y:0, scale:1, rotation:tilt }\` on
+\`.card-pose\`, sitting on a plain \`left\`/\`top\` box owned by CSS. Expanding only ever
+writes a *delta* onto that pose. Collapsing is therefore a literal return to zero,
+not a recalculated trip back — so the card cannot accumulate drift, ever, including
+across a resize while open.
+
+\`.card\` itself is never transformed, so \`getBoundingClientRect()\` on it is always
+the honest layout box — that is what makes ScrollTrigger and the expand maths agree.
+
+**GSAP owns every animated property. No CSS \`transition\` may touch any property
+GSAP writes** — they fight frame by frame. Use CSS transitions nowhere in this build.
+
+## CONFIG (top of main.js, verbatim)
+
+\`\`\`js
+const CONFIG = {
+  backgroundColor: "#1500E1",
+  accentColor: "#ffffff",
+  cardCount: 18,
+
+  layoutSeed: 8,      // re-rolls the entire scatter
+  rotationMin: 1.4,   // deg — no card ever looks accidentally straight
+  rotationMax: 7,     // deg
+  jitter: 20,         // ± px positional noise per card
+
+  cardAspect: 280 / 360,
+  expandedHeight: 0.55,   // expanded card height as a share of viewport height
+
+  smooth: 0.105,      // scroll ease, normalised to 60fps. lower = heavier, 1 = native
+  wheelStep: 1,       // wheel sensitivity
+  parallax: 34,       // ± px a card drifts against scroll, scaled by depth
+  skewMax: 2.6,       // deg of shear at full scroll velocity
+  marqueeSpeed: 54,   // px per SECOND at rest
+
+  items: [ /* 18 × { image, tone, mark, title, category, description, year } */ ],
+};
+\`\`\`
+
+18 items. \`image: null\` means draw a placeholder motif. \`tone\` is the print's base
+colour, \`mark\` the shape colour. Use this palette (distinct, all legible on
+\`#1500E1\`, deliberately mixing lights/darks/brights):
+
+\`\`\`
+#F2EDE3/#FF3B1F  #FF3B1F/#F7F2E8  #111111/#D9FF3D  #D9FF3D/#111111
+#FF9EC4/#2B0A5E  #FFB627/#111111  #00E5A0/#0A2E22  #BFE3FF/#1500E1
+#7A1327/#FFC9C2  #E4C9A0/#4A2C12  #0E7C86/#CFF6F2  #C6B4FF/#17103A
+#3B5F1E/#C9F24D  #FF6B4A/#FFF1E2  #2E3440/#D8E1EC  #FF2D78/#FFEAF2
+#C87E12/#FFF4DE  #EDEDE8/#1500E1
+\`\`\`
+
+Write 18 real studio projects — distinct title, category (Branding, Art Direction,
+Typography, Motion, Identity, Editorial, Interaction, Packaging, Campaign, Print,
+Wayfinding, Album Art, Environmental, Exhibition, Data Design, Music, Ceramics,
+Stationery), a year 2016–2026, and **one short specific sentence**. No lorem, no
+filler like "A project showcasing our work."
+
+## Colour derivation (keeps it reskinnable)
+
+Implement \`relLum(hex)\` (WCAG relative luminance) and \`contrast(a,b)\`, then
+\`readableOn(hex)\` returning \`#0a0a0a\` or \`#ffffff\` — whichever has more contrast.
+Use it for: text on each card's \`tone\`, text on the accent pill, and the panel title
+(accent if \`contrast(accent,bg) >= 3.5\`, else whichever of white/near-black wins).
+A buyer swaps two hex values and everything stays legible with no CSS edits.
+
+## Scatter — banded, NOT flat random
+
+Seeded PRNG (mulberry32) so the same \`layoutSeed\` always rebuilds the same table.
+
+**Do not use flat \`random()\` for tilts.** Tested across 400 seeds, flat random
+repeatedly yields angles within 0.06° of each other (two cards visibly parallel —
+reads as a bug) and seeds where every card leans the same way (reads as a skewed
+page, not a scatter). Instead draw **one angle per band**:
+
+\`\`\`js
+const half = Math.ceil(n / 2);
+const span = (CONFIG.rotationMax - CONFIG.rotationMin) / half;
+const pad  = span * 0.2;                    // keeps neighbouring bands apart
+for (let side = 0; side < 2; side++)        // 0 = negative, 1 = positive
+  for (let b = 0; b < half; b++) {
+    const lo = CONFIG.rotationMin + b * span + pad;
+    const hi = CONFIG.rotationMin + (b + 1) * span - pad;
+    tilts.push((lo + rand() * (hi - lo)) * (side ? 1 : -1));
+  }
+// then Fisher–Yates shuffle with the SAME rand, so cards get random bands
+\`\`\`
+
+Then per card, from the same \`rand()\`: \`jx\`/\`jy\` = \`(rand()*2-1) * jitter\`, and
+\`depth = 0.28 + rand()*0.72\` (parallax strength).
+
+This guarantees, for every seed: distinct angles, an even left/right lean, and no
+tilt weaker than \`rotationMin\`. Angles are computed **once at layout time** and
+never touched per-frame.
+
+## Layout tiers
+
+\`\`\`js
+w >= 1600 → cols 4, cardW 268, gapX 74, gapY 74, drift [0,112,44,150], jf 1
+w >= 1360 → cols 4, cardW 232, gapX 58, gapY 64, drift [0,96,38,128],  jf 1
+w >= 1100 → cols 3, cardW 262, gapX 68, gapY 64, drift [0,106,42],     jf 1
+w >= 860  → cols 3, cardW 212, gapX 50, gapY 56, drift [0,84,32],      jf 0.85
+w >= 620  → cols 2, cardW 232, gapX 48, gapY 56, drift [0,86],         jf 0.8
+else      → cols 1, cardW min(272, w-124), gapX 0, gapY 40, drift [0], jf 0.5
+\`\`\`
+
+\`drift\` is a **per-column vertical offset** — this is what makes it read as
+art-directed rather than a grid. \`jf\` scales jitter down on smaller screens.
+
+\`\`\`js
+cardH   = round(cardW / cardAspect)
+over    = ceil((cardW*0.9925 + cardH*0.1219 - cardW)/2) + 4   // corner swing at max tilt
+gridW   = cols*cardW + (cols-1)*gapX
+originX = (galleryWidth - gridW) / 2
+padTop  = clamp(viewportHeight*0.05, 16, 64)
+
+// a final row that doesn't fill its columns is CENTRED, so the grid ends on a
+// deliberate note instead of a hole where a card isn't
+lastRow   = floor((n-1)/cols)
+lastCount = n - lastRow*cols
+lastNudge = ((cols - lastCount) * (cardW + gapX)) / 2
+
+col = i % cols;  row = floor(i / cols)
+swing = (cols===1 ? (row%2 ? 1 : -1) * 12 : 0) + (row===lastRow ? lastNudge : 0)
+x = round(clamp(originX + col*(cardW+gapX) + jx*jf + swing, over, max(over, W-cardW-over)))
+y = round(padTop + row*(cardH+gapY) + drift[col] + jy*jf)
+gallery.style.height = round(maxBottom + over + 24)
+\`\`\`
+
+Set \`width/height/left/top\` in px on \`.card\`. Cache \`gTop\` (the gallery's document
+offset) after every layout. Cards should overlap slightly in whitespace via tilt and
+jitter, but never cover each other's image area.
+
+## Card anatomy (CSS)
+
+\`\`\`
+.card-print   padding 7.5% 7.5% 0; background #f7f4ee; border-radius 2px;
+              container-type: inline-size;
+              box-shadow: 0 1px 0 rgba(255,255,255,.5) inset,
+                          0 14px 26px -14px rgba(0,0,0,.55)
+.card-media   flex:1; overflow hidden; background var(--tone); isolation isolate
+.card-cap     height 13%; JetBrains Mono; uppercase; letter-spacing .13em;
+              index (42% opacity) · title (500 weight) · category (42% opacity)
+.card-lift    absolute inset 6%; box-shadow 0 42px 64px -22px rgba(0,0,0,.62);
+              opacity 0   ← hover cross-fades THIS, never animates a box-shadow string
+.card-wash    radial light: rgba(255,255,255,.3) at 22% 12%, rgba(0,0,0,.26) at 82% 96%
+.card-grain   SVG feTurbulence noise, opacity .16, mix-blend-mode overlay
+.card-num     mono index, top-left, colour readableOn(tone), opacity .68
+.card-ghost   Instrument Serif title, bottom-right, opacity .3, sized in \`cqw\`,
+              with a soft radial knock-out in the print's own tone behind it so it
+              stays legible over every motif
+\`\`\`
+
+Use \`cqw\` units for card text so type scales with the print. That is why
+\`.card-print\` needs \`container-type: inline-size\`.
+
+**18 distinct motifs** (\`.m1\`–\`.m18\`), pure CSS gradients using \`--tone\`/\`--mark\`:
+centred circle · diagonal split · bottom bands · corner arc · concentric rings ·
+vertical bar · dot grid · offset rectangles · rising half-circle · diagonal stripes ·
+cross · triangle (conic) · horizon + circle · checker · nested frame · ripple ·
+opposite quarter-circles · thin vertical stripes. Each must read as a distinct
+poster, not a pattern swatch.
+
+## Page chrome
+
+Fixed masthead (brand, "Selected commissions", \`NN / 18\` counter). Hero: mono
+eyebrow, a 3-line display headline where the last line is Instrument Serif italic
+for contrast, a sub-line, and a scroll cue. A marquee band between hero and grid.
+Colophon at the end. Grain + vignette overlays fixed over everything.
+
+Anything \`position: fixed\` (grain, vignette, cursor, masthead, scrim, panel) must
+live outside the scrolled flow.
+
+## Entrance
+
+ScrollTrigger, \`start: "top 85%"\`, triggering on \`.card\` (the untransformed layer).
+
+From \`{ opacity:0, y:60, scale:0.94, rotation:0 }\` → \`{ opacity:1, y:0, scale:1,
+rotation: <its tilt> }\`, \`duration 0.8\`, \`ease power3.out\`, \`stagger 0.06\`, all on
+\`.card-pose\`.
+
+The rotation settling **into** its tilt (rather than starting tilted) is what sells
+the landing feel.
+
+Use \`ScrollTrigger.batch\` so cards crossing the line together stagger together.
+**Do not pass \`once: true\`** — see Trap 2. Guard with a \`landed\` boolean per card
+instead, and add an \`ensureLanded()\` that reveals anything already above the line
+(a reload part-way down the page, or a resize that pulls cards up).
+
+## Smooth scroll — native scroll stays the source of truth
+
+Do **not** add Lenis or a transform-wrapper scroller. Intercept \`wheel\`, ease the
+value, and hand it to \`window.scrollTo\`. Because the real scroll position is still
+the truth, every \`getBoundingClientRect()\` stays honest and ScrollTrigger needs no
+proxy or special casing.
+
+Skip smooth scroll entirely on coarse pointers (native momentum is better) and under
+\`prefers-reduced-motion\`.
+
+Wheel handler (\`passive:false\`, \`preventDefault\`):
+\`\`\`js
+const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1;
+const step = clamp(e.deltaY * unit * CONFIG.wheelStep, -240, 240);  // cap driver spikes
+scroller.target = clamp(scroller.target + step, 0, maxScroll());
+\`\`\`
+Also handle ArrowUp/Down (±90), PageUp/Down (±0.9vh), Home, End, Space — skipping
+inputs and textareas.
+
+Per frame, via \`gsap.ticker.add((time, deltaMs) => …)\`:
+\`\`\`js
+const dt = Math.min(deltaMs, 50) / 1000;   // clamp so a tab-switch can't lurch
+const f  = dt * 60;
+
+// SELF-HEAL: adopt any scroll that happened without us (scrollbar drag, anchor
+// jump, a scroll event never received). Our own scrollTo lands within a pixel,
+// so this cannot false-trigger.
+if (Math.abs(window.scrollY - scroller.current) > 2.5)
+  scroller.current = scroller.target = window.scrollY;
+
+const d = scroller.target - scroller.current;
+if (Math.abs(d) > 0.08) {
+  scroller.current += d * (1 - Math.pow(1 - CONFIG.smooth, f));   // dt-corrected
+  window.scrollTo(0, scroller.current);
+}
+
+const raw = (scrollNow - prev) / dt;                    // px per SECOND
+vel += (raw - vel) * (1 - Math.pow(0.86, f));
+const skew = expanded !== null ? 0
+           : clamp(vel * 0.00125, -CONFIG.skewMax, CONFIG.skewMax);
+
+ScrollTrigger.update();   // ALWAYS — never gate this. See Trap 8.
+\`\`\`
+
+**Everything time-based, never frame-based.** See Trap 1.
+
+## Parallax, skew, marquee, hero
+
+One function writes drift, so it can also be called synchronously when a jump must
+land before the next frame:
+\`\`\`js
+function driftAll(at, skew) {
+  const mid = at + innerHeight / 2;
+  for (const c of cards) {
+    const rel = clamp((gTop + c.y + c.h/2 - mid) / innerHeight, -1.4, 1.4);
+    c.driftY = rel * c.depth * CONFIG.parallax;   // 0 at viewport centre
+    c.setY(c.driftY);        // gsap.quickSetter(c.drift, "y", "px")
+    c.setSkew(skew);         // gsap.quickSetter(c.drift, "skewY", "deg")
+  }
+}
+\`\`\`
+Marquee: \`marqX = (marqX + (marqueeSpeed + vel*0.55) * dt) % halfTrackWidth\` — build
+the track doubled so it wraps seamlessly at half its width. Hero: translate
+\`scrollNow * 0.22\` while \`scrollNow < innerHeight * 1.3\` so it hangs back.
+
+Skip the drift write when the page is still and the shear has relaxed — 18 cards is
+cheap, not free.
+
+## Custom cursor
+
+10px solid dot, \`accentColor\`, \`mix-blend-mode: difference\`, native cursor hidden.
+Follows with \`gsap.quickTo(…, { duration: 0.15, ease: "power3.out" })\` — precise, not
+floaty. Grows to 16px over cards, the close control, and the panel arrows.
+
+Structure it as a \`0×0\` anchor with \`display:grid; place-items:center\` and the dot
+inside — then the dot stays centred at any size without margin maths.
+
+Disable under reduced motion and on coarse pointers.
+
+## Hover (before click)
+
+On \`.card-pose\`: \`rotation: tilt * 0.4\` (straightens by 60%, never fully flat),
+\`scale: 1.03\`, \`duration 0.4\`, \`ease power2.out\`. \`.card-lift\` opacity → 1 (0.4s).
+\`.card-frame\` scale → 1.06 (0.6s) so the photo breathes inside its matte. Raise
+\`z-index\` to 30. Reverts to resting tilt on leave. Bind to \`focus\`/\`blur\` too.
+
+Guard: do nothing if a card is expanded, if one is still travelling home, or if this
+card hasn't landed.
+
+## Expanded geometry
+
+\`\`\`js
+stacked = viewportWidth < 900
+
+// desktop — card centre-left, panel right
+margin  = clamp(vw*0.05, 28, 72)
+gutter  = clamp(vw*0.045, 30, 76)
+panelW  = clamp(vw*0.29, 290, 430)
+h       = clamp(vh*0.55, cardH*1.25, vh - 88)    // ← the 1.25 floor matters, Trap 4
+w       = h * cardAspect
+room    = vw - margin*2 - gutter - panelW
+if (w > room) { w = room; h = w / cardAspect; }
+left    = (vw - (w + gutter + panelW)) / 2
+top     = (vh - h) / 2
+panelLeft = left + w + gutter
+panelTop  = clamp(top + (h - panelHeight)/2, 88, max(88, vh - panelHeight - 20))
+
+// stacked — card top, panel below
+margin 20, gap 26, panelW = vw - 40
+top = max(50, vh*0.06)
+h   = max(vh - top - panelHeight - gap - margin, cardH*1.05)
+w   = h * cardAspect;  if (w > vw-40) { w = vw-40; h = w/cardAspect; }
+top = max(12, min(top, vh - h - gap - panelHeight - 12))
+panelTop = top + h + gap
+\`\`\`
+
+Measure the panel's real height (fill its text first, then read \`offsetHeight\` while
+still \`visibility:hidden\` — hidden elements still have layout). Sizing that ignores
+the panel's real height either overlaps it or wastes the screen.
+
+The delta that carries a card from its resting box to the open slot — note \`driftY\`
+is part of where the card actually is, so it must be in here:
+\`\`\`js
+const gr = gallery.getBoundingClientRect();
+x = g.left + g.w/2 - (gr.left + c.x + c.w/2);
+y = g.top  + g.h/2 - (gr.top  + c.y + c.h/2 + c.driftY);
+scale = g.h / c.h;
+\`\`\`
+
+Lock scroll while expanded. Put \`scrollbar-gutter: stable\` on \`html\` so locking
+doesn't shift the page.
+
+## Expand — one coordinated timeline
+
+Timeline positions in seconds. z-index of the open card → 60.
+
+\`\`\`
+0     .card-pose  → { x, y, scale, rotation:0, opacity:1 }  0.6  power3.inOut
+0     .card-drift → { skewY: 0 }                            0.4  power2.out
+0     .card-frame → { scale: 1 }                            0.6  power3.inOut
+0     .card-lift  → { opacity: 1 }                          0.6  power3.inOut
+0     other poses → { opacity: 0.15, scale: 0.96 }          0.4  power2.out
+0     scrim       → { opacity: 1 }                          0.45 power2.out
+0     chrome      → { opacity: 0 }                          0.4  power2.out
+0.3   close ctrl  → { opacity: 0.62 }                       0.4
+0.2   panel  from { opacity:0, x:30 } → { opacity:1, x:0 }  0.5  power3.out
+0.26  panel lines from { opacity:0, y:14 } → { 1, 0 }       0.5  power3.out, stagger 0.055
+\`\`\`
+(stacked: panel enters from \`y:24\` instead of \`x:30\`.)
+
+\`pointer-events: none\` on every other card while expanded. Only dim cards that have
+actually **landed** — touching one that hasn't entered yet pops it on screen without
+its intro.
+
+"chrome" = hero, marquee, colophon, corner marks. They fade because **the panel is
+transparent** — see Trap 5.
+
+## Collapse — one reversal, not two events
+
+\`\`\`
+0     panel      → { opacity: 0, x: 30 }        0.28  power2.in
+0     close ctrl → { opacity: 0 }               0.22
+0.08  .card-pose → { x:0, y:0, scale:1, rotation: tilt }  0.6  power3.inOut
+0.08  .card-lift → { opacity: 0 }               0.5   power2.out
+0.14  other poses→ { opacity: 1, scale: 1 }     0.45  power2.out
+0.14  scrim      → { opacity: 0 }               0.4   power2.out
+0.14  chrome     → back to each element's own resting opacity  0.45  power2.out
+\`\`\`
+
+The panel leaves first and the card follows 0.08s later — that offset is what makes
+it read as one reversal. Total ≈ 0.68s.
+
+Close via: the card itself, the × control, the dimmed background, or Escape (Escape
+returns focus to the card it came from).
+
+On complete: restore z-index, \`aria-expanded\`, pointer-events, unlock scroll, clear
+the panel line transforms, and re-apply hover if the pointer is sitting on a card.
+
+## Interruptible — this is not optional
+
+Every tween above lands on an **absolute** value, so cutting one off mid-flight is
+safe. Do **not** use a \`busy\` flag that swallows input — see Trap 6.
+
+- Kill the live timeline and start the new one.
+- Track a \`homing\` card (one still travelling back). Block hover while it exists.
+- If a new card is expanded while another is still homing, fold that card's trip
+  home into the **same** timeline: \`{ x:0, y:0, scale:0.96, rotation: tilt,
+  opacity: 0.15 }\` over 0.5s, and push it into the dimmed set so collapse restores it.
+- Never allow two cards expanded at once.
+
+## Description panel
+
+Category pill (accent background, \`readableOn(accent)\` text, uppercase, letter-spaced
+0.2em, mono 9.5px, pill radius) · large bold title in \`--panel-title\` · muted
+description · mono meta row \`NN / 18 —— YEAR\` · a \`× Close\` control at the panel's
+top-right · prev/next circular arrow buttons.
+
+**Prev/next**: land the target card if it hasn't entered yet, then **sync the scroll
+so its resting slot is on screen before expanding** — otherwise a card three screens
+away flies in from nowhere and, worse, closing returns it off-screen. Jump the
+scroll, re-run \`driftAll\`, then re-derive the open card's delta so it doesn't appear
+to move (same trick as resize-while-open). Then \`collapse(); expand(next);\` — the
+interrupt machinery above handles the rest. Bind ArrowLeft/ArrowRight too.
+
+## Accessibility & reduced motion
+
+Cards are real \`<button>\`s — Tab to them, Enter to open, Escape to close, focus
+returns. \`aria-expanded\` tracks state. Visible \`:focus-visible\` outline.
+
+Under \`prefers-reduced-motion: reduce\`: skip the entrance (cards start at final
+pose, marked landed), skip smooth scroll, skip the custom cursor, and scale all
+durations by ~0.001 so transitions are effectively instant. Layout stays intact.
+Implement this as one \`D\` multiplier applied to every duration and timeline position.
+
+## Also handle
+
+- **Web fonts land after init** and change the hero's height, moving every card.
+  On \`document.fonts.ready\`: re-layout, \`ScrollTrigger.refresh()\`, \`ensureLanded()\`.
+- **Resize** (debounced ~140ms): re-layout, re-drift, clamp scroll to the new
+  \`maxScroll()\`, and if a card is open, re-derive its delta so it stays put and still
+  collapses home exactly.
+- \`history.scrollRestoration = "manual"\` + scroll to top on load, so the entrance
+  actually plays.
+- \`overscroll-behavior-y: none\` so bounce doesn't fight the scroller.
+- z-index order: cards \`10+i\` → hover 30 → scrim 40 → expanded card 60 → masthead 75
+  → panel 76 → vignette 80 → grain 90 → cursor 200.
+
+═══════════════════════════════════════════════════════════════════════════
+KNOWN TRAPS — each of these was a real bug found by testing.
+Read before writing code; the default approach is wrong in all eight.
+═══════════════════════════════════════════════════════════════════════════
+
+1. **Frame-based easing is frame-rate dependent.** \`current += d * 0.105\` per frame
+   runs twice as fast at 120Hz as at 60Hz — measured, the same gesture travelled
+   486px on 60Hz vs 736px on 120Hz at the 100ms mark. Correct with
+   \`d * (1 - Math.pow(1 - ease, dt * 60))\`. Same applies to the velocity EMA, the
+   marquee speed (px per *second*), and anything else per-frame.
+
+2. **\`once: true\` on \`ScrollTrigger.batch\` races its own debounce.** It kills each
+   trigger the moment it toggles, which can outrun batch's debounced callback and
+   leave a card permanently marked un-landed — invisible and unclickable. Use a
+   \`landed\` flag as the guard instead; re-entering the viewport then finds nothing
+   to do.
+
+3. **Never let a CSS \`transition\` share a property with GSAP.** They fight every
+   frame and produce visible lag. The close control especially: give it \`opacity:0\`
+   in CSS and animate hover with GSAP, because an inline style from GSAP outranks a
+   \`:hover\` rule anyway.
+
+4. **The expanded card can end up smaller than it started.** On a short viewport,
+   \`55vh\` may be less than the card's own grid height — measured 0.906×, i.e. clicking
+   "expand" visibly shrank it. Floor the height against \`cardH * 1.25\` (desktop) /
+   \`cardH * 1.05\` (stacked).
+
+5. **The panel is transparent, so page furniture reads straight through it.** Scroll
+   to the colophon, open a card, and its text shows through the title. Fade the
+   chrome out as part of the expand — don't try to cover it.
+
+6. **A \`busy\` guard swallows the close click.** Clicking × during the 0.6s expand
+   does nothing and the card is stuck open. Users do this constantly. Make the
+   sequence interruptible instead (all tweens target absolute values, so it's safe).
+
+7. **Expanding out of an interrupted collapse leaves the new card dimmed.** It was at
+   0.15 opacity from the previous state and nothing restores it — it opens visibly
+   washed out. Put \`opacity: 1\` in the expanding card's own tween.
+
+8. **Never gate \`ScrollTrigger.update()\` on your own movement flag.** It looks like a
+   free optimisation, but if your scroller ever diverges from the real scroll
+   position, updates stop entirely and the whole page freezes. Call it every frame.
+
+═══════════════════════════════════════════════════════════════════════════
+ACCEPTANCE CHECKS — run these before calling it done, and report the results
+═══════════════════════════════════════════════════════════════════════════
+
+1. **Tilts.** Log all 18. They must be distinct, none weaker than 1.4°, and the
+   left/right split must be 9/9. Change \`layoutSeed\` to 3 different values — all
+   three must still satisfy that.
+
+2. **Exact collapse (the important one).** For every card: record
+   \`getComputedStyle(pose).transform\` and opacity, open it, close it, re-record.
+   Every value must be **identical** — max drift 0.00000 on rotation, x, y, scale and
+   opacity. Test all three close paths (card, × control, background).
+
+3. **Expanded geometry.** Measure \`.card-print\`'s rect (not \`.card\` — that's the
+   untransformed layout box). Height must be 0.55 × viewport height, the card must be
+   larger than at rest, its centre left of the viewport centre, the panel entirely to
+   its right, and both fully on screen.
+
+4. **Dimming.** Every other landed card sits at exactly opacity 0.15 and scale 0.96,
+   with \`pointer-events: none\`.
+
+5. **Interruption.** Open a card, and at ~35% through the expand click ×. It must
+   close, and drift must still be 0. Then open one, start closing, and mid-collapse
+   open a different one — the new card must be fully opaque and everything must
+   return exactly on close.
+
+6. **Frame-rate independence.** Drive the frame function with synthetic deltas for
+   30 / 60 / 120 / 144fps over the same glide. Position at any timestamp must match
+   across all four within a few px.
+
+7. **Never two open.** With one expanded, clicking another must do nothing.
+
+8. **Keyboard.** Tab to a card, Enter opens, Escape closes and returns focus,
+   arrows step between projects.
+
+9. **Console must be clean** — no errors, no warnings.
+
+Report each check with the actual measured numbers, not just "passed".
+`
 };
 
 export function getBody(id) {

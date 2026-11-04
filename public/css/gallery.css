@@ -1347,6 +1347,14 @@ html.is-expanded body {
   overflow: hidden;
 }
 
+/* The bar's height and the room the exhibit leaves for it are the same number,
+   declared once. Two copies of it would drift the first time the padding or
+   the control size changed, and drift here means the chrome creeps back over
+   the art. */
+html.is-expanded {
+  --expand-bar-h: calc(2.35rem + 1.2rem + 1px + env(safe-area-inset-top, 0px));
+}
+
 .exhibit.is-expanded {
   position: fixed;
   inset: 0;
@@ -1357,10 +1365,24 @@ html.is-expanded body {
   max-width: none;
   margin: 0;
   padding: 0;
-  background: var(--void);
+  /* A card is a rounded plate on a page. Fullscreen it is the page, so the
+     radius has to go: kept, it cut four holes in the corners and let the body
+     colour through — glaring white wedges on the light theme. The fill is the
+     preview well, not --void, so any pixel a module leaves unpainted reads as
+     part of the art rather than as a flash of page. */
+  border-radius: 0;
+  overflow: hidden;
+  background: var(--sunken);
+  /* Sit the exhibit below the chrome rather than behind it. Overlapping the
+     two is what put the gallery's titling on top of the exhibit's own. */
+  padding-top: var(--expand-bar-h);
 }
 
+/* The expand bar is the fullscreen chrome and already prints the ID, the tech
+   tag and the title. The card plate sits at the same corner and printed its
+   own copy on top of it — two strings of mono overlapping into mush. */
 .exhibit.is-expanded .card__info,
+.exhibit.is-expanded .card__plate,
 .exhibit.is-expanded .card__cue {
   display: none;
 }
@@ -1370,17 +1392,21 @@ html.is-expanded body {
   border: 0;
   box-shadow: none;
   transform: none !important;
+  /* The grid entrance holds every card at opacity 0 until its ScrollTrigger
+     fires. A deep link (/gallery.html#ex-09) opens an exhibit fullscreen
+     without ever scrolling the grid into view, so that tween never runs and
+     the exhibit mounts, goes LIVE, and paints nothing — leaving the chrome bar
+     floating over the masthead. Fullscreen is never part of that entrance, so
+     it asserts its own visibility over the inline opacity GSAP writes. */
+  opacity: 1 !important;
 }
 
 .exhibit.is-expanded .card__preview {
   aspect-ratio: auto;
   flex: 1;
   min-height: 0;
-}
-
-.exhibit.is-expanded .card__plate {
-  padding-top: calc(0.7rem + env(safe-area-inset-top, 0px));
-  padding-inline: clamp(1rem, 3vw, 2rem);
+  border-radius: 0;
+  background: var(--sunken);
 }
 
 .exhibit.is-expanded .exhibit__frame {
@@ -1417,15 +1443,36 @@ html.is-expanded body {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: calc(0.85rem + env(safe-area-inset-top, 0px)) clamp(1rem, 3vw, 2rem) 0.85rem;
-  pointer-events: none;
+  padding: calc(0.6rem + env(safe-area-inset-top, 0px)) clamp(1rem, 3vw, 2rem) 0.6rem;
+  /* An exhibit is fullscreen and paints whatever it likes underneath, and
+     several of them put their own titling in exactly this corner — 09 sets its
+     masthead directly behind BACK TO GALLERY. Anything translucent lets that
+     read through and both strings turn to mush, so the chrome is its own solid
+     strip: opaque, so nothing can ever collide with it, on any of the nine.
+     Solid also means it is a surface, not a window — clicks stop here rather
+     than falling through to art the visitor cannot see. */
+  background: #06070a;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-sizing: border-box;
+  height: var(--expand-bar-h);
+  pointer-events: auto;
 }
 
 .expand-bar[hidden] { display: none !important; }
 
+/* Back button and identity travel together, so they share a row and the bar
+   only ever has two things to space apart. */
+.expand-bar__left {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.7rem, 2vw, 1.15rem);
+  min-width: 0;
+}
+
 .expand-bar__meta {
   display: flex;
   gap: 0.85rem;
+  min-width: 0;
   color: var(--cyan);
   font-size: 0.62rem;
   letter-spacing: 0.18em;
@@ -1433,15 +1480,27 @@ html.is-expanded body {
   text-shadow: 0 0 18px rgba(0, 0, 0, 0.85);
 }
 
+/* The title is the only elastic part: it ellipses rather than pushing the
+   close button off a narrow screen. */
+.expand-bar__meta [data-expand-title] {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.expand-bar__meta [data-expand-tech][hidden] { display: none; }
+
+.expand-bar__back,
 .expand-bar__close {
   pointer-events: auto;
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
+  flex: none;
   min-height: 2.35rem;
   padding: 0 0.9rem;
   border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
-  background: rgba(0, 0, 0, 0.72);
+  background: transparent;
   color: var(--cyan);
   font-family: var(--font-mono);
   font-size: 0.62rem;
@@ -1450,11 +1509,229 @@ html.is-expanded body {
   transition: background 0.25s var(--ease-out-expo), color 0.25s var(--ease-out-expo);
 }
 
+.expand-bar__back svg,
+.expand-bar__close svg { display: block; }
+
+.expand-bar__back:hover,
+.expand-bar__back:focus-visible,
 .expand-bar__close:hover,
 .expand-bar__close:focus-visible {
   background: var(--cyan);
   color: var(--void);
   outline: none;
+}
+
+/* Narrow: the bar has three things competing for one line, so the least
+   load-bearing text drops first. The way out never drops. */
+@media (max-width: 720px) {
+  .expand-bar { gap: 0.6rem; }
+  .expand-bar__back,
+  .expand-bar__close { padding: 0 0.7rem; }
+  .expand-bar__meta [data-expand-tech] { display: none; }
+  .expand-bar__close .mono { display: none; }
+}
+
+@media (max-width: 520px) {
+  .expand-bar__meta [data-expand-title] { display: none; }
+}
+
+/* --------------------------------------------------------------------------
+   Founding-100 offer
+
+   A corner card, not a modal. Arriving at the grid is the moment someone
+   starts wanting the work; covering that work with a veil the instant they
+   get there trades the sale for a bounce. It sits beside the grid instead,
+   and collapses to a tab that keeps the offer one click away forever.
+
+   It also sits BELOW the fullscreen chrome (12000/12010) and the prompt
+   sheet (13000) on purpose, and hides outright when either is open — an
+   exhibit at full bleed is the product demoing itself, and nothing gets to
+   sit on top of that.
+   -------------------------------------------------------------------------- */
+
+.offer {
+  position: fixed;
+  inset: 0;
+  z-index: 11000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1rem, 4vw, 2rem);
+}
+
+/* Cleared above the .nr-corner footer chrome, which is pinned about 44px off
+   the bottom on the same side — docking the pill any lower parks it directly
+   on top of SYSTEM NOMINAL. */
+.offer__tab {
+  position: fixed;
+  right: clamp(0.9rem, 2.5vw, 1.6rem);
+  bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+  z-index: 11000;
+}
+
+/* Clicking anywhere off the card puts it away — a modal that arrives
+   uninvited must be trivially easy to dismiss. */
+.offer__veil {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--void) 72%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: offer-veil 0.3s ease both;
+  cursor: pointer;
+}
+
+@keyframes offer-veil { from { opacity: 0; } to { opacity: 1; } }
+
+.offer[hidden],
+.offer__tab[hidden] { display: none !important; }
+
+/* Fullscreen exhibit or open prompt: the offer is not part of that moment. */
+html.is-expanded .offer,
+html.is-expanded .offer__tab,
+html.is-prompt-open .offer,
+html.is-prompt-open .offer__tab {
+  display: none !important;
+}
+
+.offer__card {
+  position: relative;
+  z-index: 1;
+  width: min(29rem, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  padding: clamp(1.6rem, 4vw, 2.2rem) clamp(1.5rem, 4vw, 2rem) clamp(1.4rem, 3vw, 1.8rem);
+  border: 1px solid color-mix(in srgb, var(--accent) 38%, var(--line));
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
+  animation: offer-in 0.5s var(--ease-out-expo) both;
+}
+
+@keyframes offer-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes offer-tab-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+.offer__x {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--text-mid);
+  cursor: pointer;
+  transition: background 0.2s var(--ease-power2-out), color 0.2s var(--ease-power2-out);
+}
+
+.offer__x:hover,
+.offer__x:focus-visible {
+  background: var(--surface-2);
+  color: var(--text);
+  outline: none;
+}
+
+.offer__flag {
+  margin: 0 0 0.55rem;
+  color: var(--accent);
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.offer__title {
+  margin: 0 0 0.6rem;
+  padding-right: 1.6rem;
+  font-size: clamp(1.25rem, 2.4vw, 1.5rem);
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+.offer__desc {
+  margin: 0 0 1.25rem;
+  color: var(--text-mid);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.offer__cta {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.offer__cta[aria-disabled="true"] {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.offer__fine {
+  margin: 0.7rem 0 0;
+  color: var(--text-mid);
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.offer__fine:empty { display: none; }
+
+/* The collapsed state. Small enough to ignore, loud enough to find again. */
+.offer__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.62rem 0.95rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: var(--shadow-1);
+  animation: offer-tab-in 0.4s var(--ease-out-expo) both;
+  transition: border-color 0.25s var(--ease-power2-out),
+              transform 0.25s var(--ease-power2-out);
+}
+
+.offer__tab:hover,
+.offer__tab:focus-visible {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  outline: none;
+}
+
+.offer__tab-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+@media (max-width: 560px) {
+  .offer { padding: 0.9rem; }
+  .offer__card { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .offer__card,
+  .offer__veil,
+  .offer__tab { animation: none; }
+  .offer__tab:hover { transform: none; }
 }
 
 /* --------------------------------------------------------------------------
@@ -2212,4 +2489,279 @@ html.is-expanded body {
   border-color: var(--accent);
   background: color-mix(in srgb, var(--accent) 14%, transparent);
   color: var(--accent);
+}
+
+/* --------------------------------------------------------------------------
+   Shelf switch — Animations / Templates
+
+   The library is two shelves on two pages: drop-in sections, and complete
+   pages. They are different purchases, so a visitor has to know which one
+   they are standing in before they read a single card. This is that sign.
+   Each half is a real link to a real page — not a JS tab — so it can be
+   opened in a new tab, shared, and read without script.
+   -------------------------------------------------------------------------- */
+
+.shelf {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  max-width: 46rem;
+  margin: 0 0 clamp(2.25rem, 5.5vh, 3.75rem);
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: calc(var(--r-card) + 6px);
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.shelf__opt {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid transparent;
+  border-radius: var(--r-card);
+  color: var(--text-mid);
+  text-decoration: none;
+  transition:
+    background-color 0.25s var(--ease-power2-out),
+    border-color 0.25s var(--ease-power2-out),
+    color 0.25s var(--ease-power2-out);
+}
+
+.shelf__opt:hover,
+.shelf__opt:focus-visible {
+  background: var(--surface-2);
+  color: var(--text);
+  outline: none;
+}
+
+.shelf__opt:focus-visible {
+  border-color: var(--accent);
+}
+
+/* The shelf you are on is the lit one. It is not a link back to itself in any
+   way that matters, so it does not pretend to be hoverable. */
+.shelf__opt[aria-current="page"] {
+  background: var(--surface-2);
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
+  color: var(--text);
+  box-shadow: var(--shadow-1);
+  cursor: default;
+}
+
+.shelf__icon {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--void);
+  color: var(--ash);
+  transition: color 0.25s ease, border-color 0.25s ease, background-color 0.25s ease;
+}
+
+.shelf__icon svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.shelf__opt:hover .shelf__icon,
+.shelf__opt:focus-visible .shelf__icon { color: var(--text); }
+
+.shelf__opt[aria-current="page"] .shelf__icon {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.shelf__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.shelf__name {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.shelf__count {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--ash);
+}
+
+.shelf__opt[aria-current="page"] .shelf__count { color: var(--accent); }
+
+.shelf__hint {
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--ash);
+}
+
+.shelf__opt[aria-current="page"] .shelf__hint { color: var(--text-mid); }
+
+@media (max-width: 560px) {
+  .shelf__opt {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.6rem;
+    padding: 0.8rem;
+  }
+  .shelf__icon { width: 2.1rem; height: 2.1rem; border-radius: 10px; }
+  .shelf__icon svg { width: 17px; height: 17px; }
+}
+
+@media (max-width: 380px) {
+  .shelf__hint { display: none; }
+}
+
+/* Links set inside running copy (FAQ answers, plan lists). Without this they
+   inherit the body colour and read as plain text. */
+.faq__a a,
+.plan__list a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+.faq__a a:hover,
+.faq__a a:focus-visible,
+.plan__list a:hover,
+.plan__list a:focus-visible {
+  text-decoration-thickness: 2px;
+}
+
+/* Cross-shelf card ----------------------------------------------------------
+
+   The last slot in the animation grid. It sends a visitor who wanted a whole
+   site across to the templates, and it keeps the grid from ending on a gap.
+   The art is a nod to the first template: prints on a bold field, tilted. */
+
+.xshelf {
+  border-style: dashed;
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+/* The whole card is a target, but only the real button is in the tab order —
+   one stop per destination for keyboard and screen-reader users. */
+.xshelf__hit {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  border-radius: inherit;
+}
+
+.xshelf__preview {
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 60%),
+    var(--surface);
+  border: 1px solid var(--line-soft);
+}
+
+.xshelf__window {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 64%;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #1500e1;
+  box-shadow: 0 24px 50px -18px rgba(0, 0, 0, 0.7);
+  transform: rotate(-3deg);
+  transition: transform 0.5s var(--ease-out-expo);
+}
+
+.xshelf__bar {
+  display: flex;
+  gap: 4px;
+  padding: 6px 8px;
+  background: #11131a;
+}
+
+.xshelf__bar i {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.xshelf__page {
+  position: relative;
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12%;
+  padding: 10% 12%;
+}
+
+.xshelf__page i {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 2px;
+  transition: transform 0.6s var(--ease-out-expo);
+}
+
+/* Each print at its own fixed tilt. */
+.xshelf__page i:nth-child(1) { transform: rotate(-7deg); }
+.xshelf__page i:nth-child(2) { transform: rotate(4deg) translateY(10%); }
+.xshelf__page i:nth-child(3) { transform: rotate(-3deg); }
+.xshelf__page i:nth-child(4) { transform: rotate(6deg); }
+.xshelf__page i:nth-child(5) { transform: rotate(-5deg) translateY(-8%); }
+.xshelf__page i:nth-child(6) { transform: rotate(3deg); }
+
+.xshelf__badge {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  padding: 0.38rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+  border-radius: var(--r-pill);
+  background: var(--void);
+  color: var(--accent);
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.xshelf .card__actions { z-index: 7; }
+
+@media (hover: hover) {
+  .xshelf:hover {
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+    transform: translateY(-4px);
+  }
+  .xshelf:hover .xshelf__window { transform: rotate(0deg) scale(1.03); }
+  .xshelf:hover .xshelf__page i { transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xshelf__window,
+  .xshelf__page i { transition: none; }
 }
