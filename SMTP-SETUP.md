@@ -72,18 +72,17 @@ Save.
 ## Step 5 — Now the templates unlock
 
 The *"Set up custom SMTP to edit templates"* banner disappears and the Subject
-and Body fields become editable.
+and Body fields become editable. Paste each file from `email-templates/` into
+its template (delete what is there first), and set the subject:
 
-Paste `email-template.html` into **both**:
+| Supabase template | File | Subject |
+|---|---|---|
+| **Confirm signup** | `email-templates/confirm-signup.html` | Confirm your NULLRIFT account |
+| **Magic Link** | `email-templates/magic-link.html` | Your NULLRIFT sign-in code |
+| **Reset Password** | `email-templates/reset-password.html` | Reset your NULLRIFT password |
 
-1. **Magic Link** → Message body
-2. **Confirm signup** → Message body
-
-Both, because Supabase picks the template by whether the address already has an
-account — existing accounts get Magic Link, first-time visitors get Confirm
-signup. Editing one leaves the other broken.
-
-Set the Subject on both to something like `Your NULLRIFT sign-in code`.
+All three contain `{{ .Token }}` (the code the site asks for) and a link as a
+fallback. Without this step people get a link only and nothing to type.
 
 ## Step 6 — Test
 
@@ -105,15 +104,7 @@ while you work through this — if a link arrives, clicking it still signs you i
 - Check spam. A newly verified domain has no sending reputation yet, so the
   first few can land there.
 
-## Optional, for the link fallback
+## Redirect URLs (required for links, Google and password reset)
 
-If you want the emailed link to keep working too, add these under Supabase →
-Authentication → **URL Configuration** → Redirect URLs:
-
-```
-http://localhost:8155/auth.html
-https://nullrift2-0.vercel.app/auth.html
-```
-
-Without them Supabase sends the link to its default Site URL instead of the
-sign-in page. The code path needs none of this.
+See "Supabase → URL Configuration" in `SETUP.md`. Without it, emailed links and
+"Continue with Google" land on the wrong page.

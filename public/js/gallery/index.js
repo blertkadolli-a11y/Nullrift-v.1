@@ -413,6 +413,7 @@ function wireAccount() {
         '<button type="button" class="acct__item" data-avatar-pick>Upload a picture…</button>' +
         '<input type="file" accept="image/*" hidden data-avatar-file>' +
         '<p class="acct__note" data-avatar-note hidden></p>' +
+        '<a class="acct__item" data-password-link href="auth.html?mode=password&amp;next=' + encodeURIComponent(PAGE) + '">Change password</a>' +
         '<button type="button" class="acct__item" data-signout>Sign out</button>' +
       '</div>';
 

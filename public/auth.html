@@ -28,10 +28,10 @@
 </script>
 
 <link rel="stylesheet" href="css/base.css?v=13">
-<link rel="stylesheet" href="css/auth.css?v=6">
+<link rel="stylesheet" href="css/auth.css?v=7">
 
 <script src="js/chrome.js?v=6" defer></script>
-<script type="module" src="js/gallery/auth-page.js?v=7"></script>
+<script type="module" src="js/gallery/auth-page.js?v=8"></script>
 </head>
 
 <body class="authpage">
@@ -77,47 +77,159 @@
 <main id="auth-main" class="auth">
 
   <p class="auth__eyebrow">Account</p>
-  <h1 class="auth__title" data-auth-heading>Sign in to NULLRIFT</h1>
+  <h1 class="auth__title" data-auth-heading tabindex="-1">Sign in to NULLRIFT</h1>
   <p class="auth__deck" data-auth-deck>One account unlocks every prompt you have access to.</p>
 
   <div class="auth__card">
 
-    <!-- STEP 1 — email -->
-    <form class="auth__step" data-step="email" novalidate>
-      <label class="auth__label" for="au-email">Email</label>
-      <input class="auth__input" id="au-email" name="email" type="email"
-             inputmode="email" autocomplete="email" placeholder="you@email.com" required>
-      <button class="auth__go" type="submit">Email me a sign-in code</button>
-      <p class="auth__fine">
-        No password. We email you a six-digit code that signs you in.
-      </p>
-    </form>
+    <!-- Social sign-in. Buttons are drawn only for providers switched on in
+         Supabase, so nothing here can be a dead end. -->
+    <div class="auth__social" data-auth-social hidden>
+      <div class="auth__providers" data-auth-providers></div>
+      <p class="auth__or"><span>or</span></p>
+    </div>
 
-    <!-- STEP 2 — code -->
-    <form class="auth__step" data-step="code" hidden novalidate>
-      <p class="auth__sent">
-        Sent to <strong data-auth-sentto></strong>.
-      </p>
-      <label class="auth__label" for="au-code">Six-digit code</label>
-      <input class="auth__input auth__input--code" id="au-code" name="token" type="text"
-             inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*"
-             maxlength="10" placeholder="000000">
+    <!-- SIGN IN — email + password -->
+    <form class="auth__step" data-step="signin" method="post" action="#" novalidate>
+      <label class="auth__label" for="si-email">Email</label>
+      <input class="auth__input" id="si-email" name="email" type="email"
+             inputmode="email" autocomplete="username email" autocapitalize="off"
+             spellcheck="false" placeholder="you@email.com" required>
+
+      <div class="auth__row">
+        <label class="auth__label" for="si-pass">Password</label>
+        <button type="button" class="auth__link auth__link--small" data-go="forgot">Forgot password?</button>
+      </div>
+      <div class="auth__pw">
+        <input class="auth__input" id="si-pass" name="password" type="password"
+               autocomplete="current-password" placeholder="Your password" required>
+        <button type="button" class="auth__peek" data-peek aria-label="Show password" aria-pressed="false">Show</button>
+      </div>
+
+      <label class="auth__check">
+        <input type="checkbox" name="remember" checked>
+        <span>Keep me signed in</span>
+      </label>
+
       <button class="auth__go" type="submit">Sign in</button>
 
       <p class="auth__fine">
-        <button type="button" class="auth__link" data-auth-resend>Send another</button>
-        <span aria-hidden="true">·</span>
-        <button type="button" class="auth__link" data-auth-back>Use a different address</button>
+        <span>New here?</span>
+        <button type="button" class="auth__link" data-go="signup">Create an account</button>
+      </p>
+      <p class="auth__fine auth__fine--tight">
+        <button type="button" class="auth__link auth__link--quiet" data-go="otp">Email me a sign-in code instead</button>
       </p>
     </form>
 
-    <!-- STEP 3 — first-time profile -->
-    <form class="auth__step" data-step="profile" hidden novalidate>
+    <!-- CREATE ACCOUNT -->
+    <form class="auth__step" data-step="signup" method="post" action="#" hidden novalidate>
+      <label class="auth__label" for="su-user">Username</label>
+      <input class="auth__input" id="su-user" name="username" type="text"
+             autocomplete="nickname" autocapitalize="off" spellcheck="false"
+             minlength="2" maxlength="24" placeholder="How you appear on the site" required>
+
+      <label class="auth__label" for="su-email">Email</label>
+      <input class="auth__input" id="su-email" name="email" type="email"
+             inputmode="email" autocomplete="username email" autocapitalize="off"
+             spellcheck="false" placeholder="you@email.com" required>
+
+      <label class="auth__label" for="su-pass">Password</label>
+      <div class="auth__pw">
+        <input class="auth__input" id="su-pass" name="password" type="password"
+               autocomplete="new-password" minlength="8" placeholder="At least 8 characters"
+               aria-describedby="su-pass-hint" required>
+        <button type="button" class="auth__peek" data-peek aria-label="Show password" aria-pressed="false">Show</button>
+      </div>
+      <p class="auth__hint" id="su-pass-hint" data-pw-meter>At least 8 characters. A short sentence is easy to remember and hard to guess.</p>
+
+      <label class="auth__check">
+        <input type="checkbox" name="remember" checked>
+        <span>Keep me signed in</span>
+      </label>
+
+      <button class="auth__go" type="submit">Create account</button>
+
+      <p class="auth__legal">
+        By creating an account you agree to the <a href="terms.html">Terms</a>
+        and <a href="privacy.html">Privacy Policy</a>.
+      </p>
+      <p class="auth__fine">
+        <span>Already have an account?</span>
+        <button type="button" class="auth__link" data-go="signin">Sign in</button>
+      </p>
+    </form>
+
+    <!-- PASSWORDLESS — email a code -->
+    <form class="auth__step" data-step="otp" method="post" action="#" hidden novalidate>
+      <label class="auth__label" for="ot-email">Email</label>
+      <input class="auth__input" id="ot-email" name="email" type="email"
+             inputmode="email" autocomplete="email" autocapitalize="off"
+             spellcheck="false" placeholder="you@email.com" required>
+      <button class="auth__go" type="submit">Email me a sign-in code</button>
+      <p class="auth__fine">
+        <button type="button" class="auth__link" data-go="signin">Sign in with a password</button>
+      </p>
+    </form>
+
+    <!-- FORGOT PASSWORD -->
+    <form class="auth__step" data-step="forgot" method="post" action="#" hidden novalidate>
+      <label class="auth__label" for="fp-email">Email</label>
+      <input class="auth__input" id="fp-email" name="email" type="email"
+             inputmode="email" autocomplete="username email" autocapitalize="off"
+             spellcheck="false" placeholder="you@email.com" required>
+      <button class="auth__go" type="submit">Send reset email</button>
+      <p class="auth__fine">
+        <button type="button" class="auth__link" data-go="signin">Back to sign in</button>
+      </p>
+    </form>
+
+    <!-- CODE — sign-in code, sign-up confirmation or password reset -->
+    <form class="auth__step" data-step="code" method="post" action="#" hidden novalidate>
+      <p class="auth__sent">
+        Sent to <strong data-auth-sentto></strong>.
+      </p>
+      <label class="auth__label" for="au-code">Code from the email</label>
+      <input class="auth__input auth__input--code" id="au-code" name="token" type="text"
+             inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*"
+             maxlength="10" placeholder="000000">
+      <button class="auth__go" type="submit">Continue</button>
+
+      <p class="auth__fine">
+        <button type="button" class="auth__link" data-auth-resend>Send another</button>
+        <span aria-hidden="true">&middot;</span>
+        <button type="button" class="auth__link" data-auth-back>Use a different address</button>
+      </p>
+      <p class="auth__hint auth__hint--center">No email? Check spam, or wait a minute and send another.</p>
+    </form>
+
+    <!-- NEW PASSWORD — after a reset, or "change password" from the menu -->
+    <form class="auth__step" data-step="newpass" method="post" action="#" hidden novalidate>
+      <!-- Lets password managers file the new password under the right account. -->
+      <input type="email" name="email" autocomplete="username" data-newpass-user hidden>
+      <label class="auth__label" for="np-pass">New password</label>
+      <div class="auth__pw">
+        <input class="auth__input" id="np-pass" name="password" type="password"
+               autocomplete="new-password" minlength="8" placeholder="At least 8 characters"
+               aria-describedby="np-pass-hint" required>
+        <button type="button" class="auth__peek" data-peek aria-label="Show password" aria-pressed="false">Show</button>
+      </div>
+      <p class="auth__hint" id="np-pass-hint" data-pw-meter>At least 8 characters.</p>
+
+      <label class="auth__label" for="np-pass2">Type it again</label>
+      <input class="auth__input" id="np-pass2" name="confirm" type="password"
+             autocomplete="new-password" placeholder="Same password" required>
+
+      <button class="auth__go" type="submit">Save new password</button>
+    </form>
+
+    <!-- FIRST-TIME PROFILE -->
+    <form class="auth__step" data-step="profile" method="post" action="#" hidden novalidate>
       <p class="auth__sent">You're in. Two things and you're done.</p>
 
       <label class="auth__label" for="au-user">Username</label>
       <input class="auth__input" id="au-user" name="username" type="text"
-             autocomplete="nickname" maxlength="24" placeholder="How you appear on the site" required>
+             autocomplete="nickname" minlength="2" maxlength="24" placeholder="How you appear on the site" required>
 
       <p class="auth__label">Profile picture</p>
       <div class="auth__avatars" role="radiogroup" aria-label="Profile picture" data-auth-avatars></div>
@@ -128,7 +240,7 @@
       </p>
     </form>
 
-    <p class="auth__msg" data-auth-msg role="alert" hidden></p>
+    <p class="auth__msg" data-auth-msg role="alert" aria-live="assertive" hidden></p>
   </div>
 
   <p class="auth__back"><a href="gallery.html">&larr; Back to the gallery</a></p>

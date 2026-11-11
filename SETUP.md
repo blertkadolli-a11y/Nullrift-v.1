@@ -1,118 +1,157 @@
-# Going live — accounts and the prompt gate
+# Going live — accounts, sign-in and the prompt gate
 
-The prompt bodies are no longer shipped to the browser. They live in
-`api/_data/prompt-bodies.mjs`, outside `public/`, and are released one at a time
-by `api/prompt.mjs` only to a request carrying a valid session.
+The prompt bodies are never shipped to the browser. They live in
+`api/_data/prompt-bodies.mjs`, outside `public/`, and `api/prompt.mjs` releases
+them one at a time, only to a request that has a valid session.
 
-Nothing below is optional: until Supabase is configured, `/api/prompt` returns
-**503** and every prompt stays locked. That is deliberate — a misconfigured
-server fails closed rather than handing out the product.
+Live site: **Vercel project `nullrift-v-1`** (repo `Nullrift-v.1`, branch
+`main`), served at `https://nullrift-v-1.vercel.app`. Supabase project:
+**`nullrift2.0`** (`ehkhrlecjhyghzmeoakf`, EU West / Ireland).
 
-## Status
+---
 
-Project `ehkhrlecjhyghzmeoakf` is **connected and verified**:
+## Already done (in code and in the live database)
 
-- `public/js/gallery/auth.js` — filled in
-- `.env` — filled in (gitignored)
-- `/api/prompt` returns 401 to anonymous callers and rejects forged tokens
-  against the real project
+**Sign-in page (`/auth.html`)**
+- Email + password sign-in, with "Keep me signed in". Off = the session ends
+  when the tab closes.
+- Create account: username + email + password, confirmed with an emailed
+  code (or the link in the same email).
+- **Forgot password**: the email has a code and a link. Either one opens
+  "Choose a new password".
+- "Change password" in the account menu. People who joined with Google can
+  use it to add a password.
+- Passwordless "email me a sign-in code" is still there as an option.
+- "Continue with Google / Apple / GitHub / Microsoft / Discord" buttons appear
+  **automatically** for every provider you switch on in Supabase. None are
+  on yet, so none show.
+- Password managers: the fields use the standard `username`,
+  `current-password` and `new-password` autocomplete names, so Chrome, Safari,
+  1Password and others offer to save and fill passwords. Passwords
+  themselves are only ever stored hashed by Supabase.
+- Sessions refresh themselves. Going offline for a moment no longer signs
+  anyone out.
 
-Still outstanding: the Vercel environment variables (below) and, only when the
-paywall is switched on, the `entitlements` table.
+**Database (applied to the live project)**
+- `profiles` was missing its INSERT policy, so saving a username or picture
+  failed. Fixed. The one existing account had no profile row; backfilled.
+- The sign-up trigger now also fills the username and picture from Google /
+  GitHub / Apple.
+- `avatars` storage bucket created (public, 2 MB, images only). Each account
+  can only write inside its own folder.
+- Fixed both security warnings (the trigger function was callable over the
+  API) and all three performance warnings on the row-level-security policies.
+- `supabase-setup.sql` is the full schema, matching what is live.
 
-## Vercel environment variables — REQUIRED before deploying
+**Site**
+- `privacy.html`, `terms.html`, `404.html`, `robots.txt`, link-preview tags.
 
-`.env` is local only. On **project `nullrift2-0`** (the one serving
-nullrift2-0.vercel.app — not `nullrift` or `nullrift-y9zj`):
+---
 
-Settings → Environment Variables →
+## You need to do these before launch, in this order
+
+### 1. Vercel environment variables — the live site is broken without them
+
+Right now `https://nullrift-v-1.vercel.app/api/prompt` answers **503
+"auth_unconfigured"**, so *every prompt is locked for everyone*. On Vercel →
+project **`nullrift-v-1`** → Settings → Environment Variables, add these for
+Production and Preview:
 
     SUPABASE_URL         https://ehkhrlecjhyghzmeoakf.supabase.co
-    SUPABASE_ANON_KEY    sb_publishable_...
+    SUPABASE_ANON_KEY    sb_publishable_6Gph6ewu8_ccR8S1Uus7rQ_pH_CqQoT
 
-Without these, the deployed `/api/prompt` returns **503** and every prompt stays
-locked. It fails closed, so nothing leaks — but nothing works either.
+Both are public values: the same ones are already in `public/js/gallery/auth.js`.
+Then redeploy, because env var changes only apply to new deployments.
 
-Also confirm Settings → Build & Deployment → **Output Directory** is empty or
-`public`. The static files moved into `public/` and `api/` must stay outside it.
+### 2. Supabase → Authentication → URL Configuration
 
-## Sign-in is passwordless — one email template edit REQUIRED
+- **Site URL**: your real domain, e.g. `https://nullrift.design` (or
+  `https://nullrift-v-1.vercel.app` until the domain is connected).
+- **Redirect URLs**: add every address the sign-in page can be on:
 
-Sign-in happens on `/auth.html`: you type an email, Supabase sends a six-digit
-code, you type it in. No passwords, and no "confirm your address then come back
-and sign in" round trip — receiving the code *is* the proof the address works.
+      https://nullrift.design/auth.html**
+      https://nullrift-v-1.vercel.app/auth.html**
+      http://localhost:8080/auth.html**
 
-A code rather than a magic link on purpose: a link has to return to an
-allow-listed redirect URL, which means separate configuration for localhost and
-for the deployed site, and a link opened in the wrong browser is dead. A code is
-typed into the tab that is already open.
+  The `**` matters: it allows the `?next=…&mode=reset` part of the address.
+  Without these, Google sign-in, email links and password-reset links all land
+  on the wrong page.
 
-**Supabase's default template emails a link, not a code.** Until you change it,
-people will receive a link and have nothing to type. Fix it once:
+### 3. Supabase → Authentication → Sign In / Providers → Email
 
-1. Supabase → **Authentication** → **Emails** (or Email Templates).
-2. Open the **Magic Link** template.
-3. Make sure the body contains `{{ .Token }}` — that is the six-digit code.
-   Keeping `{{ .ConfirmationURL }}` as well is fine; then either works.
+- **Confirm email**: ON (already on).
+- **Minimum password length**: 8 (the site asks for 8; Supabase defaults to 6).
+- **Leaked password protection**: ON if your plan has it. It blocks
+  passwords that have appeared in data breaches. This is the last warning in
+  Supabase's security advisor.
+- **Email OTP length**: 6. **Email OTP expiry**: 3600 seconds.
 
-Something like:
+### 4. Sending email (SMTP) and the three templates
 
-```html
-<h2>Your NULLRIFT sign-in code</h2>
-<p>Enter this code to sign in:</p>
-<p style="font-size:28px;letter-spacing:6px;"><strong>{{ .Token }}</strong></p>
-<p>It expires in an hour. If you didn't ask for it, ignore this email.</p>
-```
+Follow `SMTP-SETUP.md`. Without your own SMTP, Supabase sends only a few emails
+per hour. That is not enough for a launch, and it won't let you edit the
+templates, so people would get a link with no code. Paste the three files in
+`email-templates/` (confirm sign-up, sign-in code, reset password).
 
-Supabase's built-in mailer is rate-limited on the free tier — a handful of
-emails per hour. For real traffic, attach your own SMTP under
-Authentication → Emails.
+### 5. Google sign-in
 
-## Run the setup SQL — REQUIRED
+You have to do this step yourself, because it creates credentials in your
+Google account.
 
-Everything below (usernames, profile pictures, and later the paywall) needs
-tables that do not exist yet. They are all in one file: **`supabase-setup.sql`**
-in the project folder.
+1. **console.cloud.google.com** → create a project (e.g. "NULLRIFT").
+2. **APIs & Services → OAuth consent screen**: External. App name
+   `NULLRIFT`, your support email, logo optional. App domain: your site URL,
+   with privacy policy `…/privacy.html` and terms `…/terms.html`. Scopes:
+   only `email`, `profile`, `openid`. **Publish the app**, or only test users
+   can sign in.
+3. **APIs & Services → Credentials → Create credentials → OAuth client ID**:
+   - Application type: **Web application**
+   - Authorised JavaScript origins: `https://nullrift.design`,
+     `https://nullrift-v-1.vercel.app`, `http://localhost:8080`
+   - Authorised redirect URI (exactly this one):
 
-1. Open **supabase.com/dashboard** and pick the project (`ehkhrlecjhyghzmeoakf`).
-2. Left sidebar → **SQL Editor** → **New query**.
-3. Open `supabase-setup.sql`, copy all of it, paste, press **Run** (Cmd+Enter).
-4. You should see **"Success. No rows returned."** That is what success looks
-   like for this kind of statement — it is not an error message.
+         https://ehkhrlecjhyghzmeoakf.supabase.co/auth/v1/callback
 
-Safe to run twice; every statement is if-not-exists / drop-if-exists.
+4. Copy the **Client ID** and **Client secret**.
+5. Supabase → Authentication → Sign In / Providers → **Google** → enable, paste
+   both → Save.
 
-What it creates:
+Reload `/auth.html`. "Continue with Google" appears by itself.
 
-- `profiles` — username + chosen picture, with row-level security so each
-  account can only read and change its own row
-- a trigger that writes the profile row at sign-up (needed because email
-  confirmation is on, so the browser has no session at that moment)
-- `entitlements` — unused until the paywall, created now to save a second trip
-- storage policies for avatar uploads
+### 6. Other providers (optional)
 
-### Then, only if you want custom uploads
+The page draws a button for each of these once it is enabled in Supabase, and
+each uses the same callback URL as above:
 
-Left sidebar → **Storage** → **New bucket** → name it exactly `avatars` →
-turn **Public bucket** ON → Create.
+- **GitHub**: github.com → Settings → Developer settings → OAuth Apps → New.
+  Free, and five minutes. Recommended, since your buyers are developers.
+- **Apple**: needs a paid Apple Developer account ($99/year).
+- **Microsoft** (`azure`) and **Discord** also work.
 
-Skip this if the six built-in pictures are enough. Everything else works
-without it; "Upload a picture…" will simply report that the bucket is missing.
+### 7. Payments — nothing can be bought yet
 
-## Turning the paywall on
+- `CHECKOUT`, `BOOKING` and `OFFER.url` in `public/js/gallery/index.js` are
+  all empty, so every buy button shows as disabled.
+- Nothing writes a row into `entitlements` when someone pays. Until something
+  does, `REQUIRE_PAID` in `api/prompt.mjs` has to stay `false`, which means
+  **any signed-in account can read every prompt for free**.
+- For a paid launch you need a payment-provider webhook (Stripe or Lemon
+  Squeezy) that inserts the buyer's `entitlements` row, then set
+  `REQUIRE_PAID = true`.
 
-Today anyone signed in can read the prompts, because nothing can take money
-yet. The `entitlements` table already exists from the setup SQL. When checkout
-is live:
+### 8. Domain
 
-1. Give each buyer a row: `insert into entitlements (user_id, tier) values
-   ('<their-uuid>', 'pro');`
-2. In `api/prompt.mjs`, set `REQUIRE_PAID = true`.
+`nullrift.design` is not connected to the `nullrift-v-1` Vercel project. Add it
+under Vercel → Domains. Then update the Site URL (step 2) and the Google
+origins (step 5).
 
-That is the whole change. Signed-in users without a row then get **402**, which
-the panel turns into a "See pricing" button instead of a "Sign in" button.
+### 9. Legal
 
-Both branches are already tested — see the verification notes in the commit.
+`privacy.html` and `terms.html` are written from what the site actually does,
+but they are a starting point, not legal advice. Have them checked, and add
+your legal name, country and governing law.
+
+---
 
 ## Running it locally
 
@@ -120,15 +159,14 @@ Both branches are already tested — see the verification notes in the commit.
 node dev-server.mjs
 ```
 
-Serves `public/` **and** runs `api/*.js`, with no packages to install. It reads
-`.env` the same way Vercel reads its environment variables, so what works here
-works deployed. `Open NULLRIFT.command` now uses it too.
+Serves `public/` **and** runs `api/*.mjs`, with nothing to install. It reads
+`.env` the same way Vercel reads its environment variables.
 
 ## What is still public, on purpose
 
-`public/js/gallery/prompts.js` holds each exhibit's title, tech, use-case and
-filename — all of it already visible on the cards. There are no prompt bodies
-in it. Verify any time with:
+`public/js/gallery/prompts.js` holds each card's title, tech, use-case and
+filename, all of which are already visible on the cards. There are no prompt
+bodies in it. Check any time with:
 
 ```bash
 curl -s http://localhost:8080/js/gallery/prompts.js | grep -c "Build a production-ready"

@@ -1,29 +1,12 @@
 <!--
-  NULLRIFT — Supabase "Magic Link" email template
+  NULLRIFT — Supabase "Magic Link" template (passwordless sign-in code)
 
-  Where this goes — TWO templates, same HTML in both:
+  Supabase → Authentication → Emails → Magic Link → Message body.
+  Subject: Your NULLRIFT sign-in code
 
-    Supabase dashboard → Authentication → Emails →
-      1. "Magic Link"      → Message body
-      2. "Confirm signup"  → Message body
-
-  Delete whatever is in each box, paste this, Save.
-
-  Why both: /auth/v1/otp picks the template by whether the address already has
-  an account. An existing account gets "Magic Link"; a first-time visitor gets
-  "Confirm signup". Editing only one means it works for you and not for new
-  people, or the reverse.
-
-  The important line is {{ .Token }} — that is the six-digit code the sign-in
-  page asks for. Supabase's default template only contains the link, which is
-  why a code never arrived.
-
-  The link is kept underneath as a fallback. For it to work, Supabase →
-  Authentication → URL Configuration → Redirect URLs must contain the address
-  of the sign-in page, e.g.
-      http://localhost:8155/auth.html
-      https://nullrift2-0.vercel.app/auth.html
-  The code needs none of that, which is why it is the primary path.
+  {{ .Token }} is the code the sign-in page asks for. The link underneath is a
+  fallback; it only works if the site's auth.html is listed under
+  Authentication → URL Configuration → Redirect URLs.
 -->
 
 <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;color:#0c0e14;">

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fafafb" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b0d12" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<title>Page not found — NULLRIFT</title>
+<meta name="robots" content="noindex">
+<meta name="description" content="This page does not exist.">
+
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="/assets/nullrift-logo.png" type="image/png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;700&display=swap">
+
+<!-- Theme resolved before first paint; deferring it would flash. -->
+<script>
+(function () {
+  try {
+    var t = localStorage.getItem('nr-theme');
+    if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+  } catch (e) {}
+})();
+</script>
+
+<link rel="stylesheet" href="/css/base.css?v=13">
+<link rel="stylesheet" href="/css/auth.css?v=7">
+<link rel="stylesheet" href="/css/legal.css?v=2">
+
+<script src="/js/chrome.js?v=6" defer></script>
+</head>
+
+<body class="authpage legalpage">
+
+<div class="nr-grain" aria-hidden="true"></div>
+
+<a class="nr-skip" href="#auth-main">Skip to content</a>
+
+<header class="nr-nav">
+  <a class="nr-nav__mark" href="/" aria-label="NULLRIFT home">
+    <svg class="nr-nav__glyph" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <circle cx="32" cy="32" r="19"></circle>
+      <path d="M14.68 49.32 49.32 14.68"></path>
+    </svg>
+    <span class="nr-nav__label">NULLRIFT</span>
+  </a>
+
+  <nav class="nr-nav__links" aria-label="Primary">
+    <a href="/gallery.html#catalogue" class="nr-link">Animations</a>
+    <a href="/templates.html#catalogue" class="nr-link">Templates</a>
+    <a href="/gallery.html#pricing" class="nr-link nr-link--pricing">Pricing</a>
+  </nav>
+
+  <div class="nr-nav__actions">
+    <div class="nr-theme" role="group" aria-label="Colour theme">
+      <button type="button" class="nr-theme__btn" data-theme-set="light" aria-pressed="false" title="Light">
+        <span class="sr-only">Light theme</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 2.6v2.2M12 19.2v2.2M4.2 12H2M22 12h-2.2M6.5 6.5 4.9 4.9M19.1 19.1l-1.6-1.6M17.5 6.5l1.6-1.6M4.9 19.1l1.6-1.6"></path></svg>
+      </button>
+      <button type="button" class="nr-theme__btn" data-theme-set="dark" aria-pressed="false" title="Dark">
+        <span class="sr-only">Dark theme</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1Z"></path></svg>
+      </button>
+      <button type="button" class="nr-theme__btn" data-theme-set="auto" aria-pressed="false" title="Match system">
+        <span class="sr-only">Match system theme</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 0 1 0 18Z" fill="currentColor" stroke="none"></path></svg>
+      </button>
+    </div>
+    <a class="nr-cta" href="/gallery.html#pricing">Get all from $7</a>
+  </div>
+</header>
+
+<main id="auth-main" class="legal">
+  <p class="legal__eyebrow">Error 404</p>
+  <h1>Nothing here.</h1>
+  <p>This page does not exist, or it moved. Everything in the library is one click away.</p>
+  <div class="legal__actions">
+    <a class="nr-cta" href="/gallery.html">Browse animations</a>
+    <a class="nr-cta nr-cta--ghost" href="/templates.html">Browse templates</a>
+  </div>
+</main>
+
+<div class="nr-corner nr-corner--bl">nullrift.design</div>
+<div class="nr-corner nr-corner--br" data-nr-status>SYSTEM NOMINAL</div>
+
+</body>
+</html>
