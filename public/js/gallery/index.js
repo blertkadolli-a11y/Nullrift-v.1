@@ -49,9 +49,9 @@ promptsReady.then(function (m) { prompts = m; }, function () { prompts = null; }
 const CONTACT_MAIL = 'nullriftdesign@gmail.com';
 
 const CHECKOUT = {
-  monthly: '',
-  pro: '',
-  team: ''
+  monthly: 'https://buy.polar.sh/polar_cl_NP7YuzWFYgRXVJGnXHEQk0mOFVp1bXHIlrB413F3fYD',
+  pro: 'https://buy.polar.sh/polar_cl_4dlhAAAVNK0XM9avaOordzs5KmDi5TNgdQ6Tz2XQ3li',
+  team: 'https://buy.polar.sh/polar_cl_PhUNUH2lgt8jcBPUpojEfDXSs7mGWNNW9HJei2KGQtY'
 };
 
 /* Studio is booked, not bought — the price is agreed on the call, so the card
@@ -88,7 +88,7 @@ const OFFER = {
   seats: 100,
   claimed: null,
   price: 200,
-  url: '',
+  url: 'https://buy.polar.sh/polar_cl_k7M8hrK1Yb3063hzxEwjoUN8LHCiWAwgrDUJl1ECcGV',
   /* Shown on the button when `url` is blank. */
   deadLabel: 'Opening soon'
 };
