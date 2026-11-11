@@ -44,7 +44,7 @@
 
 <!-- The same orchestrator as the gallery: lazy mounting, fullscreen, the
      gated prompt panel and accounts all behave identically on both shelves. -->
-<script type="module" src="js/gallery/index.js?v=54"></script>
+<script type="module" src="js/gallery/index.js?v=55"></script>
 </head>
 
 <body class="g-body">
@@ -130,7 +130,7 @@
   <section class="hero" aria-labelledby="mast-title">
     <p class="hero__eyebrow" data-reveal-fade>
       <span class="hero__pip" aria-hidden="true"></span>
-      Templates &middot; <span data-count-total>02</span>&nbsp;live, more in production
+      Templates &middot; <span data-count-total>04</span>&nbsp;live, more in production
     </p>
 
     <h1 class="hero__title" id="mast-title">
@@ -150,7 +150,7 @@
     </div>
 
     <ul class="hero__stats" data-reveal-fade>
-      <li><strong data-count-total>02</strong><span>templates</span></li>
+      <li><strong data-count-total>04</strong><span>templates</span></li>
       <li><strong>360</strong><span>px and up</span></li>
       <li><strong>60</strong><span>fps target</span></li>
       <li><strong>0</strong><span>console warnings</span></li>
@@ -175,7 +175,7 @@
           <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"></rect><path d="M3 8.5h18"></path><path d="M7 12.5h6M7 15.5h10" opacity=".55"></path></svg>
         </span>
         <span class="shelf__text">
-          <span class="shelf__name">Templates <span class="shelf__count" data-count-kind="template">02</span></span>
+          <span class="shelf__name">Templates <span class="shelf__count" data-count-kind="template">04</span></span>
           <span class="shelf__hint">Complete pages you start a whole site from</span>
         </span>
       </a>
@@ -283,12 +283,100 @@
       </div>
     </article>
 
+    <!-- TPL.03 — the prompt behind it is catalogue entry 11 -->
+    <article class="exhibit card tpl" id="tpl-03" aria-labelledby="tpl-03-title"
+             data-exhibit="11" data-code="TPL.03" data-tech="Full site"
+             data-module="./11-wobl.js">
+      <div class="exhibit__frame card__preview">
+        <div class="tpl__chrome" aria-hidden="true">
+          <span class="tpl__dots"><i></i><i></i><i></i></span>
+          <span class="tpl__url mono"><b>wobl</b> / soft-on-the-outside</span>
+          <span class="card__status mono" data-mount-status>IDLE</span>
+        </div>
+        <div class="exhibit__stage" data-stage aria-hidden="true"></div>
+        <span class="card__cue mono" aria-hidden="true">OPEN FULL PAGE</span>
+      </div>
+      <div class="card__info">
+        <div class="tpl__head">
+          <h2 class="card__title" id="tpl-03-title">
+            <a class="card__link" href="#tpl-03" data-card-open>WOBL</a>
+          </h2>
+          <span class="tpl__kind mono">Brand</span>
+        </div>
+        <p class="card__desc">
+          A brand site for a fictional gummy line, starring one real-time jelly bear that follows your cursor, wobbles when you poke it, sulks, and falls asleep if you leave it alone.
+        </p>
+        <ul class="tpl__spec" aria-label="What is included">
+          <li><strong>4</strong> product lines</li>
+          <li>Real-time 3D mascot</li>
+          <li>Physics jar</li>
+          <li>Shop with a bag</li>
+          <li>React Three Fiber &middot; GSAP</li>
+        </ul>
+        <div class="card__actions">
+          <button type="button" class="frame__btn frame__btn--prompt" data-prompt>
+            <span>Get the prompt</span>
+          </button>
+          <button type="button" class="frame__btn" data-card-open>
+            <span>Preview full page</span>
+          </button>
+          <a class="frame__btn frame__btn--quiet" href="wobl/index.html" target="_blank" rel="noopener">
+            <span>New tab</span><span class="frame__btn__arrow" aria-hidden="true">&#8599;</span>
+          </a>
+        </div>
+      </div>
+    </article>
+
+    <!-- TPL.04 — the prompt behind it is catalogue entry 12 -->
+    <article class="exhibit card tpl" id="tpl-04" aria-labelledby="tpl-04-title"
+             data-exhibit="12" data-code="TPL.04" data-tech="Full site"
+             data-module="./12-autocars.js">
+      <div class="exhibit__frame card__preview">
+        <div class="tpl__chrome" aria-hidden="true">
+          <span class="tpl__dots"><i></i><i></i><i></i></span>
+          <span class="tpl__url mono"><b>autocars</b> / bodyline-coachworks</span>
+          <span class="card__status mono" data-mount-status>IDLE</span>
+        </div>
+        <div class="exhibit__stage" data-stage aria-hidden="true"></div>
+        <span class="card__cue mono" aria-hidden="true">OPEN FULL PAGE</span>
+      </div>
+      <div class="card__info">
+        <div class="tpl__head">
+          <h2 class="card__title" id="tpl-04-title">
+            <a class="card__link" href="#tpl-04" data-card-open>AUTOCARS</a>
+          </h2>
+          <span class="tpl__kind mono">Studio</span>
+        </div>
+        <p class="card__desc">
+          A site for a one-off car builder, lit like a dark photo studio: a single strip light sweeps across the cars, the materials and the words.
+        </p>
+        <ul class="tpl__spec" aria-label="What is included">
+          <li><strong>13</strong> build pages</li>
+          <li>Build index</li>
+          <li><strong>4</strong>-step enquiry form</li>
+          <li>WebGL light shaders</li>
+          <li>Next.js &middot; GSAP</li>
+        </ul>
+        <div class="card__actions">
+          <button type="button" class="frame__btn frame__btn--prompt" data-prompt>
+            <span>Get the prompt</span>
+          </button>
+          <button type="button" class="frame__btn" data-card-open>
+            <span>Preview full page</span>
+          </button>
+          <a class="frame__btn frame__btn--quiet" href="autocars/index.html" target="_blank" rel="noopener">
+            <span>New tab</span><span class="frame__btn__arrow" aria-hidden="true">&#8599;</span>
+          </a>
+        </div>
+      </div>
+    </article>
+
     <!-- Next up. Not an exhibit: nothing runs in it, and it never pretends to. -->
     <article class="card tpl tpl-soon" aria-labelledby="tpl-next-title">
       <div class="card__preview" aria-hidden="true">
         <div class="tpl__chrome">
           <span class="tpl__dots"><i></i><i></i><i></i></span>
-          <span class="tpl__url mono">tpl.03 / in-production</span>
+          <span class="tpl__url mono">tpl.05 / in-production</span>
           <span></span>
         </div>
         <div class="tpl-soon__wire"><i></i><i></i><i></i><i></i><i></i></div>
@@ -297,7 +385,7 @@
       <div class="card__info">
         <div class="tpl__head">
           <h2 class="card__title" id="tpl-next-title">Next template</h2>
-          <span class="tpl__kind mono">TPL.03</span>
+          <span class="tpl__kind mono">TPL.05</span>
         </div>
         <p class="card__desc">
           Another complete page is on the bench. Tell us the site you wish existed &mdash; the most

@@ -100,6 +100,24 @@ export const PROMPTS = {
     tech: 'Full site · React Three Fiber · Blender-from-Python',
     use: 'Product launches where scrolling the page is the story, told in one continuous 3D scene.',
     file: 'NR-10-hadal.md'
+  },
+
+  '11': {
+    id: '11',
+    kind: 'template',
+    title: 'WOBL',
+    tech: 'Full site · React Three Fiber · real-time jelly shader · physics',
+    use: 'Consumer brands that want a mascot people play with, not scroll past.',
+    file: 'NR-11-wobl.md'
+  },
+
+  '12': {
+    id: '12',
+    kind: 'template',
+    title: 'AUTOCARS',
+    tech: 'Full site · Next.js · one WebGL canvas · strip-light shaders',
+    use: 'Premium studios and makers whose work has to be seen in the right light.',
+    file: 'NR-12-autocars.md'
   }
 };
 

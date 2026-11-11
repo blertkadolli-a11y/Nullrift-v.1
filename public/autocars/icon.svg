@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Bodyline Coachworks">
+  <!-- The studio mark is the strip light: one bar of light in a dark bay. -->
+  <defs>
+    <linearGradient id="spill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FBFAF6" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#FBFAF6" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#FBFAF6" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" fill="#0A0A09"/>
+  <rect x="3" y="9" width="26" height="14" fill="url(#spill)"/>
+  <rect x="3" y="15" width="26" height="2" fill="#FBFAF6"/>
+</svg>
