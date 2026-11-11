@@ -1,51 +1,79 @@
 # Launch status — 11 Nov 2026
 
-Branch **`launch`** holds everything below. `main` (what is live) does not have
-the payment work yet.
+Everything is on branch **`launch`** (pushed; Vercel builds a preview of it).
+`main`, which is what nullrift-v-1.vercel.app serves, does not have the
+payment work yet. Merge `launch` into `main` only after step 1 below.
 
-## Done
+## What is done
 
-**Polar (live account, organisation "Nullrift")**
-- Products: NULLRIFT Monthly $7/mo (`04f2017c-a6c4-4f62-a366-a4a6b2482cf9`),
-  NULLRIFT Pro $89.99 (`30efbd51-8aa5-463a-9220-b762d50bea8c`),
-  NULLRIFT Team $149.99 (`889d6362-b168-4c7a-a7df-39be0d344886`),
-  NULLRIFT Founding 100 $200 (`140dd619-7ff6-498e-a7cd-7912191f130a`).
-- One checkout link each ("Site - …"), returning to
-  `https://nullrift-v-1.vercel.app/gallery.html?checkout_id={CHECKOUT_ID}`.
-  Links are in `public/js/gallery/index.js` (CHECKOUT, OFFER.url).
-- Webhook "NULLRIFT site - grant access" → `https://nullrift-v-1.vercel.app/api/payment-webhook`,
-  Raw, API 2026-10, events: order.paid, order.refunded, subscription.* (11).
-- The old "Pro $10" product and its link were left untouched (no orders). Archive it if unused.
+**Templates shelf** — four templates, each with a live preview, fullscreen view
+and a prompt released only through `/api/prompt`:
+TPL.01 Oblique · TPL.02 HADAL · TPL.03 WOBL · TPL.04 AUTOCARS (Bodyline Coachworks).
+WOBL and HADAL are Vite builds under `/wobl/` and `/hadal/`; AUTOCARS is a
+static export of the Next.js project under `/autocars/` (its enquiry form
+cannot send in a static preview and says so). How each was built is written at
+the top of `public/js/gallery/1x-*.js`.
 
-**Supabase (live)**
-- Payment tables and functions applied (entitlements, pending_entitlements,
-  unlocks, prompt_access, grant/expire_entitlement). 17-case test passed and was rolled back.
-- Site URL → `https://nullrift-v-1.vercel.app` (was localhost:8080).
-- Redirect URLs added: live site, Vercel previews, www.nullrift.design, nullrift.design, localhost:8080.
+**Accounts** — email + password, create account with emailed code, forgot /
+reset password, change password, passwordless code, "keep me signed in",
+password-manager friendly. Google / Apple / GitHub buttons appear by
+themselves once a provider is switched on in Supabase.
+
+**Supabase (live project)**
+- Payment tables and functions; 17 + 4 scenario tests passed and were rolled back.
+- Site URL `https://nullrift-v-1.vercel.app`; redirect URLs for the live site,
+  Vercel previews, nullrift.design (+ www) and localhost.
 - Minimum password length 8.
-- Email templates: **Reset password** and **Confirm sign up** now contain the code (`{{ .Token }}`) and link.
+- Email templates **Confirm sign up**, **Magic link or OTP** and **Reset
+  password** all carry the 6-digit code and a link, in the NULLRIFT style.
 
-**Vercel `nullrift-v-1`**: SUPABASE_URL, SUPABASE_ANON_KEY (fixed: were blank), POLAR_PRODUCT_TIERS.
+**Polar (organisation "Nullrift", live)**
+- Products: NULLRIFT Monthly $7/mo, Pro $89.99, Team $149.99, Founding 100 $200.
+- One checkout link each ("Site - …"), wired into the buy buttons. Buyers come
+  back to `gallery.html?checkout_id=…`, which confirms the payment and the plan.
+- Webhook "NULLRIFT site - grant access" → `/api/payment-webhook`
+  (API 2026-10, 12 events). Checked on the preview: it answers.
 
-**Site (branch `launch`)**: Polar checkout links, payment-received banner after checkout,
-plan shown in the account menu.
+**Rules the code enforces** (matching the pricing copy and terms)
+- Monthly: 3 new prompts per billing month; unlocked ones stay open while subscribed.
+- Pro / Team: everything on the shelf, plus every prompt released in the 12
+  months after purchase. **When you add a prompt, give it a date in `RELEASED`
+  in `api/_data/prompt-bodies.mjs`.**
+- Refund or cancellation ends access. Paying before signing up works: the plan
+  waits for the account with that email.
 
-## You must do (secrets — I never handle these)
+**Vercel `nullrift-v-1`**: SUPABASE_URL, SUPABASE_ANON_KEY, POLAR_PRODUCT_TIERS
+set for Production, Preview and Development. Security headers in `vercel.json`.
 
-1. Vercel → nullrift-v-1 → Settings → Environment Variables → add for Production + Preview, tick Sensitive:
-   - `POLAR_WEBHOOK_SECRET` = Polar → Settings → Webhooks → "NULLRIFT site - grant access" → Copy Secret
-   - `SUPABASE_SERVICE_ROLE_KEY` = Supabase → Project Settings → API Keys → secret key
-2. Polar → Finance → Account → **Verify your identity** (needed for payouts). Also check the
-   payout account: it was "connected by another member" — make sure that is you / someone you trust.
-3. Then merge `launch` into `main` and push (or ask me). **Not before step 1**: `launch` requires
-   payment for prompts, and without the two secrets a buyer's payment would not unlock anything.
+**Site**: Privacy (names Polar as merchant of record), Terms (plan rules,
+refunds), 404 page, robots.txt, link-preview tags; tested on phone width with
+no overflow and no console errors on every page.
 
-## Still to do (I was stopped by the usage limit — resumes after ~17:40 UTC)
+## You must do (they involve secrets or your identity)
 
-- Supabase **Magic link** email template: check it contains the code; paste
-  `email-templates/magic-link.html` if not (subject "Your NULLRIFT sign-in code").
-- Add the **WOBL** and **AUTOCARS** templates (TPL.03, TPL.04) like HADAL.
-- Full audit + bug pass, then push `launch` for a Vercel preview.
-- Google sign-in needs your Google Cloud OAuth client (SETUP.md §5).
-- When nullrift.design points to Vercel: update the 4 Polar success/return URLs and the
-  webhook URL, and the Supabase Site URL.
+1. **Vercel → nullrift-v-1 → Settings → Environment Variables**, for Production
+   and Preview, tick *Sensitive*:
+   - `POLAR_WEBHOOK_SECRET` — Polar → Settings → Webhooks → "NULLRIFT site -
+     grant access" → **Copy Secret**.
+   - `SUPABASE_SERVICE_ROLE_KEY` — Supabase → Project Settings → API Keys →
+     a secret key.
+2. **Polar → Finance → Account → Verify your identity.** Also check the payout
+   account: Polar says it was "connected by another member". Payouts go there.
+3. **Merge `launch` into `main`** (or tell me to). Vercel then deploys it live.
+4. **Test a purchase without spending money:** Polar → Products → Discounts →
+   create a 100% code, sign in on the site, buy Pro with the code, check a
+   prompt opens and the account menu says "Pro plan". Then delete the code,
+   and refund/remove the $0 order if you like (a refund locks it again).
+
+## Optional / later
+
+- **Google sign-in**: create the OAuth client in Google Cloud and paste it into
+  Supabase (SETUP.md §5). The button then appears on its own.
+- **Domain**: nullrift.design currently points at a Modulify site, not Vercel.
+  When you move it: add it in Vercel → Domains, then change the 4 Polar
+  checkout links' success/return URLs, the Polar webhook URL and the Supabase
+  Site URL to the new domain.
+- Archive the old **"Pro" $10** product in Polar (no orders, not used).
+- Have Privacy and Terms checked; add your legal name, country and governing law.
+- Founding 100 buyers get Pro automatically; the website build is yours to
+  arrange — watch Polar → Sales for "NULLRIFT Founding 100".
