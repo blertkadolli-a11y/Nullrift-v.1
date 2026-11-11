@@ -121,7 +121,11 @@ alter table public.entitlements
   add column if not exists period_end   timestamptz,
   add column if not exists source       text,
   add column if not exists event_at     timestamptz,
-  add column if not exists updated_at   timestamptz default now();
+  add column if not exists updated_at   timestamptz default now(),
+  -- When the current purchase was made. Pro and Team include every system
+  -- released in the 12 months after it (api/prompt.mjs + RELEASED in
+  -- api/_data/prompt-bodies.mjs); a new purchase restarts the window.
+  add column if not exists granted_at   timestamptz default now();
 
 alter table public.entitlements drop constraint if exists entitlements_tier_check;
 alter table public.entitlements add constraint entitlements_tier_check
@@ -211,7 +215,8 @@ begin
   end if;
 
   if e.tier <> 'monthly' then
-    return jsonb_build_object('status', 'unlocked', 'tier', e.tier);
+    return jsonb_build_object('status', 'unlocked', 'tier', e.tier,
+      'granted_at', coalesce(e.granted_at, e.created_at));
   end if;
 
   if exists (select 1 from public.unlocks u
@@ -315,12 +320,16 @@ begin
   end if;
 
   insert into public.entitlements as e
-    (user_id, tier, expires_at, period_start, period_end, source, event_at, updated_at)
-  values (uid, p_tier, p_expires_at, p_period_start, p_period_end, p_source, p_event_at, now())
+    (user_id, tier, expires_at, period_start, period_end, source, event_at, updated_at, granted_at)
+  values (uid, p_tier, p_expires_at, p_period_start, p_period_end, p_source, p_event_at, now(),
+          coalesce(p_event_at, now()))
   on conflict (user_id) do update set
     tier = excluded.tier, expires_at = excluded.expires_at,
     period_start = excluded.period_start, period_end = excluded.period_end,
-    source = excluded.source, event_at = excluded.event_at, updated_at = now();
+    source = excluded.source, event_at = excluded.event_at, updated_at = now(),
+    -- Same purchase changing state keeps its date; a new purchase restarts it.
+    granted_at = case when e.source is distinct from excluded.source
+                      then excluded.granted_at else coalesce(e.granted_at, excluded.granted_at) end;
 
   return jsonb_build_object('result', 'granted', 'user_id', uid, 'tier', p_tier);
 end $$;

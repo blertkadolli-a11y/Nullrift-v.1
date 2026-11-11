@@ -1114,7 +1114,8 @@ async function fetchBody(id, unlock) {
     /* Monthly answers carry the allowance, so the gate can say how many are
        left or when it refills instead of a generic "pay". */
     const data = await r.json().catch(() => null);
-    const kind = data && (data.error === 'unlock_required' || data.error === 'allowance_spent')
+    const kind = data && (data.error === 'unlock_required' || data.error === 'allowance_spent' ||
+      data.error === 'outside_plan_year')
       ? data.error : 'payment_required';
     return { error: kind, remaining: data && data.remaining, refillsAt: data && data.refills_at };
   }
@@ -1127,6 +1128,7 @@ const GATE_COPY = {
   payment_required: 'This prompt is part of a paid tier. See pricing to unlock it.',
   unlock_required: 'Monthly opens any 3 systems per billing month, and anything you unlock stays open while you are subscribed.',
   allowance_spent: 'You have used this month\u2019s 3 unlocks. Pro opens the whole shelf for good.',
+  outside_plan_year: 'This system was added after your 12 months of new releases ended. Everything you already had stays yours; buying Pro again adds this and the next year of new systems.',
   auth_unconfigured: 'Accounts are not configured on this deployment yet.',
   offline: 'Could not reach the server. Check your connection and try again.',
   bad_response: 'The server did not return the prompt. Try again.',
@@ -1237,7 +1239,7 @@ function setPromptGate(kind, info) {
   const go = gate.querySelector('[data-gate-go]');
   const left = info && typeof info.remaining === 'number' ? info.remaining : null;
   if (kind === 'sign_in_required') go.textContent = 'Sign in';
-  else if (kind === 'payment_required') go.textContent = 'See pricing';
+  else if (kind === 'payment_required' || kind === 'outside_plan_year') go.textContent = 'See pricing';
   else if (kind === 'unlock_required') {
     go.textContent = left === null ? 'Unlock this one' : 'Unlock this one (' + left + ' left)';
   } else if (kind === 'allowance_spent') go.textContent = 'See Pro';
@@ -1256,7 +1258,7 @@ async function onGateAction() {
     return;
   }
 
-  if (kind === 'payment_required' || kind === 'allowance_spent') {
+  if (kind === 'payment_required' || kind === 'allowance_spent' || kind === 'outside_plan_year') {
     closePrompt();
     /* Only the gallery carries the full plans. Elsewhere, go to them. */
     const plans = document.getElementById('pricing');

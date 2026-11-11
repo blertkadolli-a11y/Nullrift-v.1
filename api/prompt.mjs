@@ -27,7 +27,11 @@
    Supabase speaks plain REST.
    ========================================================================== */
 
-import { getBody } from './_data/prompt-bodies.mjs';
+import { getBody, releasedAt } from './_data/prompt-bodies.mjs';
+
+/* Pro and Team include every system released in the 12 months after the
+   purchase; what is already theirs stays theirs. */
+const NEW_RELEASES_FOR_MS = 365 * 24 * 60 * 60 * 1000;
 
 /* true = sign-in is not enough, a plan is required. Needs the payments block of
    supabase-setup.sql applied; without it every prompt fails closed (503). */
@@ -146,6 +150,13 @@ export default async function handler(req, res) {
       });
     }
     if (st !== 'unlocked') return send(res, 402, { error: 'payment_required' });
+
+    if ((access.tier === 'pro' || access.tier === 'team') && access.granted_at) {
+      const granted = new Date(access.granted_at).getTime();
+      if (Number.isFinite(granted) && releasedAt(key).getTime() > granted + NEW_RELEASES_FOR_MS) {
+        return send(res, 402, { error: 'outside_plan_year', tier: access.tier });
+      }
+    }
 
     return send(res, 200, {
       id: key,
