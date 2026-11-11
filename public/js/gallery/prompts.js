@@ -91,6 +91,15 @@ export const PROMPTS = {
     tech: 'Full page · GSAP · custom smooth scroll',
     use: 'Portfolio and case-study indexes that should feel like prints on a table.',
     file: 'NR-09-oblique-grid.md'
+  },
+
+  '10': {
+    id: '10',
+    kind: 'template',
+    title: 'HADAL',
+    tech: 'Full site · React Three Fiber · Blender-from-Python',
+    use: 'Product launches where scrolling the page is the story, told in one continuous 3D scene.',
+    file: 'NR-10-hadal.md'
   }
 };
 
