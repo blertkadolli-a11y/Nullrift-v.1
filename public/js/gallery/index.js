@@ -33,9 +33,13 @@ promptsReady.then(function (m) { prompts = m; }, function () { prompts = null; }
    COMMERCE CONFIG — the only block you edit to go live.
 
    CONTACT_MAIL   the address the pricing section writes to.
-   CHECKOUT       one hosted-checkout URL per tier. Paste the payment links
-                  from whichever processor you use (Stripe Payment Links,
-                  Gumroad, Lemon Squeezy, Paddle — all give you a plain URL).
+   CHECKOUT       one Polar Checkout Link per tier (https://buy.polar.sh/…).
+                  The page adds the signed-in account to it at click time
+                  (reference_id + customer_email), which is how
+                  api/payment-webhook.mjs knows whose plan to unlock. A
+                  signed-out visitor is sent to sign in first and comes
+                  straight back to the same checkout. Each link's product must
+                  also be listed in POLAR_PRODUCT_TIERS on Vercel (SETUP.md §7).
    BOOKING        one URL per call length for the Studio tier.
 
    A tier left blank renders as visibly disabled rather than as a buy button
@@ -70,11 +74,10 @@ const BOOKING = {
 
 /* The founding-100 offer that greets a visitor when the grid comes into view.
 
-   `url` follows the same rule as CHECKOUT: blank renders the button visibly
-   disabled instead of live-looking and dead. Until Stripe is wired there is
-   no page that can take $200, so the default is the contact address — that
-   is a channel which actually works today and captures the buyer rather than
-   losing them. Swap it for the payment link the day checkout exists.
+   `url` follows the same rule as CHECKOUT, and is handled the same way: a
+   Polar Checkout Link whose product is mapped to `pro` in
+   POLAR_PRODUCT_TIERS (the website build is arranged by email after). Blank
+   renders the button visibly disabled instead of live-looking and dead.
 
    `claimed` is the only number the copy is allowed to quote, and it is a
    number you set by hand from what you have actually sold. It deliberately
@@ -293,7 +296,9 @@ function wireCommerce() {
   });
 
   document.querySelectorAll('[data-checkout]').forEach((el) => {
-    wireTarget(el, CHECKOUT[el.dataset.checkout], 'Checkout not connected');
+    const url = CHECKOUT[el.dataset.checkout];
+    wireTarget(el, url, 'Checkout not connected');
+    if (url) el.dataset.checkoutUrl = url;
   });
 
   document.querySelectorAll('[data-book]').forEach((el) => {
@@ -320,6 +325,65 @@ const PAGE = (location.pathname.split('/').pop() || 'gallery.html');
 function authHref(cardId) {
   const back = PAGE + (cardId ? '#' + cardId : location.hash || '');
   return 'auth.html?next=' + encodeURIComponent(back);
+}
+
+/* ---------------------------------------------------------------- checkout
+
+   Every live buy button carries data-checkout-url (its bare Polar link). Its
+   real href is rebuilt whenever the session changes:
+
+     signed in   → the Polar link + reference_id=<user id> + customer_email,
+                   so the webhook can match the payment to this account even
+                   if they pay with a different email
+     signed out  → auth.html, with next= pointing back here plus ?buy=<plan>,
+                   so after signing in they land straight in the checkout
+
+   Rebuilding the href (rather than intercepting clicks) keeps it a real link:
+   middle-click and "open in new tab" carry the account too. */
+function checkoutKey(el) {
+  return el.dataset.checkout || (el.hasAttribute('data-offer-cta') ? 'offer' : '');
+}
+
+function personalisedCheckout(url, user) {
+  const u = new URL(url);
+  u.searchParams.set('reference_id', user.id);
+  if (user.email) u.searchParams.set('customer_email', user.email);
+  return u.href;
+}
+
+function checkoutUrlFor(key) {
+  if (key === 'offer') return OFFER.url || '';
+  return Object.prototype.hasOwnProperty.call(CHECKOUT, key) ? CHECKOUT[key] : '';
+}
+
+/* ?buy=<plan> on arrival means "I signed in to buy this": take them on to it,
+   once, and drop the parameter so Back does not loop them into it again. */
+let pendingBuy = (function () {
+  const key = new URL(location.href).searchParams.get('buy') || '';
+  return checkoutUrlFor(key) ? key : '';
+})();
+
+function personaliseCheckouts(session) {
+  const user = session && session.user && session.user.id ? session.user : null;
+
+  document.querySelectorAll('[data-checkout-url]').forEach((el) => {
+    const url = el.dataset.checkoutUrl;
+    if (user) {
+      el.href = personalisedCheckout(url, user);
+    } else {
+      const back = PAGE + '?buy=' + encodeURIComponent(checkoutKey(el)) + '#pricing';
+      el.href = 'auth.html?next=' + encodeURIComponent(back);
+    }
+  });
+
+  if (pendingBuy && user) {
+    const key = pendingBuy;
+    pendingBuy = '';
+    const here = new URL(location.href);
+    here.searchParams.delete('buy');
+    history.replaceState(history.state, '', here.pathname + here.search + here.hash);
+    location.assign(personalisedCheckout(checkoutUrlFor(key), user));
+  }
 }
 
 /* Cards that have moved shelf. An old link to the gallery still has to land
@@ -497,6 +561,7 @@ function wireAccount() {
 }
 wireAccount();
 wireCommerce();
+auth.onChange(personaliseCheckouts);
 
 /* --------------------------------------------------------------- lifecycle */
 
@@ -697,7 +762,13 @@ function wireOffer() {
   /* Same rule the pricing CTAs follow: no destination, no live-looking
      button. wireTarget owns that decision in one place. */
   const cta = card.querySelector('[data-offer-cta]');
-  if (cta) wireTarget(cta, OFFER.url, OFFER.deadLabel);
+  if (cta) {
+    wireTarget(cta, OFFER.url, OFFER.deadLabel);
+    if (OFFER.url) {
+      cta.dataset.checkoutUrl = OFFER.url;
+      personaliseCheckouts(auth.getSession());
+    }
+  }
 
   /* Centre stage means it is a real modal: it takes the scroll and the focus
      while it is up, and gives both back on the way out. */
@@ -918,8 +989,9 @@ let openBody = '';
 
 /* One round trip, one prompt. Returns { body } or { error } — the caller
    turns the error into the right dead end, because "sign in" and "pay" need
-   different exits. */
-async function fetchBody(id) {
+   different exits. `unlock` is the Monthly "spend one of this month's
+   unlocks on this prompt" request, and is only ever sent from a click. */
+async function fetchBody(id, unlock) {
   let token = null;
   try {
     token = await auth.getAccessToken();
@@ -929,6 +1001,7 @@ async function fetchBody(id) {
   let r;
   try {
     r = await fetch('/api/prompt?id=' + encodeURIComponent(id), {
+      method: unlock ? 'POST' : 'GET',
       headers: { Authorization: 'Bearer ' + token }
     });
   } catch (err) {
@@ -939,7 +1012,14 @@ async function fetchBody(id) {
     return data && data.body ? { body: data.body } : { error: 'bad_response' };
   }
   if (r.status === 401) return { error: 'sign_in_required' };
-  if (r.status === 402) return { error: 'payment_required' };
+  if (r.status === 402) {
+    /* Monthly answers carry the allowance, so the gate can say how many are
+       left or when it refills instead of a generic "pay". */
+    const data = await r.json().catch(() => null);
+    const kind = data && (data.error === 'unlock_required' || data.error === 'allowance_spent')
+      ? data.error : 'payment_required';
+    return { error: kind, remaining: data && data.remaining, refillsAt: data && data.refills_at };
+  }
   if (r.status === 503) return { error: 'auth_unconfigured' };
   return { error: 'unavailable' };
 }
@@ -947,6 +1027,8 @@ async function fetchBody(id) {
 const GATE_COPY = {
   sign_in_required: 'Sign in to read this prompt.',
   payment_required: 'This prompt is part of a paid tier. See pricing to unlock it.',
+  unlock_required: 'Monthly opens any 3 systems per billing month, and anything you unlock stays open while you are subscribed.',
+  allowance_spent: 'You have used this month\u2019s 3 unlocks. Pro opens the whole shelf for good.',
   auth_unconfigured: 'Accounts are not configured on this deployment yet.',
   offline: 'Could not reach the server. Check your connection and try again.',
   bad_response: 'The server did not return the prompt. Try again.',
@@ -989,8 +1071,8 @@ async function openPrompt(ex) {
 
 /* Ask the server for the body, and if it says no, show the matching way out.
    Re-entrant by design: signing in from the gate calls straight back here. */
-async function releaseBody(id) {
-  const out = await fetchBody(id);
+async function releaseBody(id, unlock) {
+  const out = await fetchBody(id, unlock);
 
   /* The visitor may have closed the panel, or opened a different card, while
      the request was in flight — do not paint a stale body into it. */
@@ -1005,11 +1087,19 @@ async function releaseBody(id) {
 
   openBody = '';
   if (promptFields.body) promptFields.body.textContent = '';
-  setPromptGate(out.error);
+  setPromptGate(out.error, out);
 }
 
-/* The locked state of the panel: a message plus exactly one action. */
-function setPromptGate(kind) {
+/* "14 Dec" — the day a Monthly allowance refills. */
+function shortDate(isoString) {
+  const d = isoString ? new Date(isoString) : null;
+  if (!d || Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+}
+
+/* The locked state of the panel: a message plus exactly one action. `info`
+   carries the Monthly allowance (remaining, refillsAt) when there is one. */
+function setPromptGate(kind, info) {
   if (!promptPanel) return;
   let gate = promptPanel.querySelector('[data-prompt-gate]');
 
@@ -1038,11 +1128,21 @@ function setPromptGate(kind) {
   promptPanel.classList.add('is-locked');
   const copyBtn = promptPanel.querySelector('[data-prompt-copy]');
   if (copyBtn) copyBtn.setAttribute('aria-disabled', 'true');
-  gate.querySelector('[data-gate-msg]').textContent = GATE_COPY[kind] || GATE_COPY.unavailable;
+  let msg = GATE_COPY[kind] || GATE_COPY.unavailable;
+  const refills = shortDate(info && info.refillsAt);
+  if (kind === 'allowance_spent' && refills) {
+    msg = 'You have used this month\u2019s 3 unlocks. They refill on ' + refills +
+      ', or Pro opens the whole shelf for good.';
+  }
+  gate.querySelector('[data-gate-msg]').textContent = msg;
 
   const go = gate.querySelector('[data-gate-go]');
+  const left = info && typeof info.remaining === 'number' ? info.remaining : null;
   if (kind === 'sign_in_required') go.textContent = 'Sign in';
   else if (kind === 'payment_required') go.textContent = 'See pricing';
+  else if (kind === 'unlock_required') {
+    go.textContent = left === null ? 'Unlock this one' : 'Unlock this one (' + left + ' left)';
+  } else if (kind === 'allowance_spent') go.textContent = 'See Pro';
   else go.textContent = 'Try again';
 }
 
@@ -1051,7 +1151,14 @@ async function onGateAction() {
   const kind = gate ? gate.dataset.kind : '';
   const id = promptOpenFor ? promptOpenFor.id : null;
 
-  if (kind === 'payment_required') {
+  if (kind === 'unlock_required' && id) {
+    if (promptFields.body) promptFields.body.textContent = 'Unlocking…';
+    setPromptGate(null);
+    await releaseBody(id, true);
+    return;
+  }
+
+  if (kind === 'payment_required' || kind === 'allowance_spent') {
     closePrompt();
     /* Only the gallery carries the full plans. Elsewhere, go to them. */
     const plans = document.getElementById('pricing');

@@ -41,7 +41,9 @@ Live site: **Vercel project `nullrift-v-1`** (repo `Nullrift-v.1`, branch
   can only write inside its own folder.
 - Fixed both security warnings (the trigger function was callable over the
   API) and all three performance warnings on the row-level-security policies.
-- `supabase-setup.sql` is the full schema, matching what is live.
+- `supabase-setup.sql` is the full schema. Everything above the
+  "entitlements" block matches what is live; the payments block below it is
+  **not applied yet** (section 7, step 1).
 
 **Site**
 - `privacy.html`, `terms.html`, `404.html`, `robots.txt`, link-preview tags.
@@ -128,16 +130,113 @@ each uses the same callback URL as above:
 - **Apple**: needs a paid Apple Developer account ($99/year).
 - **Microsoft** (`azure`) and **Discord** also work.
 
-### 7. Payments — nothing can be bought yet
+### 7. Payments (Polar)
 
-- `CHECKOUT`, `BOOKING` and `OFFER.url` in `public/js/gallery/index.js` are
-  all empty, so every buy button shows as disabled.
-- Nothing writes a row into `entitlements` when someone pays. Until something
-  does, `REQUIRE_PAID` in `api/prompt.mjs` has to stay `false`, which means
-  **any signed-in account can read every prompt for free**.
-- For a paid launch you need a payment-provider webhook (Stripe or Lemon
-  Squeezy) that inserts the buyer's `entitlements` row, then set
-  `REQUIRE_PAID = true`.
+**What the code already does.** Every buy button is a Polar Checkout Link.
+For a signed-in visitor the page adds their account to the link
+(`reference_id` = their user id, `customer_email` = their email); a signed-out
+visitor is sent through sign-in first and lands straight back in the same
+checkout. When Polar reports the payment, `api/payment-webhook.mjs` checks
+Polar's signature and writes the buyer's `entitlements` row. `api/prompt.mjs`
+then gates on it (`REQUIRE_PAID = true`):
+
+| Plan | Polar product | What it unlocks |
+|---|---|---|
+| Monthly $7/mo | recurring, monthly | Any **3 prompts per billing month**, each one stays open while subscribed. Ends at the end of the paid period after cancelling; immediately on a failed renewal or an immediate cancel. |
+| Pro $89.99 | one-time | Everything, never expires. |
+| Team $149.99 | one-time | Everything, never expires (one shared account). |
+| Founding $200 | one-time | Same as Pro (the website build is arranged by email). |
+
+A full refund of a one-time order ends its access. A partial refund does not.
+Someone who pays with an email that has no NULLRIFT account yet is kept in
+`pending_entitlements` and gets the plan the moment they sign up with that
+email. A buyer who already has Pro and also subscribes to Monthly keeps Pro.
+
+**Do these in order. Order matters: step 1 must be done before the site is
+deployed, or every prompt answers 503.**
+
+1. **Supabase → SQL Editor → New query**: paste the part of
+   `supabase-setup.sql` from `-- --- entitlements: who has paid` down to (not
+   including) `-- --- avatar uploads`, and Run. "Success. No rows returned."
+   is success. It is safe to run twice.
+
+2. **Polar: start in the sandbox** (`https://sandbox.polar.sh`, a separate
+   test account, test card `4242 4242 4242 4242`, any future date, any CVC).
+   Create an organization, then under **Products** create four products:
+   - *NULLRIFT Monthly* — Recurring, monthly, $7
+   - *NULLRIFT Pro* — One-time, $89.99
+   - *NULLRIFT Team* — One-time, $149.99
+   - *NULLRIFT Founding* — One-time, $200
+
+   Copy each product's **ID** (a UUID, shown on the product and in its URL).
+
+3. **Polar → Products → Checkout Links**: create one link per product.
+   Set **Success URL** to
+   `https://nullrift-v-1.vercel.app/gallery.html?checkout_id={CHECKOUT_ID}`.
+   Copy each link's URL.
+
+4. **Polar → Settings → Webhooks → Add Endpoint**
+   - URL: `https://nullrift-v-1.vercel.app/api/payment-webhook`
+   - Format: **Raw**
+   - Events: `order.paid`, `order.refunded`, `subscription.created`,
+     `subscription.active`, `subscription.updated`, `subscription.canceled`,
+     `subscription.uncanceled`, `subscription.revoked`
+   - Copy the secret (`whsec_…`).
+
+5. **Vercel → `nullrift-v-1` → Settings → Environment Variables**: add these
+   for Production and Preview, and tick **Sensitive**:
+
+       SUPABASE_SERVICE_ROLE_KEY  Supabase → Project Settings → API Keys →
+                                  a secret key (sb_secret_…), or the legacy
+                                  service_role key. Only the webhook reads it.
+       POLAR_WEBHOOK_SECRET       the whsec_… from step 4
+       POLAR_PRODUCT_TIERS        MONTHLY_ID=monthly,PRO_ID=pro,TEAM_ID=team,FOUNDING_ID=pro
+
+   (`SUPABASE_URL` and `SUPABASE_ANON_KEY` from step 1 of this file are
+   needed too.)
+
+6. **`public/js/gallery/index.js`**, the COMMERCE CONFIG block: paste the
+   checkout link URLs into `CHECKOUT.monthly`, `CHECKOUT.pro`,
+   `CHECKOUT.team`, and the Founding one into `OFFER.url`. Commit and push;
+   Vercel redeploys.
+
+7. **Test it in the sandbox**, signed in as a test account:
+   - Before buying, open any prompt: it must say *"This prompt is part of a
+     paid tier"* with **See pricing**.
+   - Buy Pro with the test card. In Polar → Settings → Webhooks → your
+     endpoint, the delivery should show **200**. In Supabase:
+     `select * from entitlements;` shows your row with `tier = pro`.
+   - Reload the gallery and open a prompt: the body shows.
+   - Refund the order in Polar: the row's `expires_at` is set and prompts lock
+     again.
+   - With a second test account, subscribe to Monthly: each prompt offers
+     **Unlock this one (3 left)**; after three, the fourth says when the
+     allowance refills.
+
+   A delivery that shows **500** in Polar means something on our side needs
+   fixing (usually a product missing from `POLAR_PRODUCT_TIERS`; the Vercel
+   function log says which). Fix it, then press **Redeliver** in Polar; the
+   buyer is not lost.
+
+8. **Go live**: repeat steps 2–6 in the real Polar dashboard
+   (`https://polar.sh`). Production has its own product ids, links and
+   webhook secret, so all three env vars and all four URLs change.
+
+**Granting access by hand** (Studio clients, comps, a support fix), in the
+Supabase SQL Editor. It works whether or not that person has an account yet:
+
+    select public.grant_entitlement(null, 'client@example.com', 'pro',
+      null, null, null, 'manual:studio-client-name', now());
+
+Take it away again with
+`select public.expire_entitlement('manual:studio-client-name', now());`
+
+**Studio booking** (`BOOKING` in the same config block) is a Cal.com link and
+is not handled by Polar or the webhook.
+
+**Testing the webhook locally**: put the three payment variables in `.env`,
+run `node dev-server.mjs`, and point a Polar sandbox endpoint at it through a
+tunnel (`cloudflared tunnel --url http://localhost:8080`).
 
 ### 8. Domain
 
@@ -148,7 +247,9 @@ origins (step 5).
 ### 9. Legal
 
 `privacy.html` and `terms.html` are written from what the site actually does,
-but they are a starting point, not legal advice. Have them checked, and add
+but they are a starting point, not legal advice. Polar is the merchant of
+record (it charges the buyer and handles sales tax), so the pages should
+name Polar where they say "our payment provider". Have them checked, and add
 your legal name, country and governing law.
 
 ---
