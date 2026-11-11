@@ -386,6 +386,99 @@ function personaliseCheckouts(session) {
   }
 }
 
+/* ------------------------------------------------------------------ plans */
+
+const TIER_NAME = { monthly: 'Monthly', pro: 'Pro', team: 'Team' };
+
+function planText(e) {
+  if (!e) return '';
+  const name = TIER_NAME[e.tier] || e.tier;
+  if (e.tier === 'monthly' && e.period_end) {
+    const d = new Date(e.period_end);
+    if (!Number.isNaN(d.getTime())) {
+      return name + ' plan · renews ' + d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+    }
+  }
+  return name + ' plan';
+}
+
+/* The account menu's plan line. textContent only; the "See plans" link is
+   built as a node, never from strings. */
+async function paintPlan(el) {
+  if (!el) return;
+  const e = await auth.loadEntitlement();
+  el.textContent = '';
+  if (e) {
+    el.textContent = planText(e);
+    el.dataset.kind = 'active';
+    return;
+  }
+  el.dataset.kind = 'none';
+  el.append('No plan yet · ');
+  const a = document.createElement('a');
+  a.href = (document.getElementById('pricing') ? '' : 'gallery.html') + '#pricing';
+  a.textContent = 'See plans';
+  el.appendChild(a);
+}
+
+/* -------------------------------------------------------- back from Polar
+
+   Polar sends a buyer back to gallery.html?checkout_id=… The plan is written
+   by the webhook, which usually lands within a few seconds but is not
+   instant. So: say the payment arrived, wait for the plan to appear, then say
+   it is open, instead of leaving them on a page that still looks locked. */
+function wireCheckoutReturn() {
+  const url = new URL(location.href);
+  if (!url.searchParams.get('checkout_id')) return;
+  url.searchParams.delete('checkout_id');
+  history.replaceState(history.state, '', url.pathname + url.search + url.hash);
+
+  const bar = document.createElement('div');
+  bar.className = 'paid';
+  bar.setAttribute('role', 'status');
+  bar.innerHTML =
+    '<span class="paid__pip" aria-hidden="true"></span>' +
+    '<p class="paid__msg"></p>' +
+    '<button type="button" class="paid__x" aria-label="Dismiss">&times;</button>';
+  document.body.appendChild(bar);
+  const msg = bar.querySelector('.paid__msg');
+  bar.querySelector('.paid__x').addEventListener('click', () => bar.remove());
+
+  function say(text, kind, link) {
+    msg.textContent = text;
+    bar.dataset.kind = kind || 'wait';
+    if (link) {
+      msg.append(' ');
+      const a = document.createElement('a');
+      a.href = link.href;
+      a.textContent = link.text;
+      msg.appendChild(a);
+    }
+  }
+
+  if (!auth.getSession()) {
+    say('Payment received. Sign in with the email you paid with and your plan unlocks automatically.',
+      'ok', { href: authHref(), text: 'Sign in' });
+    return;
+  }
+
+  say('Payment received. Unlocking your plan…', 'wait');
+  const started = Date.now();
+  (async function poll() {
+    const e = await auth.loadEntitlement();
+    if (e) {
+      say('You are in. Your ' + planText(e) + ' is active, so every prompt on it is open.', 'ok');
+      return;
+    }
+    if (Date.now() - started > 90000) {
+      say('Payment received, but activation is taking longer than usual. Reload in a minute. If it is still not active, email ' +
+        CONTACT_MAIL + ' with your receipt and we will sort it out.', 'slow');
+      return;
+    }
+    setTimeout(poll, 3000);
+  })();
+}
+
 /* Cards that have moved shelf. An old link to the gallery still has to land
    on the thing it pointed at, not on a grid that no longer holds it. */
 const MOVED = {
@@ -472,6 +565,7 @@ function wireAccount() {
       '<div class="acct__menu" hidden>' +
         '<p class="acct__who"><span class="acct__whoname"></span>' +
           '<span class="acct__mail"></span></p>' +
+        '<p class="acct__plan" data-acct-plan>Checking your plan…</p>' +
         '<p class="acct__label">Profile picture</p>' +
         '<div class="acct__marks" role="radiogroup" aria-label="Profile picture"></div>' +
         '<button type="button" class="acct__item" data-avatar-pick>Upload a picture…</button>' +
@@ -487,6 +581,9 @@ function wireAccount() {
       menuOpen = !menuOpen;
       menu.hidden = !menuOpen;
       chip.setAttribute('aria-expanded', String(menuOpen));
+      /* Read on open, not on every page load: most visits never open the
+         menu, and a plan can change (a purchase, a refund) between opens. */
+      if (menuOpen) paintPlan(slot.querySelector('[data-acct-plan]'));
     });
 
     slot.querySelector('[data-signout]').addEventListener('click', async () => {
@@ -562,6 +659,7 @@ function wireAccount() {
 wireAccount();
 wireCommerce();
 auth.onChange(personaliseCheckouts);
+wireCheckoutReturn();
 
 /* --------------------------------------------------------------- lifecycle */
 

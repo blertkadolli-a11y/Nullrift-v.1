@@ -453,6 +453,29 @@ export async function loadProfile() {
   return profile;
 }
 
+/* The signed-in account's plan, read with its own token (row-level security
+   only ever returns its own row). null = no plan, or it has expired. Only
+   used for display — what a visitor may read is decided on the server. */
+export async function loadEntitlement() {
+  const token = await getAccessToken();
+  if (!token || !session || !session.user) return null;
+  try {
+    const r = await fetch(
+      SUPABASE_URL + '/rest/v1/entitlements?user_id=eq.' +
+      encodeURIComponent(session.user.id) + '&select=tier,expires_at,period_end&limit=1',
+      { headers: restHeaders(token) }
+    );
+    if (!r.ok) return null;
+    const rows = await r.json();
+    const e = Array.isArray(rows) && rows.length ? rows[0] : null;
+    if (!e) return null;
+    if (e.expires_at && new Date(e.expires_at).getTime() <= Date.now()) return null;
+    return e;
+  } catch (err) {
+    return null;
+  }
+}
+
 export async function saveProfile(patch) {
   const token = await getAccessToken();
   if (!token || !session.user) throw new Error('Not signed in.');
