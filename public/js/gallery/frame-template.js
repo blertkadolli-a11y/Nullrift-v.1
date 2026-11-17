@@ -10,7 +10,11 @@
      - hovering the card scrolls the page a little way down, a quick flick
        through the template;
      - the frame ignores the pointer while it is a card, so a click lands on
-       the card link and opens it, and takes the pointer back in fullscreen.
+       the card link and opens it, and takes the pointer back in fullscreen;
+     - it only works as hard as it is seen: paused off screen, about 30fps on
+       screen, every frame while hovered or fullscreen, and at a pixel ratio
+       sized to the card rather than the screen. The template page carries
+       /js/frame-shim.js, which obeys the data-nr-* attributes set here.
 
    09-oblique.js is the original, long-form version of the same idea.
    ========================================================================== */
@@ -27,11 +31,15 @@ const DESKTOP_W = 1440;
  * @param {number} [cfg.peekDepth] share of the scrollable height a hover travels
  * @param {number} [cfg.peekIn]    seconds to reach the peek
  * @param {number} [cfg.peekOut]   seconds to come back
+ * @param {boolean} [cfg.cardDpr]  lower the pixel ratio while a card (default
+ *                                 true). Off for a page that reads its ratio
+ *                                 once at start, or fullscreen would stay soft.
  */
 export function frameTemplate(cfg) {
   const PEEK_DEPTH = cfg.peekDepth == null ? 0.15 : cfg.peekDepth;
   const PEEK_IN = cfg.peekIn || 6;
   const PEEK_OUT = cfg.peekOut || 1.1;
+  const CARD_DPR = cfg.cardDpr !== false;
 
   return function create(ctx) {
     const root = ctx && ctx.root;
@@ -47,6 +55,8 @@ export function frameTemplate(cfg) {
     let stageH = 0;
     let hover = false;
     let t = 0;
+    let onScreen = false;   /* the shelf's view: near the viewport */
+    let inView = false;     /* this card's own view: actually visible */
 
     const styleEl = document.createElement('style');
     styleEl.textContent =
@@ -62,7 +72,21 @@ export function frameTemplate(cfg) {
     frame.setAttribute('loading', 'lazy');
     frame.setAttribute('tabindex', '-1');
     frame.setAttribute('scrolling', 'yes');
+    /* Set before src, so the shim finds it on its first line. */
+    frame.setAttribute('data-nr-run', 'pause');
     root.appendChild(frame);
+
+    /* How hard the template may work, read by the shim on every frame. */
+    function pace() {
+      if (destroyed) return;
+      const next = !preview ? 'run' : !(onScreen && inView) ? 'pause' : hover ? 'run' : 'idle';
+      if (frame.getAttribute('data-nr-run') === next) return;
+      frame.setAttribute('data-nr-run', next);
+      try {
+        const w = frame.contentWindow;
+        if (w && typeof w.__nrWake === 'function') w.__nrWake();
+      } catch (err) { /* mid-navigation */ }
+    }
 
     function view() {
       try {
@@ -76,12 +100,19 @@ export function frameTemplate(cfg) {
     function layout() {
       if (destroyed) return;
       if (!preview || !stageW || !stageH) {
+        frame.removeAttribute('data-nr-dpr');
         frame.style.width = '100%';
         frame.style.height = '100%';
         frame.style.transform = '';
         return;
       }
       const scale = stageW / DESKTOP_W;
+      /* Device pixels per page pixel once scaled into the card. Never below
+         0.5, so text in the 3D scenes stays legible on a 1x screen. */
+      if (CARD_DPR) {
+        const dpr = Math.max(0.5, Math.min(1, scale * (window.devicePixelRatio || 1)));
+        frame.setAttribute('data-nr-dpr', dpr.toFixed(2));
+      }
       frame.style.width = DESKTOP_W + 'px';
       frame.style.height = Math.ceil(stageH / scale) + 'px';
       frame.style.transform = 'scale(' + scale.toFixed(5) + ')';
@@ -97,10 +128,19 @@ export function frameTemplate(cfg) {
       w.scrollTo(0, Math.round(Math.max(0, Math.min(1, y)) * max * PEEK_DEPTH));
     }
 
-    function onEnter() { if (preview && !reduced) hover = true; }
-    function onLeave() { hover = false; }
+    function onEnter() { if (preview && !reduced) { hover = true; pace(); } }
+    function onLeave() { hover = false; pace(); }
     root.addEventListener('pointerenter', onEnter);
     root.addEventListener('pointerleave', onLeave);
+
+    /* The shelf wakes cards a third of a screen early so they are loaded by
+       the time they arrive. Loading early is right; rendering a whole site
+       nobody can see yet is not, so the page itself waits for real sight. */
+    const sight = new IntersectionObserver((entries) => {
+      inView = entries[entries.length - 1].isIntersecting;
+      pace();
+    }, { threshold: 0 });
+    sight.observe(root);
 
     function update(dt) {
       if (!preview || reduced) return;
@@ -120,12 +160,15 @@ export function frameTemplate(cfg) {
     function setPreview(isPreview) {
       if (destroyed) return;
       preview = isPreview;
-      frame.classList.toggle('is-live', !isPreview);
-      frame.setAttribute('tabindex', isPreview ? '-1' : '0');
+      /* Fullscreen gets its pixel ratio back before it is resized, so a page
+         that re-reads it on resize renders sharp. */
+      layout();
       hover = false;
       t = 0;
+      pace();
+      frame.classList.toggle('is-live', !isPreview);
+      frame.setAttribute('tabindex', isPreview ? '-1' : '0');
       scrollChildTo(0);
-      layout();
     }
 
     if (!preview) setPreview(false);
@@ -133,6 +176,7 @@ export function frameTemplate(cfg) {
     function destroy() {
       if (destroyed) return;
       destroyed = true;
+      sight.disconnect();
       root.removeEventListener('pointerenter', onEnter);
       root.removeEventListener('pointerleave', onLeave);
       /* Blanking the src releases WebGL contexts and tickers now, rather than
@@ -146,8 +190,8 @@ export function frameTemplate(cfg) {
       setPreview: setPreview,
       resize: resize,
       update: update,
-      activate() {},
-      deactivate() { hover = false; },
+      activate() { onScreen = true; pace(); },
+      deactivate() { onScreen = false; hover = false; pace(); },
       destroy: destroy
     };
   };

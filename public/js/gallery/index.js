@@ -201,6 +201,8 @@ class Exhibit {
   tick(dt, elapsed) {
     if (reduced || !this.active || this.state !== 'ready' || !this.instance) return;
     if (typeof this.instance.update !== 'function') return;
+    /* Fullscreen covers the grid: nothing behind it needs a frame. */
+    if (expanded && this !== expanded) return;
 
     /* The hovered exhibit — and a fullscreen one, which is the whole page —
        runs every frame. Everything else coalesces to ~32Hz and is handed the
@@ -670,7 +672,7 @@ const mountObserver = new IntersectionObserver((entries) => {
     if (entry.isIntersecting) {
       ex.active = true;
       if (ex.state === 'idle') ex.mount();
-      else ex.resume();
+      else if (!expanded || ex === expanded) ex.resume();
     } else if (ex.active) {
       ex.active = false;
       ex.pause();
@@ -736,7 +738,7 @@ function onVisibility() {
     stopClock();
     exhibits.forEach((ex) => { if (ex.active) ex.pause(); });
   } else {
-    exhibits.forEach((ex) => { if (ex.active) ex.resume(); });
+    exhibits.forEach((ex) => { if (ex.active && (!expanded || ex === expanded)) ex.resume(); });
     startClock();
   }
 }
@@ -968,6 +970,8 @@ function openExpand(ex) {
 
   setHot(null);
   expanded = ex;
+  /* The cards behind the overlay stop working until it closes. */
+  exhibits.forEach((other) => { if (other !== ex && other.active) other.pause(); });
   const title =
     (ex.el.querySelector('.card__title') || {}).textContent || 'EXHIBIT';
   ex.el.classList.add('is-expanded');
@@ -1033,6 +1037,7 @@ function closeExpand(silent) {
 
   /* Back down to card quality so the grid stays cheap. */
   ex.setPreview(true);
+  exhibits.forEach((other) => { if (other !== ex && other.active) other.resume(); });
 
   /* Two frames, not one. The card is still laid out fixed and full-bleed when
      the class comes off, and a rect read in the very next frame can still

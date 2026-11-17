@@ -17,5 +17,8 @@ export default frameTemplate({
   page: new URL('../../hadal/index.html', import.meta.url).href,
   title: 'HADAL — scroll-driven 3D submersible site template',
   background: '#03060A',
-  peekDepth: 0.12
+  peekDepth: 0.12,
+  /* HADAL picks its pixel ratio once at start and then adapts it to the frame
+     rate on its own, so a card cap would follow it into fullscreen. */
+  cardDpr: false
 });
