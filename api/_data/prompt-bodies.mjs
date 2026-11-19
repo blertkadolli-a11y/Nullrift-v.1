@@ -10,6 +10,31 @@
    catalogue to every visitor again, which is the exact hole this closes.
    ========================================================================== */
 
+/* Shared closing section of every animation prompt (01–08). Each animation is
+   a module that a host page drives; without this the buyer's AI writes the
+   module and nothing that runs it. */
+const ANIMATION_HOST = `
+
+MAKE IT RUN IN THE BUYER'S PROJECT
+The module never starts its own animation loop, so ship a small host with it that works the moment it is pasted in:
+- Before writing code, look at the project: plain HTML, React, Next.js, Vue, Svelte or something else. If you cannot tell, ask once; if there is no project yet, use plain HTML with ES modules.
+- The host owns exactly one requestAnimationFrame loop and calls update(dt) with dt in seconds, clamped to 0.05 so a stalled tab cannot make the simulation jump.
+- A ResizeObserver on the stage calls resize(width, height) with whole CSS pixels, debounced to about 120ms so a drag-resize does not rebuild every frame. Also re-measure when devicePixelRatio changes (the window moves to another screen).
+- An IntersectionObserver calls activate() when the stage comes into view and deactivate() when it leaves; document visibilitychange does the same for background tabs. Off screen it must cost nothing.
+- reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches, read once at mount and passed to create().
+- React / Next.js: put the host in a client component ('use client'), create in useEffect, call destroy() in its cleanup, and never touch window or document during server rendering. React Strict Mode mounts twice in development, so create → destroy → create must work.
+- The stage fills its container: the section decides the size (a 100svh hero, a 16:10 block, a card), and the module adapts to whatever it is given, from 320px wide up.
+
+DONE MEANS
+Check each of these yourself before calling the work finished:
+- No console errors or warnings on load, on resize, on scrolling away and back, or on unmount.
+- Scrolled off screen or in a background tab it uses no CPU or GPU time.
+- Smooth at 60fps on a mid-range laptop at 1440px, and still smooth on a phone at 360px.
+- With reduced motion switched on it shows the composed still described above, never a blank or half-drawn stage.
+- destroy() removes every listener, observer, timer, DOM node and GPU resource it created: mounting and unmounting ten times leaves nothing behind.
+- Screen-reader users get one meaningful label naming what it is; purely decorative canvases and layers are aria-hidden. Every interaction also has a sensible resting state for someone who never touches it.
+- Any text it draws (wordmarks, HUD lines, hints) comes from one obvious place at the top of the module, so the buyer can swap in their own brand without reading the rest.`;
+
 export const BODIES = {
   '01': `Build a production-ready interactive WebGL fluid field for a premium site hero.
 
@@ -46,7 +71,7 @@ INTERACTION
 
 DELIVERABLE
 - Single self-contained module: create({ root, reduced }) → { resize, update, activate, deactivate, destroy }.
-- One-line use case: "Hero mastheads that liquefy under pointer velocity."`,
+- One-line use case: "Hero mastheads that liquefy under pointer velocity."` + ANIMATION_HOST,
 
   '02': `Build a production-ready interactive WebGL2 gravitational-lens spacetime fold — a continuous “Cauchy Lattice.”
 
@@ -78,7 +103,7 @@ INTERACTION
 
 DELIVERABLE
 - Single self-contained module with the API above.
-- Use case: "Spacetime-fold heroes steered by a pointer singularity."`,
+- Use case: "Spacetime-fold heroes steered by a pointer singularity."` + ANIMATION_HOST,
 
   '03': `Build a production-ready kinetic typography system with zero canvas and zero WebGL.
 
@@ -105,7 +130,7 @@ INTERACTION
 
 DELIVERABLE
 - Single self-contained module with the API above.
-- Use case: "Editorial headlines that thicken toward the reader."`,
+- Use case: "Editorial headlines that thicken toward the reader."` + ANIMATION_HOST,
 
   '04': `Build a production-ready generative SVG autorouter that feels like a live phosphor schematic.
 
@@ -131,7 +156,7 @@ INTERACTION
 
 DELIVERABLE
 - Single self-contained module with the API above.
-- Use case: "Self-drawing schematics for process and architecture sections."`,
+- Use case: "Self-drawing schematics for process and architecture sections."` + ANIMATION_HOST,
 
   '05': `Build a production-ready GPU point-cloud morph that the user scrubs by hand — matching exhibit "Null Cloud".
 
@@ -156,7 +181,7 @@ INTERACTION
 
 DELIVERABLE
 - Single self-contained module with the API above.
-- Use case: "Scroll-scrubbed formation morphs for feature reveals."`,
+- Use case: "Scroll-scrubbed formation morphs for feature reveals."` + ANIMATION_HOST,
 
   '06': `Build a production-ready DOM 3D impact grid — a struck steel membrane. No canvas. No WebGL.
 
@@ -181,7 +206,7 @@ INTERACTION
 
 DELIVERABLE
 - Single self-contained module with the API above.
-- Use case: "Tactile tile grids that answer every click with a shockwave."`,
+- Use case: "Tactile tile grids that answer every click with a shockwave."` + ANIMATION_HOST,
 
   '07': `Build a production-ready elliptical product orbit. No canvas. No WebGL. DOM only.
 
@@ -248,7 +273,7 @@ shrinks away and snaps back. It should be hard to stop scrubbing.
 
 DELIVERABLE
 - Single self-contained module with the API above.
-- Use case: "Product pickers that feel like operating premium machinery."`,
+- Use case: "Product pickers that feel like operating premium machinery."` + ANIMATION_HOST,
 
   '08': `Build a production-ready interactive Canvas 2D dot-reveal field. No WebGL, no framework, no build step.
 
@@ -319,7 +344,7 @@ VISUAL IDENTITY
 
 DELIVERABLE
 - Single self-contained module with the API above, plus one image asset.
-- Use case: "Portrait and product reveals that make the visitor go looking."`,
+- Use case: "Portrait and product reveals that make the visitor go looking."` + ANIMATION_HOST,
 
   '09': `# Oblique — Tilted Grid Gallery · Build Prompt
 
