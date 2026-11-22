@@ -63,7 +63,9 @@ export const PROMPTS = {
     title: 'Impact Grid',
     tech: 'DOM · CSS 3D · Wave-front springs',
     use: 'Tactile tile grids that answer every click with a shockwave.',
-    file: 'NR-06-impact-grid.md'
+    file: 'NR-06-impact-grid.md',
+    /* Free with any account — see FREE_IDS in api/prompt.mjs. */
+    free: true
   },
 
   '07': {

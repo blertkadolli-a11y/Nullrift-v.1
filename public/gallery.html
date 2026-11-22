@@ -40,7 +40,7 @@
 
 <link rel="stylesheet" href="css/base.css?v=14">
 <link rel="stylesheet" href="css/legal.css?v=2">
-<link rel="stylesheet" href="css/gallery.css?v=49">
+<link rel="stylesheet" href="css/gallery.css?v=50">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
@@ -54,7 +54,7 @@
   }
 }
 </script>
-<script type="module" src="js/gallery/index.js?v=57"></script>
+<script type="module" src="js/gallery/index.js?v=58"></script>
 </head>
 
 <body class="g-body">
@@ -109,7 +109,7 @@
   <nav class="nr-nav__links" aria-label="Primary">
     <a href="gallery.html" class="nr-link" aria-current="page">Animations</a>
     <a href="templates.html" class="nr-link">Templates</a>
-    <a href="#pricing" class="nr-link nr-link--pricing">Pricing</a>
+    <a href="pricing.html" class="nr-link nr-link--pricing">Pricing</a>
   </nav>
 
   <div class="nr-nav__actions">
@@ -118,7 +118,7 @@
       <svg class="nr-themebtn__i nr-themebtn__i--dark" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1Z"></path></svg>
       <svg class="nr-themebtn__i nr-themebtn__i--auto" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 0 1 0 18Z" fill="currentColor" stroke="none"></path></svg>
     </button>
-    <a class="nr-cta" href="#pricing" data-nr-buy>Get access</a>
+    <a class="nr-cta" href="pricing.html" data-nr-buy>Get access</a>
     <div class="acct" data-account-slot></div>
   </div>
 </header>
@@ -151,7 +151,7 @@
 
     <div class="hero__actions" data-reveal-fade>
       <a class="nr-cta hero__cta" href="#catalogue">Browse the gallery</a>
-      <a class="nr-cta nr-cta--ghost hero__cta" href="#pricing">See pricing &rarr;</a>
+      <a class="nr-cta nr-cta--ghost hero__cta" href="pricing.html">See pricing &rarr;</a>
     </div>
 
     <ul class="hero__stats" data-reveal-fade>
@@ -216,7 +216,7 @@
         <p class="card__desc">A real Navier&ndash;Stokes solve on the GPU &mdash; your pointer&rsquo;s velocity is the momentum.</p>
         <div class="card__actions">
           <button type="button" class="frame__btn frame__btn--prompt" data-prompt data-cursor="hover">
-            <span>GET THE PROMPT</span>
+            <span>Get the prompt</span>
           </button>
         </div>
       </div>
@@ -239,7 +239,7 @@
         <p class="card__desc">A dual-stage gravitational lens. Your pointer is the singularity.</p>
         <div class="card__actions">
           <button type="button" class="frame__btn frame__btn--prompt" data-prompt data-cursor="hover">
-            <span>GET THE PROMPT</span>
+            <span>Get the prompt</span>
           </button>
         </div>
       </div>
@@ -262,7 +262,7 @@
         <p class="card__desc">Variable font axes solved per glyph, per frame. No canvas anywhere.</p>
         <div class="card__actions">
           <button type="button" class="frame__btn frame__btn--prompt" data-prompt data-cursor="hover">
-            <span>GET THE PROMPT</span>
+            <span>Get the prompt</span>
           </button>
         </div>
       </div>
@@ -285,7 +285,7 @@
         <p class="card__desc">An octilinear autorouter drawing itself, live, in SVG.</p>
         <div class="card__actions">
           <button type="button" class="frame__btn frame__btn--prompt" data-prompt data-cursor="hover">
-            <span>GET THE PROMPT</span>
+            <span>Get the prompt</span>
           </button>
         </div>
       </div>
@@ -308,7 +308,7 @@
         <p class="card__desc">Tens of thousands of GPU points, one draw call, scrubbed by hand.</p>
         <div class="card__actions">
           <button type="button" class="frame__btn frame__btn--prompt" data-prompt data-cursor="hover">
-            <span>GET THE PROMPT</span>
+            <span>Get the prompt</span>
           </button>
         </div>
       </div>
@@ -327,11 +327,12 @@
       <div class="card__info">
         <h2 class="card__title" id="ex-06-title">
           <a class="card__link" href="#ex-06" data-card-open>Impact Grid</a>
+          <span class="card__free">Free</span>
         </h2>
         <p class="card__desc">A struck steel membrane built entirely from divs.</p>
         <div class="card__actions">
           <button type="button" class="frame__btn frame__btn--prompt" data-prompt data-cursor="hover">
-            <span>GET THE PROMPT</span>
+            <span>Get it free</span>
           </button>
         </div>
       </div>
@@ -354,7 +355,7 @@
         <p class="card__desc">A catalogue on a flat ellipse, half of it underground. Scrub to turn the ring.</p>
         <div class="card__actions">
           <button type="button" class="frame__btn frame__btn--prompt" data-prompt data-cursor="hover">
-            <span>GET THE PROMPT</span>
+            <span>Get the prompt</span>
           </button>
         </div>
       </div>
@@ -410,249 +411,87 @@
     </div>
   </section>
 
-  <!-- ============================ PRICING ============================ -->
-  <section class="plans" id="pricing" aria-labelledby="plans-title">
-    <div class="plans__head">
-      <p class="plans__label" data-reveal-fade>Pricing</p>
-      <h2 class="plans__title" id="plans-title" data-reveal-fade>Pick how much you want.</h2>
-      <p class="plans__deck" data-reveal-fade>
-        Every tier ships the same thing: the full buyer prompt for each system, written to be
-        pasted into your AI coding tool as-is. Nothing to install from us, no accounts to build.
+  <!-- ============================ IN PRODUCTION ============================ -->
+  <section class="soon" id="soon" aria-labelledby="soon-title">
+    <div class="soon__head">
+      <p class="mono library__label" data-reveal-fade>// IN PRODUCTION</p>
+      <h2 class="library__title" id="soon-title" data-reveal-fade>Next on the shelf.</h2>
+      <p class="library__deck" data-reveal-fade>
+        New systems are being built right now and land here as they ship. On Pro, every one
+        released in your 12 months is included at no extra cost.
       </p>
     </div>
-
-    <div class="plans__grid">
-
-      <!-- MONTHLY -->
-      <article class="plan" aria-labelledby="plan-monthly">
-        <p class="plan__tier">Monthly</p>
-        <p class="plan__price"><span class="plan__cur">$</span>7<span class="plan__per">/mo</span></p>
-        <p class="plan__unit">Unlock 3 systems every month</p>
-        <h3 class="plan__name" id="plan-monthly">Dip in.</h3>
-        <ul class="plan__list">
-          <li>Unlock any <strong>3 systems per billing month</strong></li>
-          <li>Anything you unlock <strong>stays unlocked</strong> while subscribed</li>
-          <li>Allowance refills on your renewal date</li>
-          <li>Cancel any time</li>
-        </ul>
-        <a class="plan__cta frame__btn" href="#" data-checkout="monthly">
-          <span>Start monthly</span>
-        </a>
-      </article>
-
-      <!-- PRO — featured -->
-      <article class="plan plan--feature" aria-labelledby="plan-pro">
-        <p class="plan__flag">Most taken</p>
-        <p class="plan__tier">Pro</p>
-        <p class="plan__price"><span class="plan__cur">$</span>89.99<span class="plan__per">once</span></p>
-        <p class="plan__unit">Everything, for a full year</p>
-        <h3 class="plan__name" id="plan-pro">One payment, the whole shelf.</h3>
-        <ul class="plan__list">
-          <li>Every animation &mdash; all <span data-count-total>08</span> &mdash; and every <a href="templates.html">template</a></li>
-          <li><strong>Every new system for 12 months</strong>, at no extra cost</li>
-          <li>Paid once. Not a subscription, nothing to cancel</li>
-          <li>Commercial use, no attribution required</li>
-        </ul>
-        <a class="plan__cta frame__btn frame__btn--prompt" href="#" data-checkout="pro">
-          <span>Get Pro</span>
-        </a>
-      </article>
-
-      <!-- TEAM -->
-      <article class="plan" aria-labelledby="plan-team">
-        <p class="plan__tier">Team</p>
-        <p class="plan__price"><span class="plan__cur">$</span>149.99<span class="plan__per">once</span></p>
-        <p class="plan__unit">Pro, for up to 6 people</p>
-        <h3 class="plan__name" id="plan-team">Bring the studio.</h3>
-        <ul class="plan__list">
-          <li><strong>Everything in Pro</strong>, same 12 months of new systems</li>
-          <li><strong>Six seats</strong> on one account</li>
-          <li>Use it across client work and internal projects</li>
-          <li>Paid once, shared by the whole team</li>
-        </ul>
-        <a class="plan__cta frame__btn" href="#" data-checkout="team">
-          <span>Get Team</span>
-        </a>
-      </article>
-
+    <div class="soon__grid" aria-hidden="true">
+      <div class="soon__card"><div class="soon__art"><span class="soon__scan"></span></div><p class="soon__code mono">EX.09</p><p class="soon__state mono"><i></i>In production</p></div>
+      <div class="soon__card"><div class="soon__art"><span class="soon__scan"></span></div><p class="soon__code mono">EX.10</p><p class="soon__state mono"><i></i>In production</p></div>
+      <div class="soon__card"><div class="soon__art"><span class="soon__scan"></span></div><p class="soon__code mono">EX.11</p><p class="soon__state mono"><i></i>In production</p></div>
     </div>
-
-    <!-- STUDIO — the wide partnership card -->
-    <article class="studio" aria-labelledby="plan-studio">
-      <div class="studio__copy">
-        <p class="studio__label">Studio &mdash; done for you</p>
-        <h3 class="studio__title" id="plan-studio">Get on a call. Leave with a whole site.</h3>
-        <p class="studio__deck">
-          Not a shelf and not a template. We get on a private call, you tell me what you want the
-          site to be, and I design and build the whole thing &mdash; pages, animations, interactions,
-          exactly the way you want them. You&rsquo;re in the room for the decisions, not filling in
-          a form and hoping.
-        </p>
-        <ul class="studio__list">
-          <li><strong>A private call</strong> &mdash; we plan the site together, start to finish</li>
-          <li><strong>The full website built for you</strong>, not a theme you assemble</li>
-          <li>Any animation you want, made to your taste &mdash; not just what&rsquo;s on the shelf</li>
-          <li>Lifetime access to the whole library included</li>
-          <li>You keep all the code. No lock-in, no subscription</li>
-        </ul>
-      </div>
-
-      <div class="studio__buy">
-        <p class="studio__flag">Founding rate &mdash; limited</p>
-        <p class="studio__price">
-          <span class="studio__was">$1,899</span>
-          <span class="studio__now"><span class="plan__cur">$</span>899</span>
-        </p>
-        <p class="studio__note">One payment for the whole build. No retainer, no renewal.</p>
-
-        <div class="studio__guarantee">
-          <p class="studio__guarantee-title">7 days, 80% back</p>
-          <p class="studio__guarantee-body">
-            If it isn&rsquo;t what you wanted, say so within the first 7 days and I refund
-            <strong>80% of what you paid</strong> &mdash; no argument.
-          </p>
-        </div>
-
-        <div class="studio__book">
-          <p class="studio__book-label">Reserve your call</p>
-
-          <div class="studio__book-opts">
-            <a class="studio__slot" href="#" data-book="15"
-               aria-label="Reserve a 15 minute fit check">
-              <span class="studio__slot-len">15<i>min</i></span>
-              <span class="studio__slot-kind">Fit check</span>
-              <span class="studio__slot-fee" data-deposit="15">&mdash;</span>
-              <span class="studio__slot-state" data-cta-label>Reserve</span>
-            </a>
-
-            <a class="studio__slot" href="#" data-book="30"
-               aria-label="Reserve a 30 minute full brief">
-              <span class="studio__slot-len">30<i>min</i></span>
-              <span class="studio__slot-kind">Full brief</span>
-              <span class="studio__slot-fee" data-deposit="30">&mdash;</span>
-              <span class="studio__slot-state" data-cta-label>Reserve</span>
-            </a>
-          </div>
-
-          <p class="studio__book-note" data-book-note>
-            Pick a time, pay the deposit, and the Google&nbsp;Meet link arrives with your
-            confirmation. The deposit comes off your build &mdash; and comes back if I turn
-            the job down.
-          </p>
-
-          <p class="studio__book-alt">
-            Rather talk first?
-            <a data-contact-mail="NULLRIFT — Studio enquiry" href="#">&mdash;</a>
-          </p>
-        </div>
-      </div>
-    </article>
-
-    <p class="plans__note">
-      <span>Commissions &amp; questions</span>
-      <a class="plans__mail" data-contact-mail href="#">&mdash;</a>
+    <p class="soon__ask">
+      Need something specific?
+      <a data-contact-mail="NULLRIFT — commission a system" data-keep-text="1" href="#">Commission a system &rarr;</a>
     </p>
   </section>
 
   <!-- ============================ FAQ ============================ -->
   <section class="faq" id="faq" aria-labelledby="faq-title">
-    <p class="plans__label" data-reveal-fade>FAQ</p>
-    <h2 class="faq__title" id="faq-title" data-reveal-fade>Questions, answered.</h2>
+    <p class="plans__label" data-reveal-fade>Questions</p>
+    <h2 class="faq__title" id="faq-title" data-reveal-fade>About the animations.</h2>
 
     <div class="faq__list">
       <details class="faq__item" open>
         <summary class="faq__q">What do I actually get?</summary>
         <div class="faq__a"><p>
-          Each system comes as a detailed prompt and spec file. Copy it, paste it into your AI
-          coding tool of choice, and you get the full production-ready section back &mdash; physics,
-          interactions, accessibility and teardown included. Everything running in the gallery
-          above was built from exactly these prompts.
+          Each animation comes as a detailed build prompt. Copy it, paste it into your AI coding
+          tool, and you get the full production-ready section back &mdash; physics, interactions,
+          accessibility and teardown included. Everything running in the gallery above was built
+          from exactly these prompts.
         </p></div>
       </details>
 
       <details class="faq__item">
-        <summary class="faq__q">What is the difference between an animation and a template?</summary>
+        <summary class="faq__q">Which AI tools does it work with?</summary>
         <div class="faq__a"><p>
-          An animation is one section &mdash; a hero, a reveal, a product picker &mdash; that you drop
-          into a site you already have. A <a href="templates.html">template</a> is a complete page:
-          layout, type, motion and responsive behaviour composed together, ready to become your
-          whole site. Both come as a prompt, and every plan covers both.
-        </p></div>
-      </details>
-
-      <details class="faq__item">
-        <summary class="faq__q">What does &ldquo;unlock 3 a month&rdquo; mean?</summary>
-        <div class="faq__a"><p>
-          On the $7 Monthly plan you can open up to 3 new systems per billing month, and anything
-          you unlock stays unlocked for as long as you&rsquo;re subscribed. The allowance refills
-          on your renewal date. Cancel whenever you like.
-        </p></div>
-      </details>
-
-      <details class="faq__item">
-        <summary class="faq__q">Monthly, Pro or Studio &mdash; which should I pick?</summary>
-        <div class="faq__a"><p>
-          Monthly ($7) suits the occasional build. Pro ($89.99, paid once) pays for itself fast if
-          you ship regularly &mdash; the whole library plus every new system for a year. Studio
-          ($899) is for when you don&rsquo;t want to build anything at all: we get on a call and I
-          make the entire website for you, animations included.
-        </p></div>
-      </details>
-
-      <details class="faq__item">
-        <summary class="faq__q">Is Pro really a one-time payment?</summary>
-        <div class="faq__a"><p>
-          Yes. Pro and Team are paid once &mdash; there is nothing to cancel. You get the full
-          library immediately and every system added over the following 12 months. After that year
-          your existing systems stay yours permanently; you simply stop receiving new ones.
-        </p></div>
-      </details>
-
-      <details class="faq__item">
-        <summary class="faq__q">How does the Team plan work?</summary>
-        <div class="faq__a"><p>
-          Team is Pro with six seats on one account, paid once. Use it across client work and
-          internal projects &mdash; there is no per-project licence and no attribution required.
-        </p></div>
-      </details>
-
-      <details class="faq__item">
-        <summary class="faq__q">What actually happens on the Studio call?</summary>
-        <div class="faq__a"><p>
-          We talk through what the site needs to be &mdash; the pages, the feel, the animations you
-          want and the ones you don&rsquo;t. You describe it however you like; sketches, a site you
-          admire, or just talking. I go away and build it, come back with it working, and we adjust
-          until it&rsquo;s what you pictured. You keep all the code at the end.
-        </p></div>
-      </details>
-
-      <details class="faq__item">
-        <summary class="faq__q">What is the refund policy?</summary>
-        <div class="faq__a"><p>
-          On Studio, if it isn&rsquo;t what you wanted, tell me within the first 7 days and I refund
-          80% of what you paid, no argument. The remaining 20% covers the call and the work already
-          started on your build.
-        </p></div>
-      </details>
-
-      <details class="faq__item">
-        <summary class="faq__q">Can I use these in client work?</summary>
-        <div class="faq__a"><p>
-          Yes, on every tier. Commercial use is included and no attribution is required. The only
-          thing you cannot do is resell the prompts themselves as a competing product.
+          Any tool that writes and edits code for you: Claude Code, Cursor, GitHub Copilot,
+          Windsurf and the like. The prompts are plain text with exact numbers and acceptance
+          checks, so they do not depend on one tool. Results vary a little between models; the
+          prompt says precisely what &ldquo;done&rdquo; means so your tool can check its own work.
         </p></div>
       </details>
 
       <details class="faq__item">
         <summary class="faq__q">Do I need a framework or a build step?</summary>
         <div class="faq__a"><p>
-          Not for the animations. Every one is plain HTML, CSS and JavaScript &mdash; no framework,
-          no bundler, no npm install. Drop the module in, point it at an element, and it runs.
-          Templates vary. Oblique is the same plain HTML, CSS and JavaScript.
-          <a href="templates.html#tpl-02">HADAL</a> and <a href="templates.html#tpl-03">WOBL</a> are
-          Vite + React Three Fiber sites whose 3D models are generated in Blender, so they need Node
-          and Blender installed. <a href="templates.html#tpl-04">AUTOCARS</a> is a Next.js site and
-          needs Node. Your AI tool sets it all up from the prompt.
+          No. Every animation is plain HTML, CSS and JavaScript &mdash; no framework, no bundler,
+          no npm install. The prompt also tells your tool how to mount it inside React or Next.js
+          if that is what your site runs on.
+        </p></div>
+      </details>
+
+      <details class="faq__item">
+        <summary class="faq__q">Can I change the colours, text and speed?</summary>
+        <div class="faq__a"><p>
+          Yes. Brand text sits in one place at the top of each module, and colours and timing are
+          named values, so you can ask your AI tool for &ldquo;our orange, slower&rdquo; and it
+          knows exactly what to change.
+        </p></div>
+      </details>
+
+      <details class="faq__item">
+        <summary class="faq__q">Does it work on phones?</summary>
+        <div class="faq__a"><p>
+          Yes. Every animation works with touch, stays smooth down to 360px wide, pauses when it
+          is off screen so it never drains a battery, and shows a composed still for people who
+          turn motion off.
+        </p></div>
+      </details>
+
+      <details class="faq__item">
+        <summary class="faq__q">Can I try one before paying?</summary>
+        <div class="faq__a"><p>
+          Yes. <a href="#ex-06">Impact Grid</a> is free with an account &mdash; the whole prompt,
+          not a sample. Every other card also shows the opening of its prompt, so you can see
+          exactly how they are written. Billing questions are answered on the
+          <a href="pricing.html#faq">pricing page</a>.
         </p></div>
       </details>
     </div>
@@ -664,7 +503,7 @@
     <h2 class="outro__title" id="outro-title">Ship motion people remember.</h2>
     <p class="outro__deck">Every system on this page is yours as a prompt. Paste it into your AI coding tool and it builds the live section, with touch, resize and reduced motion already handled.</p>
     <div class="outro__actions">
-      <a class="nr-cta" href="#pricing" data-nr-buy>See plans</a>
+      <a class="nr-cta" href="pricing.html" data-nr-buy>See plans</a>
       <a class="nr-cta nr-cta--ghost" href="templates.html">Browse templates &rarr;</a>
     </div>
     <footer class="site-foot">
@@ -680,7 +519,7 @@
         <p class="site-foot__head">Library</p>
         <a href="gallery.html">Animations</a>
         <a href="templates.html">Templates</a>
-        <a href="gallery.html#pricing">Pricing</a>
+        <a href="pricing.html">Pricing</a>
       </nav>
       <nav class="site-foot__col" aria-label="Help">
         <p class="site-foot__head">Help</p>
@@ -731,40 +570,6 @@
   </button>
 </div>
 
-<!-- Founding-100 offer. Arrives once the grid is in view, and collapses to
-     the tab below rather than being destroyed, so it is always reachable. -->
-<aside class="offer" id="offer" hidden>
-  <div class="offer__veil" data-offer-dismiss aria-hidden="true"></div>
-  <div class="offer__card" role="dialog" aria-modal="true" aria-labelledby="offer-title" aria-describedby="offer-desc" tabindex="-1">
-    <button type="button" class="offer__x" data-offer-dismiss aria-label="Minimise this offer">
-      <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-        <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="1.4"/>
-      </svg>
-    </button>
-
-    <p class="offer__flag mono">Founding <span data-offer-seats>100</span></p>
-    <h2 class="offer__title" id="offer-title">
-      $<span data-offer-price>200</span> once. Pro, and a site built for you.
-    </h2>
-    <p class="offer__desc" id="offer-desc">
-      The first <span data-offer-seats>100</span> people get everything in Pro &mdash; every
-      system, every new one for 12 months &mdash; plus one website of your choosing,
-      designed and built by us.
-    </p>
-
-    <a class="offer__cta frame__btn frame__btn--prompt" data-offer-cta href="#">
-      <span data-cta-label>Claim a seat</span>
-    </a>
-
-    <p class="offer__fine mono" data-offer-count></p>
-  </div>
-</aside>
-
-<button type="button" class="offer__tab" id="offer-tab" hidden data-offer-open
-        aria-label="Reopen the founding offer">
-  <span class="offer__tab-dot" aria-hidden="true"></span>
-  <span class="mono">Offer</span>
-</button>
 
 <!-- Buyer prompt panel -->
 <div class="prompt" id="prompt-panel" hidden role="dialog" aria-modal="true" aria-labelledby="prompt-title">

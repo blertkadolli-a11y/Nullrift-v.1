@@ -253,7 +253,7 @@ function stampCounts() {
     el.textContent = 'EX. 01 — ' + total;
   });
 }
-stampCounts();
+if (exhibits.length) stampCounts();
 
 /* The switch between the two shelves quotes both of their sizes, and this page
    only holds one shelf's cards — so those counts come from the catalogue
@@ -264,6 +264,15 @@ promptsReady.then((m) => {
   document.querySelectorAll('[data-count-kind]').forEach((el) => {
     const n = counts[el.dataset.countKind];
     if (typeof n === 'number') el.textContent = String(n).padStart(2, '0');
+  });
+  /* A page with no live cards (pricing) still quotes the shelf size. */
+  if (!exhibits.length && typeof counts.animation === 'number') {
+    document.querySelectorAll('[data-count-total]').forEach((el) => { el.textContent = String(counts.animation); });
+  }
+  /* In running text ("All 8"), a bare number reads better than "08". */
+  document.querySelectorAll('[data-count-plain]').forEach((el) => {
+    const n = counts[el.dataset.countPlain];
+    if (typeof n === 'number') el.textContent = String(n);
   });
 }, () => { /* the markup keeps its fallback numbers */ });
 
@@ -336,6 +345,12 @@ function wireCommerce() {
    every path back here is built from the page actually loaded. */
 const PAGE = (location.pathname.split('/').pop() || 'gallery.html');
 
+/* Pricing used to be a section of this page. Old links (#pricing) land on its
+   own page now, with any ?buy= carried across. */
+if (location.hash === '#pricing' && document.getElementById('plans') === null) {
+  location.replace('pricing.html' + location.search);
+}
+
 /* Where "sign in" goes, with a same-origin return path attached. `cardId` is
    the card's element id, so signing in lands back on the very card. */
 function authHref(cardId) {
@@ -387,7 +402,7 @@ function personaliseCheckouts(session) {
     if (user) {
       el.href = personalisedCheckout(url, user);
     } else {
-      const back = PAGE + '?buy=' + encodeURIComponent(checkoutKey(el)) + '#pricing';
+      const back = PAGE + '?buy=' + encodeURIComponent(checkoutKey(el));
       el.href = 'auth.html?next=' + encodeURIComponent(back);
     }
   });
@@ -478,7 +493,7 @@ async function paintPlan(el) {
     if (e.tier === 'monthly') {
       el.append(' · ');
       const up = document.createElement('a');
-      up.href = (document.getElementById('pricing') ? '' : 'gallery.html') + '#pricing';
+      up.href = 'pricing.html';
       up.textContent = 'Upgrade';
       el.appendChild(up);
     }
@@ -487,7 +502,7 @@ async function paintPlan(el) {
   el.dataset.kind = 'none';
   el.append('No plan yet · ');
   const a = document.createElement('a');
-  a.href = (document.getElementById('pricing') ? '' : 'gallery.html') + '#pricing';
+  a.href = 'pricing.html';
   a.textContent = 'See plans';
   el.appendChild(a);
 }
@@ -900,6 +915,31 @@ exhibits.forEach((ex) => {
    remembered, so a returning visitor is never popped at twice.
 --------------------------------------------------------------------------- */
 
+/* The pricing page carries the offer inline, as a section of its own. Same
+   numbers, same checkout link, same "no live-looking dead button" rule. */
+function wireOfferInline() {
+  const box = document.querySelector('.founding');
+  if (!box) return;
+  box.querySelectorAll('[data-offer-seats]').forEach((el) => { el.textContent = String(OFFER.seats); });
+  box.querySelectorAll('[data-offer-price]').forEach((el) => { el.textContent = String(OFFER.price); });
+  const countEl = box.querySelector('[data-offer-count]');
+  if (countEl) {
+    const taken = Number(OFFER.claimed);
+    countEl.textContent = Number.isFinite(taken) && OFFER.claimed !== null
+      ? taken + ' of ' + OFFER.seats + ' claimed'
+      : OFFER.seats + ' seats total';
+  }
+  const cta = box.querySelector('[data-offer-cta]');
+  if (cta) {
+    wireTarget(cta, OFFER.url, OFFER.deadLabel);
+    if (OFFER.url) {
+      cta.dataset.checkoutUrl = OFFER.url;
+      personaliseCheckouts(auth.getSession());
+    }
+  }
+}
+wireOfferInline();
+
 function wireOffer() {
   const card = document.getElementById('offer');
   const tab = document.getElementById('offer-tab');
@@ -1155,6 +1195,7 @@ const promptFields = {
   copyLabel: document.querySelector('[data-prompt-copy-label]')
 };
 let promptOpenFor = null;
+let promptIsFree = false;
 let copyTimer = 0;
 let lastFocus = null;
 
@@ -1202,7 +1243,7 @@ async function fetchBody(id, unlock) {
 }
 
 const GATE_COPY = {
-  sign_in_required: 'Sign in to read this prompt.',
+  sign_in_required: 'Below are the first lines. Sign in to open the whole prompt.',
   payment_required: 'This prompt is part of a paid tier. See pricing to unlock it.',
   unlock_required: 'Monthly opens any 3 systems per billing month, and anything you unlock stays open while you are subscribed.',
   allowance_spent: 'You have used this month\u2019s 3 unlocks. Pro opens the whole shelf for good.',
@@ -1230,8 +1271,12 @@ async function openPrompt(ex) {
   if (promptFields.tech) promptFields.tech.textContent = data.tech;
   if (promptFields.use) promptFields.use.textContent = data.use;
   if (promptFields.file) promptFields.file.textContent = data.file;
-  if (promptFields.body) promptFields.body.textContent = 'Unlocking…';
+  if (promptFields.body) {
+    promptFields.body.textContent = 'Unlocking…';
+    promptFields.body.classList.remove('is-preview');
+  }
   if (promptFields.copyLabel) promptFields.copyLabel.textContent = 'Copy prompt';
+  promptIsFree = !!data.free;
   setPromptGate(null);
 
   const copyBtn = promptPanel.querySelector('[data-prompt-copy]');
@@ -1258,7 +1303,11 @@ async function releaseBody(id, unlock) {
 
   if (out.body) {
     openBody = out.body;
-    if (promptFields.body) promptFields.body.textContent = out.body;
+    if (promptFields.body) {
+      promptFields.body.textContent = out.body;
+      promptFields.body.classList.remove('is-preview');
+      promptFields.body.removeAttribute('aria-label');
+    }
     setPromptGate(null);
     return;
   }
@@ -1266,6 +1315,29 @@ async function releaseBody(id, unlock) {
   openBody = '';
   if (promptFields.body) promptFields.body.textContent = '';
   setPromptGate(out.error, out);
+  showPreview(id);
+}
+
+/* Under the lock, the opening of the prompt, fading out: a buyer sees what
+   they are paying for instead of an empty box. The server cuts the excerpt,
+   so the full text never reaches a browser that has not unlocked it. */
+const previewCache = new Map();
+
+async function showPreview(id) {
+  if (!promptFields.body) return;
+  let data = previewCache.get(id);
+  if (!data) {
+    try {
+      const r = await fetch('/api/prompt?id=' + encodeURIComponent(id) + '&preview=1');
+      data = r.ok ? await r.json() : null;
+    } catch (err) { data = null; }
+    if (data && data.preview) previewCache.set(id, data);
+  }
+  /* Still the same locked prompt? Then paint it. */
+  if (!data || !data.preview || !promptOpenFor || promptOpenFor.id !== id || openBody) return;
+  promptFields.body.textContent = data.preview;
+  promptFields.body.classList.add('is-preview');
+  promptFields.body.setAttribute('aria-label', 'Preview: the first lines of ' + (data.total_lines || 'this') + ' lines');
 }
 
 /* "14 Dec" — the day a Monthly allowance refills. */
@@ -1307,6 +1379,9 @@ function setPromptGate(kind, info) {
   const copyBtn = promptPanel.querySelector('[data-prompt-copy]');
   if (copyBtn) copyBtn.setAttribute('aria-disabled', 'true');
   let msg = GATE_COPY[kind] || GATE_COPY.unavailable;
+  if (kind === 'sign_in_required' && promptIsFree) {
+    msg = 'This one is free. Sign in or create a free account and the whole prompt opens.';
+  }
   const refills = shortDate(info && info.refillsAt);
   if (kind === 'allowance_spent' && refills) {
     msg = 'You have used this month\u2019s 3 unlocks. They refill on ' + refills +
@@ -1316,7 +1391,7 @@ function setPromptGate(kind, info) {
 
   const go = gate.querySelector('[data-gate-go]');
   const left = info && typeof info.remaining === 'number' ? info.remaining : null;
-  if (kind === 'sign_in_required') go.textContent = 'Sign in';
+  if (kind === 'sign_in_required') go.textContent = promptIsFree ? 'Sign in free' : 'Sign in';
   else if (kind === 'payment_required' || kind === 'outside_plan_year') go.textContent = 'See pricing';
   else if (kind === 'unlock_required') {
     go.textContent = left === null ? 'Unlock this one' : 'Unlock this one (' + left + ' left)';
@@ -1338,12 +1413,12 @@ async function onGateAction() {
 
   if (kind === 'payment_required' || kind === 'allowance_spent' || kind === 'outside_plan_year') {
     closePrompt();
-    /* Only the gallery carries the full plans. Elsewhere, go to them. */
-    const plans = document.getElementById('pricing');
+    /* The plans live on their own page. */
+    const plans = document.getElementById('plans');
     if (plans && plans.querySelector('[data-checkout]')) {
       plans.scrollIntoView({ behavior: 'smooth' });
     } else {
-      location.href = 'gallery.html#pricing';
+      location.href = 'pricing.html';
     }
     return;
   }

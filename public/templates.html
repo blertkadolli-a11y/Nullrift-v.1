@@ -40,7 +40,7 @@
 
 <link rel="stylesheet" href="css/base.css?v=14">
 <link rel="stylesheet" href="css/legal.css?v=2">
-<link rel="stylesheet" href="css/gallery.css?v=49">
+<link rel="stylesheet" href="css/gallery.css?v=50">
 <link rel="stylesheet" href="css/templates.css?v=1">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
@@ -49,7 +49,7 @@
 
 <!-- The same orchestrator as the gallery: lazy mounting, fullscreen, the
      gated prompt panel and accounts all behave identically on both shelves. -->
-<script type="module" src="js/gallery/index.js?v=57"></script>
+<script type="module" src="js/gallery/index.js?v=58"></script>
 </head>
 
 <body class="g-body">
@@ -101,7 +101,7 @@
   <nav class="nr-nav__links" aria-label="Primary">
     <a href="gallery.html" class="nr-link">Animations</a>
     <a href="templates.html" class="nr-link" aria-current="page">Templates</a>
-    <a href="gallery.html#pricing" class="nr-link nr-link--pricing">Pricing</a>
+    <a href="pricing.html" class="nr-link nr-link--pricing">Pricing</a>
   </nav>
 
   <div class="nr-nav__actions">
@@ -110,7 +110,7 @@
       <svg class="nr-themebtn__i nr-themebtn__i--dark" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1Z"></path></svg>
       <svg class="nr-themebtn__i nr-themebtn__i--auto" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 0 1 0 18Z" fill="currentColor" stroke="none"></path></svg>
     </button>
-    <a class="nr-cta" href="gallery.html#pricing" data-nr-buy>Get access</a>
+    <a class="nr-cta" href="pricing.html" data-nr-buy>Get access</a>
     <div class="acct" data-account-slot></div>
   </div>
 </header>
@@ -438,22 +438,90 @@
     </div>
   </section>
 
-  <!-- ============================ PLANS ============================ -->
-  <aside class="tpl-plans" aria-labelledby="tpl-plans-title">
-    <div>
-      <p class="mono library__label">// PRICING</p>
-      <h2 class="tpl-plans__title" id="tpl-plans-title">Same library, same plans.</h2>
-      <p class="tpl-plans__deck">
-        Templates sit on the same shelf as the animations, so every plan covers them. Pro and
-        Team include every template, and every new one for 12 months. Or skip the build entirely:
-        on Studio we make the whole site for you.
+  <!-- ============================ IN PRODUCTION ============================ -->
+  <section class="soon soon--tpl" id="soon" aria-labelledby="soon-title">
+    <div class="soon__head">
+      <p class="mono library__label" data-reveal-fade>// IN PRODUCTION</p>
+      <h2 class="library__title" id="soon-title" data-reveal-fade>More whole sites on the way.</h2>
+      <p class="library__deck" data-reveal-fade>
+        The next templates are being built now. On Pro, every template released in your
+        12 months is included at no extra cost.
       </p>
     </div>
-    <div class="tpl-plans__actions">
-      <a class="frame__btn frame__btn--prompt" href="gallery.html#pricing"><span>See plans</span></a>
-      <a class="frame__btn" href="#" data-contact-mail="NULLRIFT — Studio enquiry" data-keep-text="1"><span>Ask about Studio</span></a>
+    <div class="soon__grid" aria-hidden="true">
+      <div class="soon__card"><div class="soon__art"><span class="soon__bar"><i></i><i></i><i></i></span><span class="soon__scan"></span></div><p class="soon__code mono">TPL.05</p><p class="soon__state mono"><i></i>In production</p></div>
+      <div class="soon__card"><div class="soon__art"><span class="soon__bar"><i></i><i></i><i></i></span><span class="soon__scan"></span></div><p class="soon__code mono">TPL.06</p><p class="soon__state mono"><i></i>In production</p></div>
     </div>
-  </aside>
+    <p class="soon__ask">
+      Want your own site built instead?
+      <a href="pricing.html#studio">See Studio &rarr;</a>
+    </p>
+  </section>
+
+  <!-- ============================ FAQ ============================ -->
+  <section class="faq" id="faq" aria-labelledby="faq-title">
+    <p class="plans__label" data-reveal-fade>Questions</p>
+    <h2 class="faq__title" id="faq-title" data-reveal-fade>About the templates.</h2>
+
+    <div class="faq__list">
+      <details class="faq__item" open>
+        <summary class="faq__q">What is in a template prompt?</summary>
+        <div class="faq__a"><p>
+          The whole site, written down: every page, every line of copy, every colour, every
+          animation and the technical decisions behind them, taken from the finished build you can
+          preview above. Paste it into an AI coding tool that can create files and run commands,
+          and it builds the site from start to finish.
+        </p></div>
+      </details>
+
+      <details class="faq__item">
+        <summary class="faq__q">What do I need installed?</summary>
+        <div class="faq__a"><p>
+          <a href="#tpl-01">Oblique</a> is plain HTML, CSS and JavaScript &mdash; nothing to install.
+          <a href="#tpl-02">HADAL</a> and <a href="#tpl-03">WOBL</a> are React Three Fiber sites
+          whose 3D models are generated in Blender, so they need Node.js and Blender.
+          <a href="#tpl-04">AUTOCARS</a> is a Next.js site and needs Node.js. Each prompt lists its
+          requirements at the top, and your AI tool sets the project up.
+        </p></div>
+      </details>
+
+      <details class="faq__item">
+        <summary class="faq__q">How do I make it my own?</summary>
+        <div class="faq__a"><p>
+          Build it as written, then tell your AI tool what to change: your name, your work, your
+          copy, your colours. The templates are built around content slots, so swapping the
+          fictional brand for yours is a matter of describing it.
+        </p></div>
+      </details>
+
+      <details class="faq__item">
+        <summary class="faq__q">How long does a build take?</summary>
+        <div class="faq__a"><p>
+          Longer than an animation. Oblique is a single sitting. The 3D templates are full
+          projects &mdash; models, scenes and several pages &mdash; and are best run in a tool and
+          plan that allows a long session. The prompt is precise, but AI output is not identical
+          every time, so expect a review round or two.
+        </p></div>
+      </details>
+
+      <details class="faq__item">
+        <summary class="faq__q">Do they work on phones?</summary>
+        <div class="faq__a"><p>
+          Yes. Every template is responsive from 360px, works with touch, and handles reduced
+          motion &mdash; it is part of what the prompt asks for, not an afterthought.
+        </p></div>
+      </details>
+
+      <details class="faq__item">
+        <summary class="faq__q">Are templates included in my plan?</summary>
+        <div class="faq__a"><p>
+          Yes. Pro and Team include every template, plus every new one for 12 months. On Monthly a
+          template counts as one of your 3 unlocks. Plans and billing are on the
+          <a href="pricing.html">pricing page</a>.
+        </p></div>
+      </details>
+    </div>
+  </section>
 
   <!-- ============================ OUTRO ============================ -->
   <section class="outro" aria-labelledby="outro-title">
@@ -461,7 +529,7 @@
     <h2 class="outro__title" id="outro-title">Start from a whole page.</h2>
     <p class="outro__deck">Every template ships as one prompt that builds the full site, with scroll, touch, resize and reduced-motion handling already solved.</p>
     <div class="outro__actions">
-      <a class="nr-cta" href="gallery.html#pricing" data-nr-buy>See plans</a>
+      <a class="nr-cta" href="pricing.html" data-nr-buy>See plans</a>
       <a class="nr-cta nr-cta--ghost" href="gallery.html">Browse animations &rarr;</a>
     </div>
     <footer class="site-foot">
@@ -477,7 +545,7 @@
         <p class="site-foot__head">Library</p>
         <a href="gallery.html">Animations</a>
         <a href="templates.html">Templates</a>
-        <a href="gallery.html#pricing">Pricing</a>
+        <a href="pricing.html">Pricing</a>
       </nav>
       <nav class="site-foot__col" aria-label="Help">
         <p class="site-foot__head">Help</p>

@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#05070c" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<title>Pricing — NULLRIFT</title>
+<meta name="description" content="NULLRIFT pricing: Monthly at $7, Pro at $89.99 once for every animation and template plus a year of new ones, Team for six people, or Studio, where the whole site is built for you.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="NULLRIFT">
+<meta property="og:title" content="Pricing — NULLRIFT">
+<meta property="og:description" content="NULLRIFT pricing: Monthly at $7, Pro at $89.99 once for every animation and template plus a year of new ones, Team for six people, or Studio, where the whole site is built for you.">
+<meta property="og:url" content="https://nullrift-v-1.vercel.app/pricing.html">
+<meta property="og:image" content="https://nullrift-v-1.vercel.app/assets/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="NULLRIFT — motion systems and whole sites, as prompts.">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="assets/nullrift-logo.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/nullrift-logo.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&family=Roboto+Flex:opsz,slnt,wdth,wght,GRAD@8..144,-10..0,25..151,100..1000,-200..150&family=Space+Grotesk:wght@500;700&family=Syne:wght@800&display=swap">
+
+<!-- Theme is resolved before the first paint. Deferring this to a module would
+     flash the wrong theme on every load, which is worse than no toggle. -->
+<script>
+(function () {
+  try {
+    var t = localStorage.getItem('nr-theme');
+    if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+  } catch (e) { /* private mode — fall through to the system preference */ }
+})();
+</script>
+
+<link rel="stylesheet" href="css/base.css?v=14">
+<link rel="stylesheet" href="css/legal.css?v=2">
+<link rel="stylesheet" href="css/gallery.css?v=50">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+<script src="js/chrome.js?v=7" defer></script>
+
+<script type="module" src="js/gallery/index.js?v=58"></script>
+</head>
+
+
+<body class="g-body g-pricing">
+
+<div class="nr-grain" aria-hidden="true"></div>
+<div class="g-scrim g-scrim--top" aria-hidden="true"></div>
+
+<a class="nr-skip" href="#plans">Skip to the plans</a>
+
+<header class="nr-nav">
+  <a class="nr-nav__mark" href="index.html" aria-label="NULLRIFT home">
+    <svg class="nr-nav__glyph" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <circle cx="32" cy="32" r="19"></circle>
+      <path d="M14.68 49.32 49.32 14.68"></path>
+    </svg>
+    <span class="nr-nav__label">NULLRIFT</span>
+  </a>
+
+  <nav class="nr-nav__links" aria-label="Primary">
+    <a href="gallery.html" class="nr-link">Animations</a>
+    <a href="templates.html" class="nr-link">Templates</a>
+    <a href="pricing.html" class="nr-link nr-link--pricing" aria-current="page">Pricing</a>
+  </nav>
+
+  <div class="nr-nav__actions">
+    <button type="button" class="nr-themebtn" data-theme-cycle aria-label="Colour theme: match system">
+      <svg class="nr-themebtn__i nr-themebtn__i--light" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 2.6v2.2M12 19.2v2.2M4.2 12H2M22 12h-2.2M6.5 6.5 4.9 4.9M19.1 19.1l-1.6-1.6M17.5 6.5l1.6-1.6M4.9 19.1l1.6-1.6"></path></svg>
+      <svg class="nr-themebtn__i nr-themebtn__i--dark" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1Z"></path></svg>
+      <svg class="nr-themebtn__i nr-themebtn__i--auto" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 0 1 0 18Z" fill="currentColor" stroke="none"></path></svg>
+    </button>
+    <div class="acct" data-account-slot></div>
+  </div>
+</header>
+
+<main id="main" class="g-main">
+
+  <!-- ============================ HEAD ============================ -->
+  <section class="phero" aria-labelledby="phero-title">
+    <p class="phero__eyebrow"><span class="hero__pip" aria-hidden="true"></span>Pricing</p>
+    <h1 class="phero__title" id="phero-title">Pick how much you want.</h1>
+    <p class="phero__deck">
+      Every plan ships the same thing: the full build prompt for each system, written to be
+      pasted into your AI coding tool as-is. Pay monthly, pay once, or have the whole site made for you.
+    </p>
+    <ul class="phero__trust">
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"></path></svg>Secure checkout by Polar</li>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Commercial use on every plan</li>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg>Cancel Monthly any time</li>
+    </ul>
+  </section>
+
+  <!-- ============================ PLANS ============================ -->
+  <section class="plans plans--page" id="plans" aria-label="Plans">
+    <div class="plans__grid">
+
+      <!-- MONTHLY -->
+      <article class="plan" aria-labelledby="plan-monthly">
+        <p class="plan__tier">Monthly</p>
+        <p class="plan__price"><span class="plan__cur">$</span>7<span class="plan__per">/mo</span></p>
+        <p class="plan__unit">Unlock 3 systems every month</p>
+        <h3 class="plan__name" id="plan-monthly">Dip in.</h3>
+        <ul class="plan__list">
+          <li>Unlock any <strong>3 systems per billing month</strong></li>
+          <li>Anything you unlock <strong>stays unlocked</strong> while subscribed</li>
+          <li>Allowance refills on your renewal date</li>
+          <li>Cancel any time</li>
+        </ul>
+        <a class="plan__cta frame__btn" href="#" data-checkout="monthly">
+          <span>Start monthly</span>
+        </a>
+      </article>
+
+      <!-- PRO — featured -->
+      <article class="plan plan--feature" aria-labelledby="plan-pro">
+        <p class="plan__flag">Most taken</p>
+        <p class="plan__tier">Pro</p>
+        <p class="plan__price"><span class="plan__cur">$</span>89.99<span class="plan__per">once</span></p>
+        <p class="plan__unit">Everything, for a full year</p>
+        <h3 class="plan__name" id="plan-pro">One payment, the whole shelf.</h3>
+        <ul class="plan__list">
+          <li>Every animation &mdash; all <span data-count-total>08</span> &mdash; and every <a href="templates.html">template</a></li>
+          <li><strong>Every new system for 12 months</strong>, at no extra cost</li>
+          <li>Paid once. Not a subscription, nothing to cancel</li>
+          <li>Commercial use, no attribution required</li>
+        </ul>
+        <a class="plan__cta frame__btn frame__btn--prompt" href="#" data-checkout="pro">
+          <span>Get Pro</span>
+        </a>
+      </article>
+
+      <!-- TEAM -->
+      <article class="plan" aria-labelledby="plan-team">
+        <p class="plan__tier">Team</p>
+        <p class="plan__price"><span class="plan__cur">$</span>149.99<span class="plan__per">once</span></p>
+        <p class="plan__unit">Pro, for up to 6 people</p>
+        <h3 class="plan__name" id="plan-team">Bring the studio.</h3>
+        <ul class="plan__list">
+          <li><strong>Everything in Pro</strong>, same 12 months of new systems</li>
+          <li><strong>Six seats</strong> on one account</li>
+          <li>Use it across client work and internal projects</li>
+          <li>Paid once, shared by the whole team</li>
+        </ul>
+        <a class="plan__cta frame__btn" href="#" data-checkout="team">
+          <span>Get Team</span>
+        </a>
+      </article>
+
+    </div>
+
+    <!-- Free: the proof before the purchase -->
+    <aside class="freebar" aria-labelledby="freebar-title">
+      <span class="freebar__tag">Free</span>
+      <p class="freebar__copy">
+        <strong id="freebar-title">Not sure yet? Try one free.</strong>
+        <span>The full Impact Grid prompt is yours with a free account. Paste it into your AI tool and watch it build.</span>
+      </p>
+      <a class="frame__btn" href="gallery.html#ex-06"><span>Try Impact Grid</span><span aria-hidden="true">&rarr;</span></a>
+    </aside>
+  </section>
+
+  <!-- ======================= FOUNDING 100 ======================= -->
+  <section class="founding" aria-labelledby="founding-title">
+    <div class="founding__copy">
+      <p class="founding__flag mono">Founding <span data-offer-seats>100</span> &middot; launch only</p>
+      <h2 class="founding__title" id="founding-title">$<span data-offer-price>200</span> once. Pro, and a site built for you.</h2>
+      <p class="founding__deck">
+        The first <span data-offer-seats>100</span> people get everything in Pro &mdash; every system,
+        and every new one for 12 months &mdash; plus one website of your choosing, designed and built by us.
+      </p>
+    </div>
+    <div class="founding__buy">
+      <a class="frame__btn frame__btn--prompt" data-offer-cta href="#"><span data-cta-label>Claim a seat</span></a>
+      <p class="founding__fine mono" data-offer-count></p>
+    </div>
+  </section>
+
+  <!-- ============================ COMPARE ============================ -->
+  <section class="compare" id="compare" aria-labelledby="compare-title">
+    <div class="compare__head">
+      <p class="plans__label">Compare</p>
+      <h2 class="plans__title" id="compare-title">Every plan, side by side.</h2>
+    </div>
+    <div class="compare__wrap">
+      <table class="compare__table">
+        <thead>
+          <tr>
+            <th scope="col"><span class="sr-only">Feature</span></th>
+            <th scope="col">Monthly<span>$7 / month</span></th>
+            <th scope="col" class="is-feature">Pro<span>$89.99 once</span></th>
+            <th scope="col">Team<span>$149.99 once</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">Animations</th><td>3 a month, your pick</td><td class="is-feature">All <span data-count-plain="animation">8</span></td><td>All <span data-count-plain="animation">8</span></td></tr>
+          <tr><th scope="row">Templates</th><td>Count toward your 3</td><td class="is-feature">All <span data-count-plain="template">4</span></td><td>All <span data-count-plain="template">4</span></td></tr>
+          <tr><th scope="row">New systems for 12 months</th><td><span class="no" aria-label="No">&mdash;</span></td><td class="is-feature"><span class="yes" aria-label="Yes"></span></td><td><span class="yes" aria-label="Yes"></span></td></tr>
+          <tr><th scope="row">What you unlocked stays yours</th><td>While subscribed</td><td class="is-feature">For good</td><td>For good</td></tr>
+          <tr><th scope="row">Seats</th><td>1</td><td class="is-feature">1</td><td>6</td></tr>
+          <tr><th scope="row">Commercial and client work</th><td><span class="yes" aria-label="Yes"></span></td><td class="is-feature"><span class="yes" aria-label="Yes"></span></td><td><span class="yes" aria-label="Yes"></span></td></tr>
+          <tr><th scope="row">Attribution required</th><td>No</td><td class="is-feature">No</td><td>No</td></tr>
+          <tr><th scope="row">Billing</th><td>Monthly, cancel any time</td><td class="is-feature">Once, nothing to cancel</td><td>Once, nothing to cancel</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============================ STUDIO ============================ -->
+  <section class="plans plans--studio" id="studio" aria-label="Studio">
+    <article class="studio" aria-labelledby="plan-studio">
+      <div class="studio__copy">
+        <p class="studio__label">Studio &mdash; done for you</p>
+        <h3 class="studio__title" id="plan-studio">Get on a call. Leave with a whole site.</h3>
+        <p class="studio__deck">
+          Not a shelf and not a template. We get on a private call, you tell me what you want the
+          site to be, and I design and build the whole thing &mdash; pages, animations, interactions,
+          exactly the way you want them. You&rsquo;re in the room for the decisions, not filling in
+          a form and hoping.
+        </p>
+        <ul class="studio__list">
+          <li><strong>A private call</strong> &mdash; we plan the site together, start to finish</li>
+          <li><strong>The full website built for you</strong>, not a theme you assemble</li>
+          <li>Any animation you want, made to your taste &mdash; not just what&rsquo;s on the shelf</li>
+          <li>Lifetime access to the whole library included</li>
+          <li>You keep all the code. No lock-in, no subscription</li>
+        </ul>
+      </div>
+
+      <div class="studio__buy">
+        <p class="studio__flag">Founding rate &mdash; limited</p>
+        <p class="studio__price">
+          <span class="studio__was">$1,899</span>
+          <span class="studio__now"><span class="plan__cur">$</span>899</span>
+        </p>
+        <p class="studio__note">One payment for the whole build. No retainer, no renewal.</p>
+
+        <div class="studio__guarantee">
+          <p class="studio__guarantee-title">7 days, 80% back</p>
+          <p class="studio__guarantee-body">
+            If it isn&rsquo;t what you wanted, say so within the first 7 days and I refund
+            <strong>80% of what you paid</strong> &mdash; no argument.
+          </p>
+        </div>
+
+        <div class="studio__book">
+          <p class="studio__book-label">Reserve your call</p>
+
+          <div class="studio__book-opts">
+            <a class="studio__slot" href="#" data-book="15"
+               aria-label="Reserve a 15 minute fit check">
+              <span class="studio__slot-len">15<i>min</i></span>
+              <span class="studio__slot-kind">Fit check</span>
+              <span class="studio__slot-fee" data-deposit="15">&mdash;</span>
+              <span class="studio__slot-state" data-cta-label>Reserve</span>
+            </a>
+
+            <a class="studio__slot" href="#" data-book="30"
+               aria-label="Reserve a 30 minute full brief">
+              <span class="studio__slot-len">30<i>min</i></span>
+              <span class="studio__slot-kind">Full brief</span>
+              <span class="studio__slot-fee" data-deposit="30">&mdash;</span>
+              <span class="studio__slot-state" data-cta-label>Reserve</span>
+            </a>
+          </div>
+
+          <p class="studio__book-note" data-book-note>
+            Pick a time, pay the deposit, and the Google&nbsp;Meet link arrives with your
+            confirmation. The deposit comes off your build &mdash; and comes back if I turn
+            the job down.
+          </p>
+
+          <p class="studio__book-alt">
+            Rather talk first?
+            <a data-contact-mail="NULLRIFT — Studio enquiry" href="#">&mdash;</a>
+          </p>
+        </div>
+      </div>
+    </article>
+
+    <p class="plans__note">
+      <span>Commissions &amp; questions</span>
+      <a class="plans__mail" data-contact-mail href="#">&mdash;</a>
+    </p>
+  </section>
+
+  <!-- ============================ FAQ ============================ -->
+  <section class="faq" id="faq" aria-labelledby="faq-title">
+    <p class="plans__label">Billing questions</p>
+    <h2 class="faq__title" id="faq-title">Before you pay.</h2>
+
+    <div class="faq__list">
+      <details class="faq__item" open>
+        <summary class="faq__q">Monthly, Pro or Studio &mdash; which should I pick?</summary>
+        <div class="faq__a"><p>
+          Monthly ($7) suits the occasional build. Pro ($89.99, paid once) pays for itself fast if
+          you ship regularly &mdash; the whole library plus every new system for a year. Studio
+          ($899) is for when you don&rsquo;t want to build anything at all: we get on a call and I
+          make the entire website for you, animations included.
+        </p></div>
+      </details>
+
+      <details class="faq__item">
+        <summary class="faq__q">What does &ldquo;unlock 3 a month&rdquo; mean?</summary>
+        <div class="faq__a"><p>
+          On Monthly you can open up to 3 new systems per billing month &mdash; animations or
+          templates, each one counts once. Anything you unlock stays unlocked for as long as
+          you&rsquo;re subscribed, and the allowance refills on your renewal date.
+        </p></div>
+      </details>
+
+      <details class="faq__item">
+        <summary class="faq__q">Is Pro really a one-time payment?</summary>
+        <div class="faq__a"><p>
+          Yes. Pro and Team are paid once &mdash; there is nothing to cancel. You get the full
+          library immediately and every system added over the following 12 months. After that year
+          your existing systems stay yours permanently; you simply stop receiving new ones.
+        </p></div>
+      </details>
+
+      <details class="faq__item">
+        <summary class="faq__q">How does the Team plan work?</summary>
+        <div class="faq__a"><p>
+          Team is Pro with six seats on one account, paid once. Use it across client work and
+          internal projects &mdash; there is no per-project licence and no attribution required.
+        </p></div>
+      </details>
+
+      <details class="faq__item">
+        <summary class="faq__q">How do I cancel Monthly?</summary>
+        <div class="faq__a"><p>
+          From the link in your Polar receipt email, any time. You keep everything you unlocked
+          until the end of the month you paid for. Questions about a payment go to
+          <a data-contact-mail="NULLRIFT — billing" href="#">&mdash;</a>.
+        </p></div>
+      </details>
+
+      <details class="faq__item">
+        <summary class="faq__q">Who handles the payment?</summary>
+        <div class="faq__a"><p>
+          Polar, our merchant of record. They take the card details, handle tax and send your
+          receipt &mdash; we never see your card. Your plan unlocks on your NULLRIFT account
+          seconds after the payment goes through.
+        </p></div>
+      </details>
+
+      <details class="faq__item">
+        <summary class="faq__q">What actually happens on the Studio call?</summary>
+        <div class="faq__a"><p>
+          We talk through what the site needs to be &mdash; the pages, the feel, the animations you
+          want and the ones you don&rsquo;t. You describe it however you like; sketches, a site you
+          admire, or just talking. I go away and build it, come back with it working, and we adjust
+          until it&rsquo;s what you pictured. You keep all the code at the end.
+        </p></div>
+      </details>
+
+      <details class="faq__item">
+        <summary class="faq__q">What is the refund policy?</summary>
+        <div class="faq__a"><p>
+          On Studio, if it isn&rsquo;t what you wanted, tell me within the first 7 days and I refund
+          80% of what you paid, no argument. The remaining 20% covers the call and the work already
+          started on your build. For the prompt plans, see the <a href="terms.html">terms</a>.
+        </p></div>
+      </details>
+
+      <details class="faq__item">
+        <summary class="faq__q">Can I use these in client work?</summary>
+        <div class="faq__a"><p>
+          Yes, on every plan. Commercial use is included and no attribution is required. The only
+          thing you cannot do is resell the prompts themselves as a competing product.
+        </p></div>
+      </details>
+    </div>
+  </section>
+
+  <!-- ============================ OUTRO ============================ -->
+  <section class="outro" aria-labelledby="outro-title">
+    <p class="outro__eyebrow">Still deciding?</p>
+    <h2 class="outro__title" id="outro-title">See it build first.</h2>
+    <p class="outro__deck">Every animation and template runs live on the site. Open one, drive it, and try Impact Grid&rsquo;s full prompt free before you pay for anything.</p>
+    <div class="outro__actions">
+      <a class="nr-cta" href="gallery.html#ex-06">Try Impact Grid free</a>
+      <a class="nr-cta nr-cta--ghost" href="gallery.html">Browse animations &rarr;</a>
+    </div>
+    <footer class="site-foot">
+      <div class="site-foot__brand">
+        <a class="site-foot__mark" href="index.html">
+          <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false"><circle cx="32" cy="32" r="19"></circle><path d="M14.68 49.32 49.32 14.68"></path></svg>
+          NULLRIFT
+        </a>
+        <p>Live motion systems and whole-site templates, sold as prompts you paste into your AI coding tool.</p>
+        <a class="site-foot__mail" data-contact-mail="NULLRIFT — hello" data-keep-text="1" href="mailto:nullriftdesign@gmail.com">nullriftdesign@gmail.com</a>
+      </div>
+      <nav class="site-foot__col" aria-label="Library">
+        <p class="site-foot__head">Library</p>
+        <a href="gallery.html">Animations</a>
+        <a href="templates.html">Templates</a>
+        <a href="pricing.html">Pricing</a>
+      </nav>
+      <nav class="site-foot__col" aria-label="Help">
+        <p class="site-foot__head">Help</p>
+        <a href="gallery.html#faq">FAQ</a>
+        <a href="auth.html">Account</a>
+        <a data-contact-mail="NULLRIFT — support" data-keep-text="1" href="mailto:nullriftdesign@gmail.com">Contact</a>
+      </nav>
+      <nav class="site-foot__col" aria-label="Legal">
+        <p class="site-foot__head">Legal</p>
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+      </nav>
+      <div class="site-foot__base">
+        <span>&copy; 2026 NULLRIFT</span>
+        <span class="site-foot__secure"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"></path></svg>Checkout handled securely by Polar</span>
+      </div>
+    </footer>
+  </section>
+
+</main>
+
+</body>
+</html>

@@ -37,6 +37,29 @@ const NEW_RELEASES_FOR_MS = 365 * 24 * 60 * 60 * 1000;
    supabase-setup.sql applied; without it every prompt fails closed (503). */
 const REQUIRE_PAID = true;
 
+/* Free with any account: one system anyone can paste into their own tool and
+   watch build, which proves the paid ones better than any copy can. Signing in
+   is still required, so the free prompt is not a public file. */
+const FREE_IDS = new Set(['06']);
+
+/* GET ?preview=1 — the opening of a prompt, shown faded under the lock so a
+   buyer sees what they are paying for. A fixed excerpt cut at a line break,
+   identical for everyone, so it can be cached and never grows into the body. */
+const PREVIEW_LINES = 12;
+const PREVIEW_CHARS = 900;
+
+function excerpt(body) {
+  const lines = body.split('\n');
+  const out = [];
+  let size = 0;
+  for (const line of lines) {
+    if (out.length >= PREVIEW_LINES || size + line.length > PREVIEW_CHARS) break;
+    out.push(line);
+    size += line.length + 1;
+  }
+  return { preview: out.join('\n'), total_lines: lines.length };
+}
+
 /* NEXT_PUBLIC_* is accepted too: those are the names Supabase's own dashboard
    hands you, so a copy-paste into Vercel works without being renamed first. */
 const SUPABASE_URL =
@@ -99,9 +122,19 @@ export default async function handler(req, res) {
     });
   }
 
-  const id = new URL(req.url, 'http://localhost').searchParams.get('id');
+  const params = new URL(req.url, 'http://localhost').searchParams;
+  const id = params.get('id');
   const body = getBody(id);
   if (!body) return send(res, 404, { error: 'unknown_prompt' });
+
+  if (req.method === 'GET' && params.get('preview') === '1') {
+    const key = String(id).padStart(2, '0');
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=3600');
+    res.end(JSON.stringify(Object.assign({ id: key, free: FREE_IDS.has(key) }, excerpt(body))));
+    return;
+  }
 
   const auth = req.headers.authorization || '';
   const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
@@ -116,6 +149,8 @@ export default async function handler(req, res) {
   if (!user) return send(res, 401, { error: 'sign_in_required' });
 
   const key = String(id).padStart(2, '0');
+
+  if (FREE_IDS.has(key)) return send(res, 200, { id: key, body, free: true });
 
   if (REQUIRE_PAID) {
     let access;
