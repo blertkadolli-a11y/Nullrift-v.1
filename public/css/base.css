@@ -542,25 +542,13 @@ button {
   flex: none;
 }
 
-.nr-theme {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  padding: 3px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-pill);
-  /* Translucent so the switch reads as a control floating on the page rather
-     than a second opaque box now that the bar behind it is gone. */
-  background: color-mix(in srgb, var(--surface-2) 62%, transparent);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-.nr-theme__btn {
+/* One icon button; the icon is the mode in force. */
+.nr-themebtn {
+  position: relative;
   display: inline-grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
+  width: 36px;
+  height: 36px;
   border-radius: var(--r-pill);
   color: var(--text-mid);
   cursor: pointer;
@@ -570,32 +558,57 @@ button {
     transform 0.15s var(--ease-out-expo);
 }
 
-.nr-theme__btn svg {
-  width: 15px;
-  height: 15px;
+.nr-themebtn__i {
+  grid-area: 1 / 1;
+  width: 17px;
+  height: 17px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.7;
   stroke-linecap: round;
   stroke-linejoin: round;
+  opacity: 0;
+  transform: rotate(-40deg) scale(0.7);
+  transition: opacity 0.25s ease, transform 0.35s var(--ease-out-expo);
 }
 
-.nr-theme__btn:hover,
-.nr-theme__btn:focus-visible {
-  color: var(--hover-theme);
-  background: var(--hover-theme-bg);
+.nr-themebtn[data-mode="light"] .nr-themebtn__i--light,
+.nr-themebtn[data-mode="dark"] .nr-themebtn__i--dark,
+.nr-themebtn:not([data-mode="light"]):not([data-mode="dark"]) .nr-themebtn__i--auto {
+  opacity: 1;
+  transform: none;
 }
 
-.nr-theme__btn:active {
-  transform: scale(0.92);
-  background: color-mix(in srgb, var(--hover-theme) 22%, transparent);
+.nr-themebtn:hover,
+.nr-themebtn:focus-visible {
+  color: var(--text);
+  background: var(--surface-2);
 }
 
-.nr-theme__btn[aria-pressed="true"] {
-  background: var(--active-theme-bg);
-  color: var(--active-theme-fg);
-  box-shadow: var(--shadow-1);
+.nr-themebtn:active { transform: scale(0.92); }
+
+/* Plain "Sign in" beside the primary button, the way product sites set it:
+   a text action, not a second pill competing with the one that sells. */
+.nr-signin {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 0.7rem;
+  border-radius: var(--r-pill);
+  color: var(--text-mid);
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: color 0.2s ease, background-color 0.2s ease;
 }
+
+.nr-signin:hover,
+.nr-signin:focus-visible { color: var(--text); background: var(--surface-2); }
+
+/* Someone who already has a plan is not sold to in the header. index.js sets
+   data-plan on <html> once it has read the account's plan. */
+:root[data-plan] [data-nr-buy] { display: none; }
 
 .nr-cta {
   display: inline-flex;
@@ -659,7 +672,7 @@ button {
 }
 
 /* Three links plus the actions do not fit a phone. Pricing is the one to
-   drop: the CTA beside it already says "Get all from $7" and goes there. */
+   drop: the "Get access" button beside it goes to the same place. */
 @media (max-width: 600px) {
   .nr-link--pricing { display: none; }
 }
@@ -669,7 +682,8 @@ button {
    the one that can go: with no stored choice the page already follows the
    phone's own light/dark setting, which is what a phone user expects anyway. */
 @media (max-width: 480px) {
-  .nr-theme { display: none; }
+  .nr-themebtn { display: none; }
+  .nr-signin { padding: 0 0.45rem; font-size: 0.82rem; }
 }
 
 /* --------------------------------------------------------------------------
@@ -740,3 +754,13 @@ button {
     transform: none;
   }
 }
+
+/* Signed out, "Sign in" sits before the primary button (Sign in · Get access);
+   signed in, the avatar closes the row. The theme icon always leads. */
+.nr-nav__actions .nr-themebtn { order: -2; }
+.nr-nav__actions .acct:has(> .nr-signin) { order: -1; margin-right: -0.25rem; }
+
+/* The corner labels frame the first screen. Once the page scrolls they would
+   sit on top of cards and prices, so they step aside. */
+.nr-corner { transition: opacity 0.3s ease; }
+.nr-nav.is-stuck ~ .nr-corner { opacity: 0; }

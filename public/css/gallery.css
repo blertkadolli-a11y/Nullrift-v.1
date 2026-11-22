@@ -2340,27 +2340,31 @@ html.is-prompt-open .offer__tab {
 .avatar__art { width: 100%; height: 100%; display: block; }
 .avatar__img { width: 100%; height: 100%; object-fit: cover; }
 
+/* Just the face, like every product people already sign in to. The name and
+   email are one click away, at the top of the menu. */
 .acct__chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
   height: 38px;
-  padding: 0 0.75rem 0 0.35rem;
+  padding: 0;
   border: 1px solid var(--line);
   border-radius: var(--r-pill);
   background: var(--surface-2);
-  color: var(--text);
-  font-family: var(--font-body);
-  font-size: 0.86rem;
-  font-weight: 600;
   cursor: pointer;
-  transition: border-color 0.2s ease, background-color 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s var(--ease-out-expo);
 }
 
-.acct__chip:hover,
-.acct__chip:focus-visible { border-color: var(--accent); }
+.acct__chip .avatar--sm { width: 30px; height: 30px; }
 
-.acct__name { max-width: 9ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acct__chip:hover,
+.acct__chip:focus-visible,
+.acct__chip[aria-expanded="true"] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.acct__chip:active { transform: scale(0.95); }
 
 .acct__menu {
   position: absolute;
@@ -2369,12 +2373,22 @@ html.is-prompt-open .offer__tab {
   z-index: calc(var(--z-chrome) + 10);
   display: flex;
   flex-direction: column;
-  min-width: 15rem;
+  min-width: 16.5rem;
   padding: 0.4rem;
   border: 1px solid var(--line);
-  border-radius: var(--r-btn);
+  border-radius: 12px;
   background: var(--surface);
   box-shadow: var(--shadow-2);
+  transform-origin: top right;
+  animation: acct-in 0.18s var(--ease-out-expo);
+}
+
+@keyframes acct-in {
+  from { opacity: 0; transform: translateY(-4px) scale(0.97); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .acct__menu { animation: none; }
 }
 
 .acct__who {
@@ -2781,6 +2795,23 @@ html.is-prompt-open .offer__tab {
 
 .acct__plan[data-kind="active"] { color: var(--text); }
 .acct__plan a { color: var(--accent); text-decoration: underline; text-underline-offset: 0.2em; }
+.acct__plan[data-kind="active"]::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 0.45rem;
+  border-radius: 50%;
+  background: var(--acid);
+  vertical-align: 0.05em;
+}
+
+/* Pricing cards for someone who already holds a plan. */
+.plan__cta[data-owned] {
+  pointer-events: none;
+  opacity: 0.62;
+}
+.plan--current { outline: 1px solid var(--accent); outline-offset: -1px; }
 
 /* ---------------------------------------------------------------------------
    Back from checkout
@@ -2843,3 +2874,172 @@ html.is-prompt-open .offer__tab {
 @media (prefers-reduced-motion: reduce) {
   .paid, .paid__pip { animation: none; }
 }
+
+/* ---------------------------------------------------------------------------
+   Founding offer as a corner card, not a modal
+
+   A blocking dialog over the work, the moment someone starts looking at it,
+   is what a pop-up ad does. Premium shops announce an offer and let you keep
+   browsing: a card in the corner, no veil, no scroll lock, no stolen focus.
+   --------------------------------------------------------------------------- */
+
+.offer {
+  inset: auto clamp(0.9rem, 2.5vw, 1.6rem) calc(4.5rem + env(safe-area-inset-bottom, 0px)) auto;
+  display: block;
+  padding: 0;
+  pointer-events: none;
+}
+
+.offer__veil { display: none; }
+
+.offer__card {
+  pointer-events: auto;
+  width: min(22rem, calc(100vw - 1.8rem));
+  padding: 1.35rem 1.35rem 1.15rem;
+  border-radius: 16px;
+  box-shadow: 0 24px 60px -18px rgba(0, 0, 0, 0.55), var(--shadow-2);
+}
+
+.offer__title { font-size: 1.15rem; line-height: 1.25; }
+.offer__desc { font-size: 0.86rem; }
+
+/* Someone who already bought is not sold the offer either. */
+:root[data-plan] .offer,
+:root[data-plan] .offer__tab { display: none !important; }
+
+/* ---------------------------------------------------------------------------
+   Closing call to action + site footer
+   --------------------------------------------------------------------------- */
+
+.outro {
+  padding-block: clamp(5rem, 14vh, 9rem) clamp(2rem, 5vh, 3rem);
+}
+
+.outro__eyebrow {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.outro__title {
+  margin: 0.9rem 0 1.2rem;
+  max-width: 14ch;
+  font-size: clamp(2.4rem, 6.4vw, 5.6rem);
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  text-transform: none;
+}
+
+.outro__deck { margin-bottom: 2rem; max-width: 52ch; }
+
+.outro__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.outro__actions .nr-cta { height: 46px; padding: 0 1.4rem; font-size: 0.95rem; }
+
+.site-foot {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
+  gap: 2.5rem 2rem;
+  margin-top: clamp(5rem, 13vh, 8rem);
+  padding-top: 2.5rem;
+  border-top: 1px solid var(--g-hair-soft, var(--line-soft));
+}
+
+.site-foot__brand p {
+  max-width: 36ch;
+  margin: 0.9rem 0 1rem;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--text-mid);
+}
+
+.site-foot__mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+
+.site-foot__mark svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 4;
+}
+
+.site-foot__mail {
+  font-size: 0.88rem;
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: var(--line);
+  text-underline-offset: 0.25em;
+}
+
+.site-foot__mail:hover { text-decoration-color: var(--accent); }
+
+.site-foot__col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.site-foot__head {
+  margin: 0 0 0.3rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.site-foot__col a {
+  width: fit-content;
+  font-size: 0.88rem;
+  color: var(--text-mid);
+  transition: color 0.15s ease;
+}
+
+.site-foot__col a:hover,
+.site-foot__col a:focus-visible { color: var(--text); }
+
+.site-foot__base {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.8rem 2rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--g-hair-soft, var(--line-soft));
+  font-size: 0.8rem;
+  color: var(--ash);
+}
+
+.site-foot__secure {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.site-foot__secure svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+@media (max-width: 760px) {
+  .site-foot { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .site-foot__brand { grid-column: 1 / -1; }
+}
+
+/* The reopen tab would otherwise sit on the footer's last line. */
+html.is-at-foot .offer__tab { visibility: hidden; }

@@ -10,6 +10,33 @@
 (function () {
   "use strict";
 
+  /* ------------------------------------------------------------ one address
+
+     A sign-in lives in the browser storage of one web address. Vercel also
+     serves every deployment at its own long *.vercel.app address, and anyone
+     who signs in there and then pays comes back from Polar to the main address
+     — signed out, because to the browser that is a different site. So the
+     long addresses forward to the main one. ?stay keeps a preview where it is
+     (for checking a deployment before it goes live), for that tab only.
+     When nullrift.design is live, change CANONICAL to it. */
+  var CANONICAL = "nullrift-v-1.vercel.app";
+  try {
+    var host = location.hostname;
+    var stay = /[?&]stay\b/.test(location.search);
+    if (stay) sessionStorage.setItem("nr-stay", "1");
+    if (
+      host !== CANONICAL &&
+      /\.vercel\.app$/.test(host) &&
+      window.top === window &&
+      !stay &&
+      sessionStorage.getItem("nr-stay") !== "1"
+    ) {
+      location.replace("https://" + CANONICAL + location.pathname + location.search + location.hash);
+      return;
+    }
+  } catch (err) { /* storage blocked: stay put rather than loop */ }
+
+
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   var NR = (window.NR = window.NR || {});
@@ -148,11 +175,15 @@
 
   /* ----------------------------------------------------------------- theme */
 
-  function initTheme() {
-    var group = document.querySelector(".nr-theme");
-    if (!group) return;
+  /* One button, three states, shown by the icon for the current one:
+     match system → light → dark → match system. A three-way segmented switch
+     sat in the bar like a second navigation; this is the size of an icon. */
+  var THEME_ORDER = ["auto", "light", "dark"];
+  var THEME_LABEL = { auto: "match system", light: "light", dark: "dark" };
 
-    var buttons = group.querySelectorAll("[data-theme-set]");
+  function initTheme() {
+    var btn = document.querySelector("[data-theme-cycle]");
+    if (!btn) return;
 
     function current() {
       return document.documentElement.dataset.theme || "auto";
@@ -160,9 +191,10 @@
 
     function paint() {
       var now = current();
-      Array.prototype.forEach.call(buttons, function (b) {
-        b.setAttribute("aria-pressed", String(b.dataset.themeSet === now));
-      });
+      var next = THEME_ORDER[(THEME_ORDER.indexOf(now) + 1) % THEME_ORDER.length];
+      btn.dataset.mode = now;
+      btn.setAttribute("aria-label", "Colour theme: " + THEME_LABEL[now] + ". Switch to " + THEME_LABEL[next]);
+      btn.title = "Theme: " + THEME_LABEL[now];
     }
 
     function apply(next) {
@@ -180,8 +212,9 @@
       paint();
     }
 
-    Array.prototype.forEach.call(buttons, function (b) {
-      b.addEventListener("click", function () { apply(b.dataset.themeSet); });
+    btn.addEventListener("click", function () {
+      var now = current();
+      apply(THEME_ORDER[(THEME_ORDER.indexOf(now) + 1) % THEME_ORDER.length]);
     });
 
     paint();

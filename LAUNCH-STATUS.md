@@ -34,6 +34,9 @@ AI must pass), so a pasted prompt produces something that runs straight away.
 **Site**: link-preview image (`public/assets/og.jpg`), sitemap, Privacy, Terms, 404,
 security headers, robots.txt.
 
+**Keep-awake**: Vercel calls `/api/keepalive` daily so the free Supabase project never
+pauses (a paused project stops every sign-in).
+
 ## You must do
 
 1. **Test a purchase without spending money**: Polar → Products → Discounts → a 100% code,
@@ -67,6 +70,8 @@ Tell Claude, or change these from `https://nullrift-v-1.vercel.app` to
 - Supabase → URL Configuration → Site URL.
 - `public/*.html` og:url / og:image tags, `public/sitemap.xml`, `public/robots.txt`.
 - Google OAuth client: add the new origin.
+- `public/js/chrome.js`: `CANONICAL` (the address every *.vercel.app copy forwards to,
+  so a sign-in never splits across two addresses).
 
 ## Optional / later
 

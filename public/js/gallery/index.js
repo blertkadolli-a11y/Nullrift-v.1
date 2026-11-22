@@ -303,17 +303,31 @@ function wireCommerce() {
     if (url) el.dataset.checkoutUrl = url;
   });
 
+  /* No booking page yet: the slot is booked by email instead. A buyer must
+     never read "not connected" on a card that is asking them for $899. */
   document.querySelectorAll('[data-book]').forEach((el) => {
     const slot = BOOKING[el.dataset.book];
-    wireTarget(el, slot && slot.url, 'Booking not connected');
+    if (slot && slot.url) { wireTarget(el, slot.url, ''); return; }
+    const label = el.querySelector('[data-cta-label]') || el.querySelector('span') || el;
+    el.href = 'mailto:' + CONTACT_MAIL + '?subject=' +
+      encodeURIComponent('NULLRIFT Studio — ' + el.dataset.book + ' min ' + ((slot && slot.label) || 'call'));
+    el.removeAttribute('data-unwired');
+    el.removeAttribute('aria-disabled');
+    if (label !== el) label.textContent = 'Book by email';
   });
+
+  const note = document.querySelector('[data-book-note]');
+  if (note && !Object.keys(BOOKING).some((k) => BOOKING[k].url)) {
+    note.textContent = 'Email with the length you want. I reply with times that suit you, and the Google Meet link comes with the confirmation.';
+  }
 
   /* The quoted deposit comes from the same object that holds the URL charging
      it, so the copy cannot drift away from what the visitor is actually asked
-     to pay. */
+     to pay. With no booking page, nothing is charged online, so none is quoted. */
   document.querySelectorAll('[data-deposit]').forEach((el) => {
     const slot = BOOKING[el.dataset.deposit];
     if (!slot) return;
+    if (!slot.url) { el.textContent = 'Arranged by email'; return; }
     el.textContent = slot.deposit > 0 ? '$' + slot.deposit + ' deposit' : 'Free';
   });
 }
@@ -404,15 +418,70 @@ function planText(e) {
   return name + ' plan';
 }
 
+/* What the page shows someone who already has a plan:
+     - no "Get access" in the header (CSS keys off <html data-plan>)
+     - on the pricing cards, their own plan says so, and anything it already
+       includes stops looking like something to buy. A higher tier stays
+       buyable: Monthly → Pro is an upgrade, not a duplicate. */
+const TIER_RANK = { monthly: 1, pro: 2, team: 3 };
+
+function applyPlan(e) {
+  const tier = e && TIER_RANK[e.tier] ? e.tier : '';
+  if (tier) document.documentElement.dataset.plan = tier;
+  else delete document.documentElement.dataset.plan;
+
+  document.querySelectorAll('.plan__cta[data-checkout]').forEach((cta) => {
+    const key = cta.dataset.checkout;
+    const card = cta.closest('.plan');
+    const label = cta.querySelector('span') || cta;
+    if (!cta.dataset.buyLabel) cta.dataset.buyLabel = label.textContent;
+    const mine = tier && key === tier;
+    const included = tier && !mine && TIER_RANK[key] < TIER_RANK[tier];
+    if (card) card.classList.toggle('plan--current', !!mine);
+    if (mine || included) {
+      label.textContent = mine ? 'Your current plan' : 'Included in your plan';
+      cta.setAttribute('data-owned', '');
+      cta.setAttribute('aria-disabled', 'true');
+      cta.setAttribute('tabindex', '-1');
+    } else {
+      label.textContent = cta.dataset.buyLabel;
+      cta.removeAttribute('data-owned');
+      cta.removeAttribute('aria-disabled');
+      cta.removeAttribute('tabindex');
+    }
+  });
+}
+
+/* Read once per sign-in state. Signed out clears it straight away; signed in
+   asks the server, which is the only thing that knows. */
+let planFor = null;
+auth.onChange((session) => {
+  const id = session && session.user ? session.user.id : null;
+  if (id === planFor) return;
+  planFor = id;
+  if (!id) { applyPlan(null); return; }
+  auth.loadEntitlement().then((e) => {
+    if (planFor === id) applyPlan(e);
+  });
+});
+
 /* The account menu's plan line. textContent only; the "See plans" link is
    built as a node, never from strings. */
 async function paintPlan(el) {
   if (!el) return;
   const e = await auth.loadEntitlement();
+  applyPlan(e);
   el.textContent = '';
   if (e) {
     el.textContent = planText(e);
     el.dataset.kind = 'active';
+    if (e.tier === 'monthly') {
+      el.append(' · ');
+      const up = document.createElement('a');
+      up.href = (document.getElementById('pricing') ? '' : 'gallery.html') + '#pricing';
+      up.textContent = 'Upgrade';
+      el.appendChild(up);
+    }
     return;
   }
   el.dataset.kind = 'none';
@@ -469,6 +538,7 @@ function wireCheckoutReturn() {
   (async function poll() {
     const e = await auth.loadEntitlement();
     if (e) {
+      applyPlan(e);
       say('You are in. Your ' + planText(e) + ' is active, so every prompt on it is open.', 'ok');
       return;
     }
@@ -544,10 +614,10 @@ function wireAccount() {
 
     /* textContent, not interpolation — a username is user input and must never
        reach innerHTML. */
-    const n1 = slot.querySelector('.acct__name');
+    const chip = slot.querySelector('.acct__chip');
     const n2 = slot.querySelector('.acct__whoname');
     const mail = slot.querySelector('.acct__mail');
-    if (n1) n1.textContent = name;
+    if (chip) chip.setAttribute('aria-label', 'Account: ' + name);
     if (n2) n2.textContent = name;
     if (mail) mail.textContent = auth.getEmail();
 
@@ -560,9 +630,8 @@ function wireAccount() {
 
   function buildSignedIn() {
     slot.innerHTML =
-      '<button type="button" class="acct__chip" aria-haspopup="true" aria-expanded="false">' +
+      '<button type="button" class="acct__chip" aria-haspopup="true" aria-expanded="false" aria-label="Account">' +
         '<span class="avatar avatar--sm"></span>' +
-        '<span class="acct__name"></span>' +
       '</button>' +
       '<div class="acct__menu" hidden>' +
         '<p class="acct__who"><span class="acct__whoname"></span>' +
@@ -643,7 +712,7 @@ function wireAccount() {
     /* A real link to a real page, not a modal: it can be opened in a new tab,
        linked to, and bookmarked, and `next` brings the visitor back here. */
     slot.innerHTML =
-      '<a class="nr-cta nr-cta--ghost" href="' + authHref() + '">Sign in</a>';
+      '<a class="nr-signin" href="' + authHref() + '">Sign in</a>';
   }
 
   auth.onChange(async (session) => {
@@ -870,42 +939,35 @@ function wireOffer() {
     }
   }
 
-  /* Centre stage means it is a real modal: it takes the scroll and the focus
-     while it is up, and gives both back on the way out. */
-  let lastOfferFocus = null;
+  /* A corner card, not a modal: the page keeps its scroll and the visitor
+     keeps their focus. Opened from the tab, it does take focus, because then
+     the visitor asked for it. */
+  const sheet = card.querySelector('.offer__card');
+  if (sheet) {
+    sheet.setAttribute('role', 'region');
+    sheet.removeAttribute('aria-modal');
+    sheet.setAttribute('aria-label', 'Founding offer');
+  }
 
-  function show() {
-    lastOfferFocus = document.activeElement;
+  function show(asked) {
     card.hidden = false;
     tab.hidden = true;
-    document.body.style.overflow = 'hidden';
-    const sheet = card.querySelector('.offer__card');
-    if (sheet) sheet.focus({ preventScroll: true });
+    if (asked === true && sheet) sheet.focus({ preventScroll: true });
   }
 
   function collapse() {
     if (card.hidden) return;
+    const hadFocus = card.contains(document.activeElement);
     card.hidden = true;
     tab.hidden = false;
-    /* The prompt panel and fullscreen own this same property. Only hand the
-       scroll back if neither of them is still holding it. */
-    if (!expanded && (!promptPanel || promptPanel.hidden)) {
-      document.body.style.overflow = '';
-    }
-    const restore = lastOfferFocus;
-    lastOfferFocus = null;
-    if (restore && typeof restore.focus === 'function') {
-      restore.focus({ preventScroll: true });
-    } else {
-      tab.focus({ preventScroll: true });
-    }
+    if (hadFocus) tab.focus({ preventScroll: true });
     try { localStorage.setItem(KEY, '1'); } catch (err) { /* private mode */ }
   }
 
   card.querySelectorAll('[data-offer-dismiss]').forEach((el) => {
     el.addEventListener('click', collapse);
   });
-  tab.addEventListener('click', show);
+  tab.addEventListener('click', () => show(true));
 
   /* Escape collapses rather than closes: the offer should always still be
      reachable, and a visitor pressing Escape wants it out of the way, not
@@ -923,16 +985,27 @@ function wireOffer() {
     return;
   }
 
+  /* Arrives a few seconds after the work is on screen, so the first thing a
+     visitor sees in the catalogue is the catalogue. */
   const seen = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (!entry.isIntersecting) return;
       seen.disconnect();
-      show();
+      setTimeout(() => { if (!dismissed) show(); }, 6000);
     });
   }, { threshold: 0.18 });
   seen.observe(section);
 }
 wireOffer();
+
+/* Tell the CSS when the footer is on screen, so floating chrome steps off it. */
+(function watchFoot() {
+  const foot = document.querySelector('.site-foot');
+  if (!foot || !('IntersectionObserver' in window)) return;
+  new IntersectionObserver((entries) => {
+    entries.forEach((e) => html.classList.toggle('is-at-foot', e.isIntersecting));
+  }).observe(foot);
+})();
 
 /* ------------------------------------------- expand + buyer prompt chrome */
 

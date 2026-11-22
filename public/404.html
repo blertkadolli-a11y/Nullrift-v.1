@@ -27,11 +27,11 @@
 })();
 </script>
 
-<link rel="stylesheet" href="/css/base.css?v=13">
+<link rel="stylesheet" href="/css/base.css?v=14">
 <link rel="stylesheet" href="/css/auth.css?v=7">
 <link rel="stylesheet" href="/css/legal.css?v=2">
 
-<script src="/js/chrome.js?v=6" defer></script>
+<script src="/js/chrome.js?v=7" defer></script>
 </head>
 
 <body class="authpage legalpage">
@@ -56,21 +56,12 @@
   </nav>
 
   <div class="nr-nav__actions">
-    <div class="nr-theme" role="group" aria-label="Colour theme">
-      <button type="button" class="nr-theme__btn" data-theme-set="light" aria-pressed="false" title="Light">
-        <span class="sr-only">Light theme</span>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 2.6v2.2M12 19.2v2.2M4.2 12H2M22 12h-2.2M6.5 6.5 4.9 4.9M19.1 19.1l-1.6-1.6M17.5 6.5l1.6-1.6M4.9 19.1l1.6-1.6"></path></svg>
-      </button>
-      <button type="button" class="nr-theme__btn" data-theme-set="dark" aria-pressed="false" title="Dark">
-        <span class="sr-only">Dark theme</span>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1Z"></path></svg>
-      </button>
-      <button type="button" class="nr-theme__btn" data-theme-set="auto" aria-pressed="false" title="Match system">
-        <span class="sr-only">Match system theme</span>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 0 1 0 18Z" fill="currentColor" stroke="none"></path></svg>
-      </button>
-    </div>
-    <a class="nr-cta" href="/gallery.html#pricing">Get all from $7</a>
+    <button type="button" class="nr-themebtn" data-theme-cycle aria-label="Colour theme: match system">
+      <svg class="nr-themebtn__i nr-themebtn__i--light" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 2.6v2.2M12 19.2v2.2M4.2 12H2M22 12h-2.2M6.5 6.5 4.9 4.9M19.1 19.1l-1.6-1.6M17.5 6.5l1.6-1.6M4.9 19.1l1.6-1.6"></path></svg>
+      <svg class="nr-themebtn__i nr-themebtn__i--dark" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1Z"></path></svg>
+      <svg class="nr-themebtn__i nr-themebtn__i--auto" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 0 1 0 18Z" fill="currentColor" stroke="none"></path></svg>
+    </button>
+    <a class="nr-cta" href="/gallery.html#pricing" data-nr-buy>Get access</a>
   </div>
 </header>
 

@@ -38,18 +38,18 @@
 })();
 </script>
 
-<link rel="stylesheet" href="css/base.css?v=13">
+<link rel="stylesheet" href="css/base.css?v=14">
 <link rel="stylesheet" href="css/legal.css?v=2">
-<link rel="stylesheet" href="css/gallery.css?v=48">
+<link rel="stylesheet" href="css/gallery.css?v=49">
 <link rel="stylesheet" href="css/templates.css?v=1">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
-<script src="js/chrome.js?v=6" defer></script>
+<script src="js/chrome.js?v=7" defer></script>
 
 <!-- The same orchestrator as the gallery: lazy mounting, fullscreen, the
      gated prompt panel and accounts all behave identically on both shelves. -->
-<script type="module" src="js/gallery/index.js?v=56"></script>
+<script type="module" src="js/gallery/index.js?v=57"></script>
 </head>
 
 <body class="g-body">
@@ -105,21 +105,12 @@
   </nav>
 
   <div class="nr-nav__actions">
-    <div class="nr-theme" role="group" aria-label="Colour theme">
-      <button type="button" class="nr-theme__btn" data-theme-set="light" aria-pressed="false" title="Light">
-        <span class="sr-only">Light theme</span>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 2.6v2.2M12 19.2v2.2M4.2 12H2M22 12h-2.2M6.5 6.5 4.9 4.9M19.1 19.1l-1.6-1.6M17.5 6.5l1.6-1.6M4.9 19.1l1.6-1.6"></path></svg>
-      </button>
-      <button type="button" class="nr-theme__btn" data-theme-set="dark" aria-pressed="false" title="Dark">
-        <span class="sr-only">Dark theme</span>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1Z"></path></svg>
-      </button>
-      <button type="button" class="nr-theme__btn" data-theme-set="auto" aria-pressed="false" title="Match system">
-        <span class="sr-only">Match system theme</span>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 0 1 0 18Z" fill="currentColor" stroke="none"></path></svg>
-      </button>
-    </div>
-    <a class="nr-cta" href="gallery.html#pricing">Get all from $7</a>
+    <button type="button" class="nr-themebtn" data-theme-cycle aria-label="Colour theme: match system">
+      <svg class="nr-themebtn__i nr-themebtn__i--light" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 2.6v2.2M12 19.2v2.2M4.2 12H2M22 12h-2.2M6.5 6.5 4.9 4.9M19.1 19.1l-1.6-1.6M17.5 6.5l1.6-1.6M4.9 19.1l1.6-1.6"></path></svg>
+      <svg class="nr-themebtn__i nr-themebtn__i--dark" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1Z"></path></svg>
+      <svg class="nr-themebtn__i nr-themebtn__i--auto" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 0 1 0 18Z" fill="currentColor" stroke="none"></path></svg>
+    </button>
+    <a class="nr-cta" href="gallery.html#pricing" data-nr-buy>Get access</a>
     <div class="acct" data-account-slot></div>
   </div>
 </header>
@@ -466,21 +457,44 @@
 
   <!-- ============================ OUTRO ============================ -->
   <section class="outro" aria-labelledby="outro-title">
-    <div class="outro__rule"></div>
-    <p class="mono dim">END OF SHELF &mdash; TEMPLATES VOL.01</p>
+    <p class="outro__eyebrow">Ready when you are</p>
     <h2 class="outro__title" id="outro-title">Start from a whole page.</h2>
-    <p class="outro__deck">Every template ships with scroll, touch,
-      resize and reduced-motion handling already solved.</p>
-    <a class="outro__cta" href="gallery.html">
-      <span class="outro__cta-label">BROWSE THE ANIMATIONS</span>
-      <span class="outro__cta-arrow" aria-hidden="true">&#8599;</span>
-    </a>
-    <div class="outro__foot mono dim">
-      <span>NULLRIFT &copy; 2026</span>
-      <span class="legal-links"><a href="privacy.html">Privacy</a> &middot; <a href="terms.html">Terms</a></span>
-      <span>60FPS / 360PX / A11Y</span>
-      <span>nullrift.design</span>
+    <p class="outro__deck">Every template ships as one prompt that builds the full site, with scroll, touch, resize and reduced-motion handling already solved.</p>
+    <div class="outro__actions">
+      <a class="nr-cta" href="gallery.html#pricing" data-nr-buy>See plans</a>
+      <a class="nr-cta nr-cta--ghost" href="gallery.html">Browse animations &rarr;</a>
     </div>
+    <footer class="site-foot">
+      <div class="site-foot__brand">
+        <a class="site-foot__mark" href="index.html">
+          <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false"><circle cx="32" cy="32" r="19"></circle><path d="M14.68 49.32 49.32 14.68"></path></svg>
+          NULLRIFT
+        </a>
+        <p>Live motion systems and whole-site templates, sold as prompts you paste into your AI coding tool.</p>
+        <a class="site-foot__mail" data-contact-mail="NULLRIFT — hello" data-keep-text="1" href="mailto:nullriftdesign@gmail.com">nullriftdesign@gmail.com</a>
+      </div>
+      <nav class="site-foot__col" aria-label="Library">
+        <p class="site-foot__head">Library</p>
+        <a href="gallery.html">Animations</a>
+        <a href="templates.html">Templates</a>
+        <a href="gallery.html#pricing">Pricing</a>
+      </nav>
+      <nav class="site-foot__col" aria-label="Help">
+        <p class="site-foot__head">Help</p>
+        <a href="gallery.html#faq">FAQ</a>
+        <a href="auth.html">Account</a>
+        <a data-contact-mail="NULLRIFT — support" data-keep-text="1" href="mailto:nullriftdesign@gmail.com">Contact</a>
+      </nav>
+      <nav class="site-foot__col" aria-label="Legal">
+        <p class="site-foot__head">Legal</p>
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+      </nav>
+      <div class="site-foot__base">
+        <span>&copy; 2026 NULLRIFT</span>
+        <span class="site-foot__secure"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.2"></rect><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"></path></svg>Checkout handled securely by Polar</span>
+      </div>
+    </footer>
   </section>
 
 </main>
