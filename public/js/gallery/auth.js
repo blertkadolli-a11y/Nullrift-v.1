@@ -264,6 +264,34 @@ export async function startOAuth(provider, redirectTo, remember) {
   location.assign(SUPABASE_URL + '/auth/v1/authorize?' + q.toString());
 }
 
+/* Google's own sign-in button (Google Identity Services). Google signs the
+   visitor in inside its own popup on THIS site, and hands back an ID token —
+   so Google's screen names this site, not the Supabase project address the
+   redirect flow has to pass through. Supabase verifies the token (signature,
+   audience = our Client ID, and the nonce) and returns a normal session.
+
+   The nonce: Google is given the SHA-256 of a random value and puts it in the
+   token; Supabase is given the raw value and checks the two match, so a token
+   lifted from somewhere else cannot be replayed here. */
+export const GOOGLE_CLIENT_ID = '411851977210-eknodbjo89p266nudip6eq4f7adtnqp0.apps.googleusercontent.com';
+
+export async function googleNonce() {
+  const raw = b64url(crypto.getRandomValues(new Uint8Array(24)));
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
+  const hashed = Array.from(new Uint8Array(digest), (x) => x.toString(16).padStart(2, '0')).join('');
+  return { raw, hashed };
+}
+
+export async function signInWithGoogleToken(idToken, rawNonce, remember) {
+  const out = adopt(await post('token?grant_type=id_token', {
+    provider: 'google',
+    id_token: idToken,
+    nonce: rawNonce
+  }), remember);
+  await loadProfile();
+  return out;
+}
+
 export function hasPendingOAuth() {
   return !!unstash();
 }

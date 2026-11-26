@@ -330,3 +330,13 @@
 .auth__legal a { color: var(--text-mid); text-decoration: underline; text-underline-offset: 0.2em; }
 
 .auth__title:focus { outline: none; }
+
+/* Google's own button, drawn by Google inside this slot. It sizes itself to
+   the width it is given; the slot only centres it and matches the row height
+   of the other provider buttons. */
+.auth__gsi {
+  display: flex;
+  justify-content: center;
+  min-height: 44px;
+  color-scheme: normal;
+}

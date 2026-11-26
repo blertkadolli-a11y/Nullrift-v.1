@@ -239,9 +239,86 @@ async function drawProviders() {
   });
   if (current) social.hidden = !(SHOW_SOCIAL[current] && providerCount > 0);
 
+  if (list.indexOf('google') !== -1) upgradeGoogle(wrap.querySelector('[data-provider="google"]'));
+
   if (info.signupDisabled) {
     $$('[data-go="signup"]').forEach((b) => { b.parentElement.hidden = true; });
   }
+}
+
+/* Swap the redirect button for Google's own button, once Google's script has
+   loaded. Google's screen then names this site instead of the Supabase
+   project address. If the script is blocked (an ad blocker, a strict network)
+   the redirect button simply stays, so Google sign-in never disappears. */
+function loadGoogleScript() {
+  return new Promise((resolve, reject) => {
+    if (window.google && window.google.accounts && window.google.accounts.id) { resolve(); return; }
+    const s = document.createElement('script');
+    s.src = 'https://accounts.google.com/gsi/client';
+    s.async = true;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error('gsi_blocked'));
+    document.head.appendChild(s);
+    setTimeout(() => reject(new Error('gsi_timeout')), 8000);
+  });
+}
+
+function siteIsDark() {
+  const t = document.documentElement.dataset.theme;
+  if (t === 'dark') return true;
+  if (t === 'light') return false;
+  return !window.matchMedia || window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
+async function upgradeGoogle(fallback) {
+  if (!fallback || !auth.GOOGLE_CLIENT_ID) return;
+  try { await loadGoogleScript(); } catch (err) { return; }
+
+  let nonce = await auth.googleNonce();
+  const gid = window.google.accounts.id;
+
+  function arm() {
+    gid.initialize({
+      client_id: auth.GOOGLE_CLIENT_ID,
+      nonce: nonce.hashed,
+      ux_mode: 'popup',
+      context: 'signin',
+      itp_support: true,
+      callback: onCredential
+    });
+  }
+
+  async function onCredential(resp) {
+    if (!resp || !resp.credential) return;
+    const form = steps[current];
+    message('Signing you in…', 'ok');
+    try {
+      await auth.signInWithGoogleToken(resp.credential, nonce.raw, form ? rememberFrom(form) : true);
+      finish();
+    } catch (err) {
+      message(err.message);
+      /* A nonce is single-use: arm a fresh one for the next attempt. */
+      nonce = await auth.googleNonce();
+      arm();
+    }
+  }
+
+  arm();
+
+  const slot = document.createElement('div');
+  slot.className = 'auth__gsi';
+  slot.dataset.provider = 'google';
+  fallback.replaceWith(slot);
+  const width = Math.max(220, Math.min(400, Math.round(slot.getBoundingClientRect().width || 360)));
+  gid.renderButton(slot, {
+    type: 'standard',
+    theme: siteIsDark() ? 'filled_black' : 'outline',
+    size: 'large',
+    text: 'continue_with',
+    shape: 'pill',
+    logo_alignment: 'center',
+    width
+  });
 }
 
 /* --------------------------------------------------------------- sign in */
