@@ -45,21 +45,15 @@ pauses (a paused project stops every sign-in).
 2. **Polar → Finance → Account → Verify your identity**, and check the payout account
    (Polar says another member connected it).
 
-## Google / Apple sign-in (your accounts, your secrets)
+## Google sign-in: done
 
-**Google (free, recommended for launch)**
-1. https://console.cloud.google.com → create a project "NULLRIFT".
-2. APIs & Services → OAuth consent screen → External → app name NULLRIFT, your email,
-   authorised domain `supabase.co` (and `nullrift.design` once it is yours) → Publish.
-3. Credentials → Create credentials → OAuth client ID → Web application.
-   - Authorised JavaScript origins: `https://nullrift-v-1.vercel.app`
-   - Authorised redirect URI: `https://ehkhrlecjhyghzmeoakf.supabase.co/auth/v1/callback`
-4. Copy the Client ID and Client secret into Supabase → Authentication → Sign In / Providers
-   → Google → enable → Save. The "Continue with Google" button then appears by itself.
+Google Cloud project **NULLRIFT** (Google Auth Platform, published, no logo so no review).
+Web client **"NULLRIFT website"**: origin `https://nullrift-v-1.vercel.app`, redirect
+`https://ehkhrlecjhyghzmeoakf.supabase.co/auth/v1/callback`. The site uses Google's own
+button (Google Identity Services, `GOOGLE_CLIENT_ID` in `public/js/gallery/auth.js`), so
+Google's screen names the site. Brand verification (shows "NULLRIFT") needs the real domain.
 
-**Apple** needs a paid Apple Developer account ($99/year). Worth it later, not for launch.
-**GitHub** is free and suits a developer audience: GitHub → Settings → Developer settings →
-OAuth Apps → New, callback URL as above, then paste into Supabase → GitHub.
+**Apple** needs a paid Apple Developer account ($99/year). Not needed for launch.
 
 ## When nullrift.design points at Vercel
 
@@ -69,7 +63,9 @@ Tell Claude, or change these from `https://nullrift-v-1.vercel.app` to
   (`/api/payment-webhook`).
 - Supabase → URL Configuration → Site URL.
 - `public/*.html` og:url / og:image tags, `public/sitemap.xml`, `public/robots.txt`.
-- Google OAuth client: add the new origin.
+- Google client "NULLRIFT website": add `https://nullrift.design` to JavaScript origins, add
+  `nullrift.design` to Branding → Authorized domains and update the three Branding links,
+  then submit brand verification so the screen says NULLRIFT.
 - `public/js/chrome.js`: `CANONICAL` (the address every *.vercel.app copy forwards to,
   so a sign-in never splits across two addresses).
 
