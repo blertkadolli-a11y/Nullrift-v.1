@@ -504,6 +504,42 @@ export async function loadEntitlement() {
   }
 }
 
+/* Everything the account page shows: the plan row in full, and (for Monthly)
+   which systems have been opened. Both tables are readable only by their
+   owner (row-level security), with the visitor's own token. */
+export async function loadAccount() {
+  const token = await getAccessToken();
+  if (!token || !session || !session.user) return null;
+  const uid = encodeURIComponent(session.user.id);
+  const get = async (path) => {
+    try {
+      const r = await fetch(SUPABASE_URL + '/rest/v1/' + path, { headers: restHeaders(token) });
+      return r.ok ? r.json() : null;
+    } catch (err) { return null; }
+  };
+  const [ents, unlocks] = await Promise.all([
+    get('entitlements?user_id=eq.' + uid + '&select=tier,expires_at,period_start,period_end,granted_at,created_at,source&limit=1'),
+    get('unlocks?user_id=eq.' + uid + '&select=prompt_id,unlocked_at&order=unlocked_at.desc')
+  ]);
+  const e = Array.isArray(ents) && ents.length ? ents[0] : null;
+  const active = !!e && !(e.expires_at && new Date(e.expires_at).getTime() <= Date.now());
+  return { entitlement: e, active, unlocks: Array.isArray(unlocks) ? unlocks : [] };
+}
+
+/* Ends every session this account has, on every device, then this one. */
+export async function signOutEverywhere() {
+  const token = await getAccessToken();
+  profile = null;
+  save(null);
+  if (!token) return;
+  try {
+    await fetch(SUPABASE_URL + '/auth/v1/logout?scope=global', {
+      method: 'POST',
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + token }
+    });
+  } catch (err) { /* this device is signed out regardless */ }
+}
+
 export async function saveProfile(patch) {
   const token = await getAccessToken();
   if (!token || !session.user) throw new Error('Not signed in.');

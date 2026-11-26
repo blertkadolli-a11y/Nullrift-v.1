@@ -652,6 +652,7 @@ function wireAccount() {
         '<p class="acct__who"><span class="acct__whoname"></span>' +
           '<span class="acct__mail"></span></p>' +
         '<p class="acct__plan" data-acct-plan>Checking your plan…</p>' +
+        '<a class="acct__item acct__item--strong" href="account.html">Account &amp; billing</a>' +
         '<p class="acct__label">Profile picture</p>' +
         '<div class="acct__marks" role="radiogroup" aria-label="Profile picture"></div>' +
         '<button type="button" class="acct__item" data-avatar-pick>Upload a picture…</button>' +
